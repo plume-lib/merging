@@ -1,0 +1,148 @@
+package org.plumelib.mergetools;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import org.junit.jupiter.api.Test;
+import org.plumelib.mergetools.ConflictedFile.CommonLines;
+import org.plumelib.mergetools.ConflictedFile.MergeConflict;
+
+public class MergeJavaImportsDriverTest {
+
+  @Test
+  void testIsCommentLine() {
+    assertTrue(MergeJavaImportsDriver.isCommentLine("// x"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  // x"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  // x\n"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  // x\r"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  // x\r\n"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("/* x */"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */\n"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */\r"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */\r\n"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("/* x */  "));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */  "));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */  \n"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */  \r"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("  /* x */  \r\n"));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("/* // x */  "));
+    assertTrue(MergeJavaImportsDriver.isCommentLine("//*"));
+
+    assertFalse(MergeJavaImportsDriver.isCommentLine("/*/  "));
+    assertFalse(MergeJavaImportsDriver.isCommentLine("  /*/  "));
+    assertFalse(MergeJavaImportsDriver.isCommentLine("  /* x *  "));
+    assertFalse(MergeJavaImportsDriver.isCommentLine("  /* x /  "));
+  }
+
+  void assertMergeCommentwise(String[] left, String[] right, String[] result) {
+    MergeConflict mc = new MergeConflict(left, right, null);
+    CommonLines cl = MergeJavaImportsDriver.mergeCommentwise(mc);
+    assertArrayEquals(result, cl.textLines());
+  }
+
+  @SuppressWarnings("UnusedVariable")
+  @Test
+  void testMergeCommentwise() {
+
+    String[] x = new String[] {"import x;"};
+    String[] xa = new String[] {"import x;", "// comment A"};
+    String[] ax = new String[] {"// comment A", "import x;"};
+    String[] y = new String[] {"import y;"};
+    String[] ya = new String[] {"import y;", "// comment A"};
+    String[] ay = new String[] {"// comment A", "import y;"};
+    String[] z = new String[] {"import z;"};
+    String[] za = new String[] {"import z;", "// comment A"};
+    String[] az = new String[] {"// comment A", "import z;"};
+
+    String[] xy = new String[] {"import x;", "import y;"};
+    String[] xay = new String[] {"import x;", "// comment A", "import y;"};
+    String[] yx = new String[] {"import y;", "import x;"};
+    String[] xz = new String[] {"import x;", "import z;"};
+    String[] xaz = new String[] {"import x;", "// comment A", "import z;"};
+    String[] zx = new String[] {"import z;", "import x;"};
+    String[] yz = new String[] {"import y;", "import z;"};
+    String[] yaz = new String[] {"import y;", "// comment A", "import z;"};
+    String[] zy = new String[] {"import z;", "import y;"};
+
+    String[] xyz = new String[] {"import x;", "import y;", "import z;"};
+    String[] xayz = new String[] {"import x;", "// comment A", "import y;", "import z;"};
+    String[] xyaz = new String[] {"import x;", "import y;", "// comment A", "import z;"};
+    String[] xybz = new String[] {"import x;", "import y;", "// comment B", "import z;"};
+    String[] xaybz =
+        new String[] {"import x;", "// comment A", "import y;", "// comment B", "import z;"};
+    String[] xayaz =
+        new String[] {"import x;", "// comment A", "import y;", "// comment A", "import z;"};
+
+    assertMergeCommentwise(xy, xyz, xyz);
+    assertMergeCommentwise(xyz, xy, xyz);
+    assertMergeCommentwise(x, yz, xyz);
+    assertMergeCommentwise(x, zy, xyz);
+    assertMergeCommentwise(yx, yz, xyz);
+
+    assertMergeCommentwise(xa, xa, xa);
+    assertMergeCommentwise(ax, ax, ax);
+    assertMergeCommentwise(xay, ay, xay);
+
+    assertMergeCommentwise(xa, xa, xa);
+
+    assertMergeCommentwise(xyz, xyz, xyz);
+    assertMergeCommentwise(xayz, xayz, xayz);
+    assertMergeCommentwise(xybz, xybz, xybz);
+    assertMergeCommentwise(xaybz, xaybz, xaybz);
+    assertMergeCommentwise(xayaz, xayaz, xayaz);
+
+    assertMergeCommentwise(xayz, xa, xayz);
+    assertMergeCommentwise(xayz, ay, xayz);
+    assertMergeCommentwise(xyaz, ya, xyaz);
+    assertMergeCommentwise(xyaz, xa, xyaz);
+    assertMergeCommentwise(xaz, yaz, xyaz);
+  }
+
+  void assertMergeJavaImportsDriver(String fileBaseName) {
+    assertMergeJavaImportsDriver(
+        fileBaseName + "A.java",
+        fileBaseName + "B.java",
+        fileBaseName + "Base.java",
+        fileBaseName + "Output.java",
+        fileBaseName + "Goal.java");
+  }
+
+  void assertMergeJavaImportsDriver(
+      String fileA, String fileB, String fileBase, String fileOutput, String fileGoal) {
+    Path pathA = Paths.get("src", "test", "resources", fileA);
+    Path pathB = Paths.get("src", "test", "resources", fileB);
+    Path pathBase = Paths.get("src", "test", "resources", fileBase);
+    Path pathOutput = Paths.get("src", "test", "resources", fileOutput);
+    Path pathGoal = Paths.get("src", "test", "resources", fileGoal);
+    try {
+      Files.copy(pathA, pathOutput, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new Error("Problem copying " + pathA + " to " + pathOutput, e);
+    }
+    MergeJavaImportsDriver.mainHelper(pathOutput, pathBase, pathB);
+    try {
+      assertEquals(
+          -1L,
+          Files.mismatch(pathGoal, pathOutput),
+          "Mismatch between " + pathGoal + " and " + pathOutput);
+    } catch (IOException e) {
+      throw new Error("Problem comparing " + pathGoal + " to " + pathOutput, e);
+    }
+  }
+
+  /// This test gets skipped, and causes other tests not to run.  So, for now, run the tests via a
+  /// Makefile. :-(
+  // @Test
+  // void testMergeJavaImportsDriver() {
+  //   assertMergeJavaImportsDriver("ImportsTest1");
+  //   assertMergeJavaImportsDriver("ImportsTest2");
+  // }
+}

@@ -1,0 +1,13 @@
+buildscript {
+  if (JavaVersion.current() < JavaVersion.VERSION_17) {
+    throw new Error("Use Java 17 or later.")
+  }
+}
+
+plugins {
+  // Apply the foojay-resolver plugin to allow automatic download of JDKs
+  id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
+}
+
+// Project name is read-only in build scripts, and defaults to directory name.
+rootProject.name = 'merging'
