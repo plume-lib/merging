@@ -21,7 +21,7 @@ import org.plumelib.options.Options;
  * <p>This program first does {@code git merge-file}, then it tries to correct conflicts in
  * annotations and tries to improve merges in {@code import} statements.
  */
-@SuppressWarnings({"UnusedMethod", "UnusedVariable", "lock"}) // todo
+@SuppressWarnings({"lock"}) // todo
 public class JavaMergeDriver extends AbstractMergeDriver {
 
   /** If false, don't run `git merge-file`. */

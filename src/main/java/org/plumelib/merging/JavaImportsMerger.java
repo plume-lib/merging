@@ -33,7 +33,7 @@ import org.plumelib.util.CollectionsPlume;
  * This class tries to resolve conflicts in {@code import} statements and to re-insert any {@code
  * import} statements that were removed but are needed for compilation to succeed.
  */
-@SuppressWarnings({"UnusedMethod", "UnusedVariable", "lock", "nullness"}) // todo
+@SuppressWarnings({"lock", "nullness"}) // todo
 public class JavaImportsMerger implements Merger {
 
   /** If true, print diagnostics for debugging. */
@@ -293,24 +293,6 @@ public class JavaImportsMerger implements Merger {
 
     List<String> prunedFileLines = CommonLines.toLines(cls);
     mergeState.setConflictedFile(new ConflictedFile(prunedFileLines, false));
-  }
-
-  /**
-   * Returns the difference in length caused by the hunk.
-   *
-   * @param h a hunk that was merged cleanly by {@code git merge}
-   * @return how much the hunk changed the length of the code
-   */
-  private static int lineChangeSize(Diff3Hunk h) {
-    int lengthDifference = h.section1().lines().size() - h.section3().lines().size();
-    switch (h.kind()) {
-      case ONE_DIFFERS:
-        return -lengthDifference;
-      case THREE_DIFFERS:
-        return lengthDifference;
-      default:
-        throw new Error();
-    }
   }
 
   /**
