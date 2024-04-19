@@ -125,15 +125,6 @@ public class Diff3File {
       checkRep(kind, section1, section2, section3);
     }
 
-    // /**
-    //  * Checks the representation of the receiver object; throws an exception if the receiver is
-    //  * malformed.
-    //  */
-    // @SuppressWarnings("UnusedMethod")
-    // private void checkRep(@UnknownInitialization Diff3Hunk this) {
-    //   checkRep(kind, section1, section2, section3);
-    // }
-
     /**
      * Checks the representation of an object made up of the given fields; throws an exception if
      * the object would be malformed.

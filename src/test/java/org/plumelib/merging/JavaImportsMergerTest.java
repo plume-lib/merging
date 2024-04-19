@@ -55,26 +55,19 @@ public class JavaImportsMergerTest {
     assertEquals(goal, cl.textLines());
   }
 
-  @SuppressWarnings("UnusedVariable")
   @Test
   void testMergeCommentwise() {
 
     List<String> x = List.of("import x;");
     List<String> xa = List.of("import x;", "// comment A");
     List<String> ax = List.of("// comment A", "import x;");
-    List<String> y = List.of("import y;");
     List<String> ya = List.of("import y;", "// comment A");
     List<String> ay = List.of("// comment A", "import y;");
-    List<String> z = List.of("import z;");
-    List<String> za = List.of("import z;", "// comment A");
-    List<String> az = List.of("// comment A", "import z;");
 
     List<String> xy = List.of("import x;", "import y;");
     List<String> xay = List.of("import x;", "// comment A", "import y;");
     List<String> yx = List.of("import y;", "import x;");
-    List<String> xz = List.of("import x;", "import z;");
     List<String> xaz = List.of("import x;", "// comment A", "import z;");
-    List<String> zx = List.of("import z;", "import x;");
     List<String> yz = List.of("import y;", "import z;");
     List<String> yaz = List.of("import y;", "// comment A", "import z;");
     List<String> zy = List.of("import z;", "import y;");
