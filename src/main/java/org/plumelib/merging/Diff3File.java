@@ -1,6 +1,6 @@
-package org.plumelib.mergetools;
+package org.plumelib.merging;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -11,9 +11,8 @@ import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
 
-// I could write this using LineNumberReader instead of reading the
-// entire file at once.  That would be just slightly more efficient,
-// probably, and I wouldn't have to return pairs that include line
+// I could write this using LineNumberReader instead of reading the entire file at once.  That would
+// be just slightly more efficient, probably, and I wouldn't have to return pairs that include line
 // numbers.
 
 /**
@@ -59,7 +58,7 @@ public class Diff3File {
    */
   public static Diff3File parseFile(String filename) {
     try {
-      return parseFileContents(FilesPlume.fileContents(new File(filename)), filename);
+      return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
     } catch (Throwable e) {
       throw new Error(e);
     }
@@ -240,6 +239,7 @@ public class Diff3File {
         if (verbose) {
           System.out.println(
               "Finished parsing 3 sections, ending before line " + i + ": " + filled);
+          System.out.flush();
         }
         return IPair.of(i, filled);
       }

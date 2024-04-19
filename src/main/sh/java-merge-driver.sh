@@ -8,6 +8,12 @@
 # `import` statements that were removed but are needed for compilation to
 # succeed.
 
+# echo "java-merge-driver.sh:" "$@"
+
+SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
+
+# TIMEFORMAT="%3R seconds"
+# time \
 java \
   --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
@@ -15,6 +21,6 @@ java \
   --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-  -cp ../../../build/libs/merging-all.jar \
-  org.plumelib.mergetools.MergeJavaImportsDriver \
+  -cp "${SCRIPTDIR}/../../../build/libs/merge-tools-all.jar" \
+  org.plumelib.merging.JavaMergeDriver \
   "$@"

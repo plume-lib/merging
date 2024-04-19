@@ -1,3 +1,5 @@
+// A adds Path.  B Adds File.
+
 public class ImportsTest {
 
   // This is the main method.

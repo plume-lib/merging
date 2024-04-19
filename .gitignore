@@ -1,9 +1,11 @@
 .gradle
 build
 
+AnnotationsTest*Output.java
+AnnotationsTest*.diff
 ImportsTest*Output.java
-ImportsTest*Output.java
-ImportsTest*Output.java
+ImportsTest*.diff
+*.git-merge
 
 *.class
 

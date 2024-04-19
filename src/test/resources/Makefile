@@ -1,14 +1,34 @@
-test: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff
+test: test-imports test-annotations
 
-%.diff:
+test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff
+
+test-annotations: AnnotationsTest1.diff
+
+# AnnotationsTest2.diff AnnotationsTest3.diff AnnotationsTest4.diff
+
+Imports%.diff:
 	@(cd ../../.. && ./gradlew -q assemble)
 
+	cp -f $(basename $@)A.java $(basename $@).git-merge
+	-git merge-file \
+	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java
+
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	../../main/sh/merge-java-imports-driver.sh \
+	../../main/sh/java-merge-driver.sh --only-imports \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java
-	diff -u $(basename $@)Goal.java $(basename $@)Output.java
+	diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-forward.diff
 
 	cp -f $(basename $@)B.java $(basename $@)Output.java
-	../../main/sh/merge-java-imports-driver.sh \
+	../../main/sh/java-merge-driver.sh --only-imports \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java
-	diff -u $(basename $@)Goal.java $(basename $@)Output.java
+	diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-backward.diff
+
+# Don't test swapping A and B, because the merge was done with one or the other.
+Annotations%.diff:
+	@(cd ../../.. && ./gradlew -q assemble)
+
+	cp -f $(basename $@)Merged.java $(basename $@)Output.java
+	../../main/sh/java-merge-tool.sh --only-annotations \
+	  $(basename $@)Base.java $(basename $@)A.java $(basename $@)B.java $(basename $@)Output.java
+	diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@).diff
+

@@ -1,13 +1,13 @@
-package org.plumelib.mergetools;
+package org.plumelib.merging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
-import org.plumelib.mergetools.Diff3File.Diff3Hunk;
-import org.plumelib.mergetools.Diff3File.Diff3HunkKind;
-import org.plumelib.mergetools.Diff3File.Diff3ParseException;
+import org.plumelib.merging.Diff3File.Diff3Hunk;
+import org.plumelib.merging.Diff3File.Diff3HunkKind;
+import org.plumelib.merging.Diff3File.Diff3ParseException;
 import org.plumelib.util.FilesPlume;
 
 public class Diff3FileTest {

@@ -1,4 +1,4 @@
-package org.plumelib.mergetools;
+package org.plumelib.merging;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.plumelib.util.CollectionsPlume.mapList;
@@ -7,201 +7,93 @@ import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.RemoveUnusedImports;
 import com.sun.source.tree.ImportTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.TerminatesExecution;
-import org.plumelib.mergetools.ConflictedFile.CommonLines;
-import org.plumelib.mergetools.ConflictedFile.ConflictElement;
-import org.plumelib.mergetools.ConflictedFile.MergeConflict;
-import org.plumelib.mergetools.Diff3File.Diff3Hunk;
-import org.plumelib.mergetools.Diff3File.Diff3HunkSection;
-import org.plumelib.mergetools.Diff3File.Diff3ParseException;
-import org.plumelib.mergetools.javacparse.JavacParse;
+import org.plumelib.javacparse.JavacParse;
+import org.plumelib.merging.ConflictedFile.CommonLines;
+import org.plumelib.merging.ConflictedFile.ConflictElement;
+import org.plumelib.merging.ConflictedFile.MergeConflict;
+import org.plumelib.merging.Diff3File.Diff3Hunk;
+import org.plumelib.merging.Diff3File.Diff3HunkSection;
+import org.plumelib.merging.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
 
 /**
- * This is a git merge driver for Java files. A git merge driver takes as input three filenames, for
- * the current, base, and other versions of the file; the merge driver overwrites the current file
- * with the merge result.
- *
- * <p>This program first does {@code git merge-file}, then it tries to re-insert any {@code import}
- * statements that were removed but are needed for compilation to succeed.
+ * This class tries to resolve conflicts in {@code import} statements and to re-insert any {@code
+ * import} statements that were removed but are needed for compilation to succeed.
  */
-@SuppressWarnings({"UnusedMethod", "UnusedVariable", "lock"}) // todo
-public class MergeJavaImportsDriver {
+@SuppressWarnings({"UnusedMethod", "UnusedVariable", "lock", "nullness"}) // todo
+public class JavaImportsMerger implements Merger {
 
   /** If true, print diagnostics for debugging. */
   private static final boolean verbose = false;
 
-  /** Do not instantiate. */
-  private MergeJavaImportsDriver() {
-    throw new Error("Do not instantiate");
-  }
+  // TODO: To prevent re-creation of state, should I pass in an AbstractMerger?
+  // But it can change.
+  // JavaImportsMerger only needs to read the conflicted file.  It doesn't care about anything else.
+  /** Creates a JavaImportsMerger. */
+  public JavaImportsMerger() {}
 
+  // TODO: is an argument needed here??  I would like to prevent re-parsing when there are multiple
+  // mergers in the pipeline.
   /**
-   * A git merge driver to merge a Java file.
+   * Merges the Java imports of the input.
    *
-   * <p>Exit status greater than 128 means to abort the merge.
-   *
-   * @param args the command-line arguments of the merge driver, 3 filenames: current, base, other
+   * @param mergeState the merge state, which is side-effected
    */
-  public static void main(String[] args) {
+  @Override
+  public void merge(MergeState mergeState) {
+
+    ConflictedFile cf = mergeState.conflictedFile();
     if (verbose) {
-      System.out.printf("main arguments: %s%n", Arrays.toString(args));
+      System.out.printf("JavaImportsMerger: conflicted file = %s%n", cf);
     }
-    if (args.length != 3) {
-      String message =
-          String.format(
-              "MergeJavaImportsDriver: expected 3 arguments current, base, other; got %d: %s",
-              args.length, Arrays.toString(args));
+    // Don't check mergeState.hasConflict() because this merger should run
+    // regardless of whether the merge so far is clean.
+
+    String parseError = cf.parseError();
+    if (parseError != null) {
+      String message = "JavaImportsMerger: parse error in merged file: " + parseError;
       System.out.println(message);
       System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
-    }
-    String currentFileName = args[0];
-    String baseFileName = args[1];
-    String otherFileName = args[2];
-
-    Path currentPath = Path.of(currentFileName);
-    Path basePath = Path.of(baseFileName);
-    Path otherPath = Path.of(otherFileName);
-
-    mainHelper(currentPath, basePath, otherPath);
-  }
-
-  /**
-   * Does the work of MergeJavaImportsDriver, except argument parsing.
-   *
-   * @param currentPath the current file; is overwritten by this method
-   * @param basePath the base file
-   * @param otherPath the other file
-   */
-  protected static void mainHelper(Path currentPath, Path basePath, Path otherPath) {
-
-    String currentCode;
-    String baseCode;
-    String otherCode;
-    try {
-      currentCode = new String(Files.readAllBytes(currentPath), UTF_8);
-      baseCode = new String(Files.readAllBytes(basePath), UTF_8);
-      otherCode = new String(Files.readAllBytes(otherPath), UTF_8);
-    } catch (IOException e) {
-      String message = "MergeJavaImportsDriver: trouble reading file: " + e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
+      return;
     }
 
-    // `git merge-file` overwrites the current file, so make a copy of its contents first.
-    Path currentPathCopy;
-    try {
-      currentPathCopy = File.createTempFile("currentFileCopy-", ".java").toPath();
-      Files.copy(currentPath, currentPathCopy, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      currentPathCopy = null;
-      throw new Error("Problem copying " + currentPath + " to " + currentPathCopy, e);
-    }
+    List<MergeConflict> mcs = cf.mergeConflicts();
 
-    ProcessBuilder pb =
-        new ProcessBuilder(
-            "git", "merge-file", currentPath.toString(), basePath.toString(), otherPath.toString());
-    if (verbose) {
-      System.out.printf("About to call: %s%n", pb.command());
-    }
-    int gitMergeFileExitCode;
-    try {
-      Process p = pb.start();
-      gitMergeFileExitCode = p.waitFor();
-    } catch (IOException | InterruptedException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
-    }
-
-    if (verbose) {
-      System.out.printf("gitMergeFileExitCode=%s%n", gitMergeFileExitCode);
-    }
-
-    String gitMergedCode;
-    try {
-      gitMergedCode = new String(Files.readAllBytes(currentPath), UTF_8);
-      if (verbose) {
-        System.out.printf("gitMergedCode=%s%n", gitMergedCode);
-      }
-    } catch (IOException e) {
-      String message = "MergeJavaImportsDriver: trouble reading merged file: " + e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
-    }
-
-    ConflictedFile cf = ConflictedFile.parseFileContents(gitMergedCode);
-    List<ConflictElement> ces = cf.contents();
-    if (verbose) {
-      System.out.printf(
-          "conflicted file (size %s)=%s%n", (ces == null ? "null" : ("" + ces.size())), cf);
-    }
-    if (ces == null) {
-      String message = "MergeJavaImportsDriver: trouble reading merged file: " + cf.error();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
-    }
-    List<MergeConflict> mcs = new ArrayList<>();
-    for (ConflictElement ce : ces) {
-      if (ce instanceof MergeConflict) {
-        mcs.add((MergeConflict) ce);
-      }
-    }
-
-    if (gitMergeFileExitCode == 0) {
-      // There are no merge conflicts, but we should check the imports anyway.
-      assert mcs.isEmpty();
-    } else if (0 < gitMergeFileExitCode && gitMergeFileExitCode <= 127) {
-      // There are merge conflicts.
-      // Proceed only if all the merge conflicts are within the imports.
-      if (mcs.stream().anyMatch(MergeJavaImportsDriver::isOutsideImports)) {
-        System.exit(gitMergeFileExitCode);
-      }
-    } else {
-      // `git merge-file` erred, so abort the merge
-      System.exit(gitMergeFileExitCode);
+    // There are merge conflicts.
+    // Proceed only if all the merge conflicts are within the imports.
+    if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::isOutsideImports)) {
+      return;
     }
 
     // There are no merge conflicts except possibly within the imports.
 
     // TODO: If this is too restrictive, expand it.
     // If an import merge conflict has different comments within it, give up.
-    if (mcs.stream().anyMatch(MergeJavaImportsDriver::hasDifferingComments)) {
-      System.exit(gitMergeFileExitCode);
+    if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::hasDifferingComments)) {
+      return;
     }
 
-    // First, do merges where git showed a conflict.
+    // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
-    for (ConflictElement ce : ces) {
+    for (ConflictElement ce : cf.hunks()) {
       CommonLines cl;
       if (ce instanceof CommonLines) {
         cl = (CommonLines) ce;
       } else if (ce instanceof MergeConflict) {
-        cl = mergeImportsCommentwise((MergeConflict) ce);
+        cl = mergeImportConflictCommentwise((MergeConflict) ce);
         if (verbose) {
           System.out.printf("merged commentwise = %s%n", cl);
         }
@@ -216,58 +108,59 @@ public class MergeJavaImportsDriver {
     // Run diff3 to obtain all the differences.
     ProcessBuilder pbDiff3 =
         new ProcessBuilder(
-            "diff3", currentPathCopy.toString(), basePath.toString(), otherPath.toString());
+            "diff3", mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
     if (verbose) {
-      System.out.printf("About to call: %s%n", pb.command());
+      System.out.printf("About to call: %s%n", pbDiff3.command());
     }
     String diff3Output;
     try {
       Process pDiff3 = pbDiff3.start();
-      int diff3ExitCode = pDiff3.waitFor();
-      if (diff3ExitCode == 2) {
-        // `diff3` erred, so abort the merge
-        System.out.printf("diff3 erred");
-        System.exit(129);
-        throw new Error("unreachable"); // to tell javac that execution does not continue
-      }
       diff3Output = new String(pDiff3.getInputStream().readAllBytes(), UTF_8);
       if (verbose) {
         System.out.println("diff3Output: " + diff3Output);
+      }
+      // It is essential to call waitFor *after* reading the output (from getInputStream()).
+      int diff3ExitCode = pDiff3.waitFor();
+      if (diff3ExitCode != 0 && diff3ExitCode != 1) {
+        // `diff3` erred, so abort the merge
+        String message = "diff3 erred: " + diff3Output;
+        System.out.println(message);
+        System.err.println(message);
+        return;
       }
     } catch (IOException | InterruptedException e) {
       String message = e.getMessage();
       System.out.println(message);
       System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
+      return;
     }
 
     Diff3File diff3file;
     try {
-      diff3file = Diff3File.parseFileContents(diff3Output, currentPathCopy.toString());
+      diff3file = Diff3File.parseFileContents(diff3Output, mergeState.leftFileName);
     } catch (Diff3ParseException e) {
-      System.out.println(e.getMessage());
-      System.exit(129);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
+      String message = e.getMessage();
+      System.out.println(message);
+      System.err.println(message);
+      return;
     }
 
     int startLineOffset = 0;
-    List<String> mergedCodeLines = ConflictedFile.toLines(cls);
+    List<String> mergedFileContentsLines = CommonLines.toLines(cls);
     // TODO: I should probably track how the insertion of import statements has changed where other
     // import statemets should be inserted.
     for (Diff3Hunk h : diff3file.contents()) {
       List<String> lines = h.section2().lines();
       List<String> importStatementsThatMightBeRemoved =
-          CollectionsPlume.filter(lines, MergeJavaImportsDriver::isImportStatement);
+          CollectionsPlume.filter(lines, JavaImportsMerger::isImportStatement);
       if (importStatementsThatMightBeRemoved.isEmpty()) {
         // Merging this hunk did not remove any import statements.
         startLineOffset += h.lineChangeSize();
         continue;
       }
-      String lineSeparator = cf.lineSeparator();
       for (int i = 0; i < importStatementsThatMightBeRemoved.size(); i++) {
         importStatementsThatMightBeRemoved.set(
-            i, importStatementsThatMightBeRemoved.get(i) + lineSeparator);
+            i, importStatementsThatMightBeRemoved.get(i) + System.lineSeparator());
       }
 
       Diff3HunkSection edit;
@@ -290,8 +183,6 @@ public class MergeJavaImportsDriver {
           throw new Error("Unhandled kind: " + h.kind());
       }
 
-      // TODO: Insertion may be expensive because `lines` is an ArrayList.  Maybe change to a
-      // LinkedList just for the insertion operations?
       int startLine;
       switch (edit.command().kind()) {
         case APPEND:
@@ -314,27 +205,29 @@ public class MergeJavaImportsDriver {
       }
       startLine += startLineOffset;
       if (verbose) {
-        System.out.printf("Before inserting at %d: %s%n", startLine, mergedCodeLines);
+        System.out.printf("Before inserting at %d: %s%n", startLine, mergedFileContentsLines);
       }
-      mergedCodeLines.addAll(startLine, importStatementsThatMightBeRemoved);
+      mergedFileContentsLines.addAll(startLine, importStatementsThatMightBeRemoved);
       if (verbose) {
-        System.out.printf("After inserting: %s%n", mergedCodeLines);
+        System.out.printf("After inserting: %s%n", mergedFileContentsLines);
       }
       startLineOffset += h.lineChangeSize();
     }
 
-    String mergedCode = String.join("", mergedCodeLines);
+    String mergedFileContents = String.join("", mergedFileContentsLines);
     if (verbose) {
-      System.out.println("mergedCode=" + mergedCode);
+      System.out.println("mergedFileContents=" + mergedFileContents);
     }
 
-    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(mergedCode);
+    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(mergedFileContents);
     if (mergedCU == null) {
       // Our merge is nonsyntactic, so don't write it out.
-      if (verbose) {
-        System.out.printf("mergedCU is null%n");
-      }
-      System.exit(gitMergeFileExitCode);
+      // The problem might be an earlier stage in the merge pipeline.
+      String message =
+          String.format("Cannot parse: %n%s%nEnd of cannot parse.%n", mergedFileContents);
+      System.out.println(message);
+      System.err.println(message);
+      return;
     }
 
     List<? extends ImportTree> mergedImports = mergedCU.getImports();
@@ -344,24 +237,25 @@ public class MergeJavaImportsDriver {
 
     // TODO: handle static imports
 
-    String gjfCode;
+    String gjfFileContents;
     try {
-      gjfCode = RemoveUnusedImports.removeUnusedImports(mergedCode);
+      gjfFileContents = RemoveUnusedImports.removeUnusedImports(mergedFileContents);
     } catch (FormatterException e) {
       if (verbose) {
         System.out.printf("gjf threw FormatterException: %s%n", e.getMessage());
       }
-      gjfCode = mergedCode;
+      gjfFileContents = mergedFileContents;
     }
-    if (gjfCode.equals(mergedCode)) {
+    if (gjfFileContents.equals(mergedFileContents)) {
       // gjf made no changes.
       if (verbose) {
         System.out.printf("gjf removed no imports%n");
       }
-      writeAndExit(gjfCode, currentPath, 0);
+      mergeState.setConflictedFile(new ConflictedFile(mergedFileContents, false));
+      return;
     }
 
-    JCCompilationUnit gjfCU = JavacParse.parseJavaCode(gjfCode);
+    JCCompilationUnit gjfCU = JavacParse.parseJavaCode(gjfFileContents);
     if (gjfCU == null) {
       throw new Error();
     }
@@ -382,24 +276,23 @@ public class MergeJavaImportsDriver {
     }
 
     if (!removedImports.isEmpty()) {
-      StringJoiner removedImportRegex = new StringJoiner("|", "\\s*import\\s+(", ");\\R?");
-      for (Import i : removedImports) {
-        removedImportRegex.add(i.regexAfterImport());
-      }
-      @SuppressWarnings("regex:argument") // regex constructed via string concatenation
-      Pattern removedImportPattern = Pattern.compile(removedImportRegex.toString());
+      Pattern removedImportPattern = Import.removedImportPattern(removedImports);
 
+      List<ConflictElement> ces = cf.hunks();
       assert ces.size() == cls.size();
       int size = ces.size();
       for (int i = 0; i < size; i++) {
         if (ces.get(i) instanceof MergeConflict) {
+          // TODO: Side-effecting the list is probably a bad idea.  I can return a new one.
           cls.set(i, cls.get(i).removeMatchingLines(removedImportPattern));
         }
       }
     }
 
-    String prunedCode = ConflictedFile.toString(cls);
-    writeAndExit(prunedCode, currentPath, 0);
+    // TODO: I need to turn some conflicts into CommonLines, if they are resolvable.
+
+    List<String> prunedFileLines = CommonLines.toLines(cls);
+    mergeState.setConflictedFile(new ConflictedFile(prunedFileLines, false));
   }
 
   /**
@@ -465,6 +358,21 @@ public class MergeJavaImportsDriver {
     }
 
     /**
+     * Returns a pattern matching all the removed imports.
+     *
+     * @param removedImports the removed imports
+     * @return a pattern matching all the removed imports
+     */
+    @SuppressWarnings("regex:argument") // regex constructed via string concatenation
+    public static Pattern removedImportPattern(List<Import> removedImports) {
+      StringJoiner removedImportRegex = new StringJoiner("|", "\\s*import\\s+(", ")\\s*;\\R?");
+      for (Import i : removedImports) {
+        removedImportRegex.add(i.regexAfterImport());
+      }
+      return Pattern.compile(removedImportRegex.toString());
+    }
+
+    /**
      * Return a regex that matches the text after "import " for this.
      *
      * @return a regex that matches the text after "import "
@@ -504,7 +412,7 @@ public class MergeJavaImportsDriver {
    * @return true if the argument has with non-<code>import</code> lines
    */
   static boolean isOutsideImports(MergeConflict mc) {
-    String[] base = mc.base();
+    List<String> base = mc.base();
     return !(isImportBlock(mc.left())
         && isImportBlock(mc.right())
         && (base == null || isImportBlock(base)));
@@ -517,8 +425,8 @@ public class MergeJavaImportsDriver {
    * @param lines some lines of code
    * @return true if the argument is an import block
    */
-  static boolean isImportBlock(String[] lines) {
-    return Arrays.stream(lines).allMatch(MergeJavaImportsDriver::isImportBlockLine);
+  static boolean isImportBlock(List<String> lines) {
+    return lines.stream().allMatch(JavaImportsMerger::isImportBlockLine);
   }
 
   /**
@@ -559,9 +467,18 @@ public class MergeJavaImportsDriver {
    * @return the result of merging the conflict
    */
   // "protected" so test code can call it.
-  protected static CommonLines mergeImportsCommentwise(MergeConflict mc) {
-    List<String> leftLines = Arrays.asList(mc.left());
-    List<String> rightLines = Arrays.asList(mc.right());
+  protected static CommonLines mergeImportConflictCommentwise(MergeConflict mc) {
+    List<String> leftLines = mc.left();
+    List<String> rightLines = mc.right();
+    int leftLen = leftLines.size();
+    int rightLen = leftLines.size();
+    if (leftLen > rightLen
+        && CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
+      return new CommonLines(leftLines);
+    } else if (rightLen > leftLen
+        && CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
+      return new CommonLines(rightLines);
+    }
 
     List<String> leftComments = commentLines(mc.left());
     List<String> rightComments = commentLines(mc.right());
@@ -577,24 +494,95 @@ public class MergeJavaImportsDriver {
       if (leftCommentIndex == -1 || rightCommentIndex == -1) {
         throw new Error();
       }
-      SortedSet<String> contents = new TreeSet<>();
-      contents.addAll(leftLines.subList(leftIndex, leftCommentIndex));
-      contents.addAll(rightLines.subList(rightIndex, rightCommentIndex));
-      result.addAll(contents);
+      result.addAll(
+          mergeImportsAndSpaces(
+              leftLines.subList(leftIndex, leftCommentIndex),
+              rightLines.subList(rightIndex, rightCommentIndex)));
       result.add(comment);
       leftIndex = leftCommentIndex + 1;
       rightIndex = rightCommentIndex + 1;
     }
-    SortedSet<String> contents = new TreeSet<>();
-    contents.addAll(leftLines.subList(leftIndex, leftLines.size()));
-    contents.addAll(rightLines.subList(rightIndex, rightLines.size()));
-    result.addAll(contents);
+    result.addAll(
+        mergeImportsAndSpaces(
+            leftLines.subList(leftIndex, leftLines.size()),
+            rightLines.subList(rightIndex, rightLines.size())));
 
-    return new CommonLines(result.toArray(new String[0]));
+    return new CommonLines(result);
+  }
+
+  /**
+   * Merge a sub-part of an import merge conflict. The sub-part consists only of import statements
+   * and blank lines.
+   *
+   * <p>One of the two arguments is returned if it is a supersequence of the other. Otherwise, the
+   * import statements are sorted and blank lines are not retained, except at the beginning and end.
+   *
+   * @param leftLines the lines on the left of the merge conflict
+   * @param rightLines the lines on the right of the merge conflict
+   * @return the merged lines
+   */
+  private static List<String> mergeImportsAndSpaces(
+      List<String> leftLines, List<String> rightLines) {
+
+    // `leftLines` and `rightLines` are portions of a merge conflict, so they could be equal.
+    if (leftLines.equals(rightLines)) {
+      return leftLines;
+    }
+    if (leftLines.isEmpty()) {
+      return rightLines;
+    }
+    if (rightLines.isEmpty()) {
+      return leftLines;
+    }
+    int leftLen = leftLines.size();
+    int rightLen = leftLines.size();
+    if (leftLen > rightLen
+        && CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
+      return leftLines;
+    } else if (rightLen > leftLen
+        && CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
+      return rightLines;
+    }
+
+    // If non-null, the empty first line.
+    String firstLineEmpty =
+        (!leftLines.isEmpty() && isBlankLine(leftLines.get(0)))
+            ? leftLines.get(0)
+            : ((!rightLines.isEmpty() && isBlankLine(rightLines.get(0)))
+                ? rightLines.get(0)
+                : null);
+    String lastLineEmpty =
+        (!leftLines.isEmpty() && isBlankLine(leftLines.get(leftLines.size() - 1)))
+            ? leftLines.get(leftLines.size() - 1)
+            : ((!rightLines.isEmpty() && isBlankLine(rightLines.get(rightLines.size() - 1)))
+                ? rightLines.get(rightLines.size() - 1)
+                : null);
+    SortedSet<String> imports = new TreeSet<>();
+    imports.addAll(leftLines);
+    imports.addAll(rightLines);
+    List<String> result = new ArrayList<>(imports.size() + 2);
+    if (firstLineEmpty != null) {
+      result.add(firstLineEmpty);
+    }
+    result.addAll(CollectionsPlume.filter(imports, Predicate.not(JavaImportsMerger::isBlankLine)));
+    if (lastLineEmpty != null) {
+      result.add(lastLineEmpty);
+    }
+    return result;
   }
 
   /** A pattern that matches a string consisting only of whitespace. */
-  private static Pattern whitespacePattern = Pattern.compile("\s*");
+  private static Pattern whitespacePattern = Pattern.compile("\s*\\R*");
+
+  /**
+   * Returns true if the given string is a blank line.
+   *
+   * @param line a string
+   * @return true if the given string is a blank line
+   */
+  private static boolean isBlankLine(String line) {
+    return whitespacePattern.matcher(line).matches();
+  }
 
   // TODO: Should this forbid leading whitespace, to avoid false positive matches?
   /**
@@ -633,7 +621,7 @@ public class MergeJavaImportsDriver {
    * @param lines code lines, each of which may be terminated by a line separator
    * @return the comment lines in the input
    */
-  static List<String> commentLines(String[] lines) {
+  static List<String> commentLines(List<String> lines) {
     List<String> result = new ArrayList<>();
     for (String line : lines) {
       if (isCommentLine(line)) {
@@ -670,125 +658,6 @@ public class MergeJavaImportsDriver {
   private List<? extends ImportTree> getImports(String javaCode) {
     // TODO
     throw new Error("to implement");
-  }
-
-  // I don't really need the base file information, but include it for completeness.
-  /**
-   * Information about the 4 files involved in a 3-way merge.
-   *
-   * @param baseFilename the name of the base file
-   * @param baseJavaCode the contents of the base file
-   * @param leftFilename the name of the left file
-   * @param leftJavaCode the contents of the left file
-   * @param rightFilename the name of the right file
-   * @param rightJavaCode the contents of the right file
-   * @param mergedFilename the name of the merged file
-   * @param mergedJavaCode the contents of the merged file
-   */
-  private record MergeFiles(
-      /** The name of the base file. */
-      String baseFilename,
-      /** The contents of the base file. */
-      String baseJavaCode,
-
-      /** The name of the left file. */
-      String leftFilename,
-      /** The contents of the left file. */
-      String leftJavaCode,
-
-      /** The name of the right file. */
-      String rightFilename,
-      /** The contents of the right file. */
-      String rightJavaCode,
-
-      /** The name of the merged file. */
-      String mergedFilename,
-      /** The contents of the merged file. */
-      String mergedJavaCode) {}
-
-  /**
-   * Parse command-line arguments.
-   *
-   * @param args the command-line arguments
-   * @return the files specified by the command-line arguments; null if the files are not Java files
-   */
-  private static @Nullable MergeFiles parseArgs(String[] args) {
-
-    String baseFilename;
-    String baseJavaCode;
-    String leftFilename;
-    String leftJavaCode;
-    String rightFilename;
-    String rightJavaCode;
-    String mergedFilename;
-    String mergedJavaCode;
-
-    if (args.length == 4) {
-      baseFilename = args[0];
-      leftFilename = args[1];
-      rightFilename = args[2];
-      mergedFilename = args[3];
-    } else if (args.length == 0) {
-      baseFilename = System.getenv("BASE");
-      leftFilename = System.getenv("LOCAL");
-      rightFilename = System.getenv("REMOTE");
-      mergedFilename = System.getenv("MERGED");
-      if (baseFilename == null
-          || leftFilename == null
-          || rightFilename == null
-          || mergedFilename == null) {
-        String message =
-            String.format(
-                "MergeJavaImportsDriver: no arguments given, but null environment variable."
-                    + "  $BASE=%s  $LOCAL=%s  $REMOTE=%s  $MERGED=%s",
-                baseFilename, leftFilename, rightFilename, mergedFilename);
-        System.out.println(message);
-        System.err.println(message);
-        System.exit(2);
-      }
-    } else {
-      String message =
-          String.format(
-              "MergeJavaImportsDriver: expected 0 or 4 arguments, got %d: %s",
-              args.length, Arrays.toString(args));
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(2);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
-    }
-
-    // Perhaps do this check in a non-Java process (that is, before calling this , for efficiency.
-    // TODO: Can I improve this check?  What are the filenames provided to the mergetool?  Can I use
-    // `endsWith()`?
-    if (!(baseFilename.contains(".java")
-        && leftFilename.contains(".java")
-        && rightFilename.contains(".java")
-        && mergedFilename.contains(".java"))) {
-      return null;
-    }
-
-    try {
-      baseJavaCode = new String(Files.readAllBytes(Path.of(baseFilename)), UTF_8);
-      leftJavaCode = new String(Files.readAllBytes(Path.of(leftFilename)), UTF_8);
-      rightJavaCode = new String(Files.readAllBytes(Path.of(rightFilename)), UTF_8);
-      mergedJavaCode = new String(Files.readAllBytes(Path.of(mergedFilename)), UTF_8);
-    } catch (IOException e) {
-      String message = "MergeJavaImportsDriver: trouble reading file: " + e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(2);
-      throw new Error("unreachable"); // to tell javac that execution does not continue
-    }
-
-    return new MergeFiles(
-        baseFilename,
-        baseJavaCode,
-        leftFilename,
-        leftJavaCode,
-        rightFilename,
-        rightJavaCode,
-        mergedFilename,
-        mergedJavaCode);
   }
 
   ///////////////////////////////////////////////////////////////////////////
