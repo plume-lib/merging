@@ -77,9 +77,9 @@ yes | git mergetool --tool=merge-java
 ```
 
 The reason for `yes |` is that `git mergetool` stops and asks after each file
-that wasn't perfectly merged.  This question is not helpful, the `-y`
-command-line argument does not suppress it, and it's tedious to keep typing
-"y".
+that wasn't perfectly merged.  This question is not helpful, the `-y` and
+'--no-prompt` command-line arguments do not suppress it, and it's tedious to
+keep typing "y".
 
 
 #### Setup for use as a merge tool
@@ -97,7 +97,7 @@ There is just one step for setup.
   tool = merge-java
 
 [mergetool.merge-java]
-        cmd = java-merge-tool.sh
+        cmd = java-merge-tool.sh "${BASE}" "${LOCAL}" "${REMOTE}" "${MERGED}"
         trustExitCode = true
 ```
 

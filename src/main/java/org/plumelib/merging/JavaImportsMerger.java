@@ -8,8 +8,6 @@ import com.google.googlejavaformat.java.RemoveUnusedImports;
 import com.sun.source.tree.ImportTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +17,6 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.dataflow.qual.TerminatesExecution;
 import org.plumelib.javacparse.JavacParse;
 import org.plumelib.merging.ConflictedFile.CommonLines;
 import org.plumelib.merging.ConflictedFile.ConflictElement;
@@ -39,14 +36,9 @@ public class JavaImportsMerger implements Merger {
   /** If true, print diagnostics for debugging. */
   private static final boolean verbose = false;
 
-  // TODO: To prevent re-creation of state, should I pass in an AbstractMerger?
-  // But it can change.
-  // JavaImportsMerger only needs to read the conflicted file.  It doesn't care about anything else.
   /** Creates a JavaImportsMerger. */
   public JavaImportsMerger() {}
 
-  // TODO: is an argument needed here??  I would like to prevent re-parsing when there are multiple
-  // mergers in the pipeline.
   /**
    * Merges the Java imports of the input.
    *
@@ -367,24 +359,6 @@ public class JavaImportsMerger implements Merger {
         return identifierRegex;
       }
     }
-  }
-
-  /**
-   * Writes the contents to the file and exits with the given status code.
-   *
-   * @param contents the file contents
-   * @param path the path for the output file
-   * @param status the status code
-   */
-  @TerminatesExecution
-  static void writeAndExit(String contents, Path path, int status) {
-    // TODO: perhaps abstract this out.
-    try (PrintWriter out = new PrintWriter(path.toString(), UTF_8)) {
-      out.print(contents);
-    } catch (IOException e) {
-      throw new Error(e);
-    }
-    System.exit(status);
   }
 
   /**

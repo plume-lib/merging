@@ -57,8 +57,6 @@ public class MergeState {
    */
   private boolean conflictedFileChanged;
 
-  // TODO: Implement the writing back.
-
   /**
    * Creates a MergeState.
    *
@@ -178,10 +176,21 @@ public class MergeState {
   /** Writes the conflicted file back to the file system, if needed. */
   public void writeBack() {
     // TODO: use buffering.
-    if (conflictedFileChanged) {
+    if (conflictedFileChanged || conflictedFile.hasTrivalConflict()) {
+      // System.out.println("Writing back to " + mergedPath.toFile().getAbsolutePath() + ":");
+      // System.out.println(conflictedFile.fileContents());
+      // System.out.println("End of text to be written back.");
+
       // TODO: It may be more efficient not to make one big string.
       FilesPlume.writeString(mergedPath, conflictedFile.fileContents());
       conflictedFileChanged = false;
+
+      // System.out.println("Written back to " + mergedPath.toFile().getAbsolutePath() + ":");
+      // System.out.println(FilesPlume.readString(mergedPath));
+      // System.out.println("End of text that was written back.");
+      // SystemPlume.sleep(100 * 1000);
+      // System.out.println("Sleeping...");
+      // System.out.flush();
     }
   }
 
