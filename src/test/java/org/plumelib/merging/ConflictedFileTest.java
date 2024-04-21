@@ -72,12 +72,12 @@ public class ConflictedFileTest {
       @NonNull List<ConflictElement> hunks2 = cf2.hunks();
       Assertions.assertEquals(2, hunks2.size());
       MergeConflict conflict1 = (MergeConflict) hunks2.get(0);
-      Assertions.assertEquals("1puts 'hola world'\n", conflict1.leftJoined());
-      Assertions.assertEquals("1puts 'hello mundo'\n", conflict1.rightJoined());
+      Assertions.assertEquals("1puts 'hola world'\n", String.join("", conflict1.left()));
+      Assertions.assertEquals("1puts 'hello mundo'\n", String.join("", conflict1.right()));
       Assertions.assertEquals(null, conflict1.base());
       MergeConflict conflict2 = (MergeConflict) hunks2.get(1);
-      Assertions.assertEquals("2puts 'hola world'\n", conflict2.leftJoined());
-      Assertions.assertEquals("2puts 'hello mundo'\n", conflict2.rightJoined());
+      Assertions.assertEquals("2puts 'hola world'\n", String.join("", conflict2.left()));
+      Assertions.assertEquals("2puts 'hello mundo'\n", String.join("", conflict2.right()));
       Assertions.assertEquals("2puts 'hello world'\n", conflict2.baseJoined());
     }
 

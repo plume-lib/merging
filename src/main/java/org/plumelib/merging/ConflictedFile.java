@@ -711,7 +711,6 @@ public class ConflictedFile {
       assert right != null : "@AssumeAssertion(nullness): if left is non-null, so is right";
       ConflictElement ce = MergeConflict.of(left, right, base, conflictStart, i + 1);
       if (ce instanceof CommonLines) {
-        System.out.println("That's a trivial merge: " + ce);
         hasTrivalConflict = true;
       }
       result.add(ce);
@@ -726,11 +725,6 @@ public class ConflictedFile {
     hunks = result;
     if (hasTrivalConflict) {
       resetLinesAndFileContents();
-      System.out.println("Has trivial conflict: ");
-      System.out.println(hunks);
-      System.out.println("Its contents:");
-      System.out.println(fileContents());
-      System.out.println("End of its contents.");
     }
   }
 
