@@ -19,7 +19,7 @@ Here is an example:
 BASE:          EDIT 1:         EDIT 2:
 
 import A.a;    import A.a;    import A.a;
-               import B.b;    import C.c;     // git considers this a conflict
+               import B.b;    import C.c;     // different additions; git considers this a conflict
 import D.d;    import D.d;    import D.d;
 import E.e;                   import E.e;     // edit 1 removed, but edit 2 still needs
 import F.f;    import F.f;    import F.f;

@@ -18,17 +18,14 @@ import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.CollectionsPlume.Replacement;
 import org.plumelib.util.StringsPlume;
 
-/**
- * This is a merger for Java files. It handles conflicts where the edits differ only in adding
- * annotations. It merges such conflicts, accepting the annotations as additions.
- */
-public class JavaAnnotationsMerger implements Merger {
+/** This is a merger that resolves conflicts where the edits are on different but adjacent lines. */
+public class AdjacentMerger implements Merger {
 
   /** If true, produce debugging output. */
   private static boolean verbose = false;
 
-  /** Creates a JavaAnnotationsMerger. */
-  JavaAnnotationsMerger() {}
+  /** Creates a JavaAdjacentMerger. */
+  JavaAdjacentMerger() {}
 
   @Override
   public void merge(MergeState mergeState) {
@@ -38,7 +35,7 @@ public class JavaAnnotationsMerger implements Merger {
 
     ConflictedFile cf = mergeState.conflictedFile();
     if (cf.parseError() != null) {
-      String message = "JavaAnnotationsMerger: trouble reading merged file: " + cf.parseError();
+      String message = "AdjacentMerger: trouble reading merged file: " + cf.parseError();
       System.out.println(message);
       System.err.println(message);
       return;
@@ -92,7 +89,7 @@ public class JavaAnnotationsMerger implements Merger {
       if (verbose) {
         System.err.printf("called diff_main => %s%n%n", diffs);
       }
-      String merged = mergedWithAnnotations(diffs);
+      String merged = mergedWithAdjacent(diffs);
       if (merged != null) {
         replacements.add(
             Replacement.of(mc.start(), mc.end() - 1, Collections.singletonList(merged)));
@@ -118,13 +115,13 @@ public class JavaAnnotationsMerger implements Merger {
    * @param diffs the differences
    * @return the merged differences or null
    */
-  private static @Nullable String mergedWithAnnotations(List<Diff> diffs) {
+  private static @Nullable String mergedWithAdjacent(List<Diff> diffs) {
     StringBuilder result = new StringBuilder();
     for (Diff diff : diffs) {
       switch (diff.operation) {
         case INSERT:
         case DELETE:
-          if (isJavaAnnotations(diff.text)) {
+          if (isJavaAdjacent(diff.text)) {
             result.append(diff.text);
           } else {
             return null;
@@ -160,7 +157,7 @@ public class JavaAnnotationsMerger implements Merger {
     if (regexes.length < 2) {
       throw new Error("not enough arguments to or(): " + Arrays.toString(regexes));
     }
-    List<String> groupedElts = CollectionsPlume.mapList(JavaAnnotationsMerger::group, regexes);
+    List<String> groupedElts = CollectionsPlume.mapList(JavaAdjacentMerger::group, regexes);
     return group(String.join("|", groupedElts));
   }
 
@@ -336,7 +333,7 @@ public class JavaAnnotationsMerger implements Merger {
    * @return true if the given text is one or more Java annotations
    */
   // "protected" to permit tests to access it.
-  protected static boolean isJavaAnnotations(String text) {
+  protected static boolean isJavaAdjacent(String text) {
     text = commentPattern.matcher(text).replaceAll(" ");
     text = text.trim();
     if (text.isEmpty()) {
@@ -377,7 +374,7 @@ public class JavaAnnotationsMerger implements Merger {
 
     // Use this diagnostic to determine which strings are still getting parsed.
     // Perhaps write regular expressions for them to improve performance.
-    // System.out.printf("isJavaAnnotations: %s%n", text);
+    // System.out.printf("isJavaAdjacent: %s%n", text);
 
     JCCompilationUnit mergedCU = JavacParse.parseJavaCode(classText);
     return mergedCU != null;

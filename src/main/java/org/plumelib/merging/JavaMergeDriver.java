@@ -57,7 +57,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
     String[] orig_args = args;
     Options options =
         new Options(
-            "JavaMergeTool [options] basefile leftfile rightfile mergedfile",
+            "JavaMergeDriver [options] basefile leftfile rightfile mergedfile",
             jclo,
             JavaMergeDriver.class);
     args = options.parse(true, orig_args);

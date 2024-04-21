@@ -2,7 +2,7 @@
 
 This project contains git merge drivers and git merge tools.
 
-Currently they only work on Java files.
+Currently some only work on Java files, and some are more general.
 
 Currently they are relatively slow:  about 1/3 second per Java file that was
 modified in both versions to be merged.  Most merges involve few Java files that
@@ -20,6 +20,16 @@ removing a needed `import` statement, even if the merge would be clean.
 * [Java annotations](README-java-annotations.md):  This resolves conflicts in
 favor of retaining a Java annotation, when the only textual difference is in
 annotations.
+
+* [Adjacent](README-adjacent.md): This resolves conflicts when the two edits
+only affect different lines.  By default, git considers edits to different,
+adjacent lines to be a conflict.
+
+You can enable and disable each feature individually, or enable just one feature.
+These command-line arguments are supported by the merge driver and merge tool.  
+ * `--imports`, `--no-imports', `--only-imports` [default: enabled]
+ * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
+ * `--adjacent`, `--no-adjacent', `--only-adjacent` [default: disabled]
 
 
 ## How to use
