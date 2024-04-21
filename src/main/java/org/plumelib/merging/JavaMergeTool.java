@@ -79,7 +79,7 @@ public class JavaMergeTool extends AbstractMergeTool {
       new JavaImportsMerger().merge(ms);
     }
 
-    ms.writeBack();
+    ms.writeBackToBackup();
 
     System.exit(ms.hasConflict() ? 1 : 0);
   }
