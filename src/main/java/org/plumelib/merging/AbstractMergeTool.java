@@ -35,7 +35,9 @@ public class AbstractMergeTool {
   /**
    * Creates an AbstractMergeTool.
    *
-   * @param args command-line arguments; must have length 0 or 4
+   * @param args command-line arguments; must have length 0 or 4. If length 4, the files are base,
+   *     left, right, merged. If length 0, environment variables BASE, LOCAL, REMOTE, and MERGED
+   *     must be set.
    */
   AbstractMergeTool(String[] args) {
 

@@ -57,8 +57,6 @@ public class MergeState {
    */
   private boolean conflictedFileChanged;
 
-  // TODO: Implement the writing back.
-
   /**
    * Creates a MergeState.
    *
@@ -177,12 +175,28 @@ public class MergeState {
 
   /** Writes the conflicted file back to the file system, if needed. */
   public void writeBack() {
-    // TODO: use buffering.
-    if (conflictedFileChanged) {
-      // TODO: It may be more efficient not to make one big string.
-      FilesPlume.writeString(mergedPath, conflictedFile.fileContents());
+    if (conflictedFileChanged || conflictedFile.hasTrivalConflict()) {
+      writeBack(mergedPath);
+      // By default, if a mergetool returns a non-zero status, git discards any edits done by the
+      // mergetool, reverting to the state before the mergetool was run from a backup file. To work
+      // around this, such a tool can write partial results to a *_BACKUP_* file (named analogously
+      // to *_LOCAL_*, *_BASE_*, etc.).
+      if (baseFileName.contains("_BASE_")) {
+        writeBack(Path.of(baseFileName.replace("_BASE_", "_BACKUP_")));
+      }
       conflictedFileChanged = false;
     }
+  }
+
+  /**
+   * Writes the conflicted file back to the given path, unconditionally.
+   *
+   * @param path the path to which to write the conflicted file
+   */
+  private void writeBack(Path path) {
+    // TODO: It may be more efficient not to make one big string, but that inefficiency is
+    // probably so small that it does not matter.
+    FilesPlume.writeString(path, conflictedFile.fileContents());
   }
 
   /**

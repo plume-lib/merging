@@ -18,3 +18,9 @@ java \
   -cp "${SCRIPTDIR}/../../../build/libs/merge-tools-all.jar" \
   org.plumelib.merging.JavaMergeTool \
   "$@"
+
+result=$?
+
+# echo "Result $result for java-merge-tool.sh:" "$@"
+
+exit $result

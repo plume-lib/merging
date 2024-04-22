@@ -50,7 +50,7 @@ public class ConflictedFile {
   // /** If true, output diagnostic information for debugging. */
   // private static final boolean verbose = false;
 
-  // At least one of fileContents and lines is always non-null.
+  // At least one of fileContents, lines, and hunks is always non-null.
   /** The file contents, as a single string. Includes conflict markers. */
   private @MonotonicNonNull String fileContents;
 
@@ -71,6 +71,9 @@ public class ConflictedFile {
 
   /** True if the file contains a conflict. */
   private boolean hasConflict = false;
+
+  /** True if the file had trivial conflicts that were resolved. */
+  private boolean hasTrivalConflict = false;
 
   /**
    * Create a new ConflictedFile.
@@ -255,6 +258,16 @@ public class ConflictedFile {
   }
 
   /**
+   * Returns true if this file contained a "trivial" conflict, where two of base, left, and right
+   * were the same.
+   *
+   * @return true if this file contained a "trivial" conflict
+   */
+  public boolean hasTrivalConflict() {
+    return hasTrivalConflict;
+  }
+
+  /**
    * Returns the contents of the conflicted file, including conflict markers.
    *
    * @return the contents of the conflicted file
@@ -263,7 +276,19 @@ public class ConflictedFile {
   @EnsuresNonNull("fileContents")
   public String fileContents() {
     if (fileContents == null) {
-      fileContents = String.join("", lines());
+      if (lines != null) {
+        fileContents = String.join("", lines());
+      } else if (hunks != null) {
+        StringBuilder sb = new StringBuilder();
+        for (ConflictElement ce : hunks) {
+          for (String line : ce.toLines()) {
+            sb.append(line);
+          }
+        }
+        fileContents = sb.toString();
+      } else {
+        throw new Error("too many null values");
+      }
     }
     return fileContents;
   }
@@ -278,7 +303,16 @@ public class ConflictedFile {
   @EnsuresNonNull("lines")
   public List<String> lines() {
     if (lines == null) {
-      lines = StringsPlume.splitLinesRetainSeparators(fileContents());
+      if (fileContents != null) {
+        lines = StringsPlume.splitLinesRetainSeparators(fileContents);
+      } else if (hunks != null) {
+        lines = new ArrayList<String>();
+        for (ConflictElement ce : hunks) {
+          lines.addAll(ce.toLines());
+        }
+      } else {
+        throw new Error("too many null values");
+      }
     }
     return lines;
   }
@@ -299,7 +333,14 @@ public class ConflictedFile {
   }
 
   /** One element of a conflicted file: either {@link MergeConflict} or {@link CommonLines}. */
-  public static interface ConflictElement {}
+  public static interface ConflictElement {
+    /**
+     * Returns the lines in the confict-file representation of this.
+     *
+     * @return the lines in the confict-file representation of this
+     */
+    public List<String> toLines();
+  }
 
   /** A single merge conflict (part of a conflicted file). */
   // This cannot be a record because I don't want the default constructor to be public.
@@ -311,7 +352,7 @@ public class ConflictedFile {
     List<String> right;
 
     /** The base text; empty string means empty, null means unknown. */
-    @Nullable List<String> base;
+    @MonotonicNonNull List<String> base;
 
     /** The first line in the conflict --- that is, the line with {@code <<<<<<}. */
     int start;
@@ -435,34 +476,35 @@ public class ConflictedFile {
     }
 
     /**
-     * Returns the left text as a single string. Is expensive if there are many lines.
-     *
-     * @return the left text as a single string
-     */
-    public String leftJoined() {
-      return String.join("", left);
-    }
-
-    /**
-     * Returns the right text as a single string. Is expensive if there are many lines.
-     *
-     * @return the right text as a single string
-     */
-    public String rightJoined() {
-      return String.join("", right);
-    }
-
-    /**
      * Returns the base text as a single string. Is expensive if there are many lines.
+     *
+     * <p>This exists for the convenience of testing.
      *
      * @return the base text as a single string
      */
-    public @Nullable String baseJoined() {
+    protected @Nullable String baseJoined() {
       if (base == null) {
         return null;
       } else {
         return String.join("", base);
       }
+    }
+
+    @Override
+    public List<String> toLines() {
+      List<String> result =
+          new ArrayList<>(left.size() + right.size() + (base == null ? 0 : (base.size() + 1)) + 3);
+      // TODO: Use the file separator from the file.
+      result.add("<<<<<<< OURS" + System.lineSeparator());
+      result.addAll(left);
+      if (base != null) {
+        result.add("||||||| BASE" + System.lineSeparator());
+        result.addAll(base);
+      }
+      result.add("=======" + System.lineSeparator());
+      result.addAll(right);
+      result.add(">>>>>>> THEIRS" + System.lineSeparator());
+      return result;
     }
 
     @Override
@@ -492,6 +534,11 @@ public class ConflictedFile {
     @Override
     public String toString(@GuardSatisfied CommonLines this) {
       return textLines.toString();
+    }
+
+    @Override
+    public List<String> toLines() {
+      return textLines;
     }
 
     /**
@@ -663,7 +710,11 @@ public class ConflictedFile {
           return;
         }
         assert right != null : "@AssumeAssertion(nullness): if left is non-null, so is right";
-        result.add(MergeConflict.of(left, right, base, conflictStart, i + 1));
+        ConflictElement ce = MergeConflict.of(left, right, base, conflictStart, i + 1);
+        if (ce instanceof CommonLines) {
+          hasTrivalConflict = true;
+        }
+        result.add(ce);
         lastConflictEnder = i;
         i++;
       } // while (i < numLines)
@@ -673,9 +724,22 @@ public class ConflictedFile {
         result.add(new CommonLines(lastCommon));
       }
       hunks = result;
+      if (hasTrivalConflict) {
+        resetLinesAndFileContents();
+      }
     } catch (Throwable e) {
       System.out.println(this);
       throw e;
     }
+  }
+
+  /**
+   * Sets {@link #lines} and {@link fileContents} to null. This is a separate method so that a
+   * {@code @SuppressWarnings} annotation can be written on it.
+   */
+  @SuppressWarnings("nullness:assignment") // resets the data structure
+  private void resetLinesAndFileContents() {
+    lines = null;
+    fileContents = null;
   }
 }
