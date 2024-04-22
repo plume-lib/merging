@@ -25,7 +25,7 @@ public class AdjacentMerger implements Merger {
   private static boolean verbose = false;
 
   /** Creates a JavaAdjacentMerger. */
-  JavaAdjacentMerger() {}
+  AdjacentMerger() {}
 
   @Override
   public void merge(MergeState mergeState) {
@@ -55,8 +55,8 @@ public class AdjacentMerger implements Merger {
   }
 
   /**
-   * Given a conflicted file, returns a new file contents, possibly with some conflicts resolved.
-   * Returns null if no changes were made.
+   * Given a conflicted file, returns a new one, possibly with some conflicts resolved. Returns null
+   * if no changes were made.
    *
    * @param cf the conflicted file, which should not be erroneous
    * @return the new file contents, or null if no changes were made
@@ -80,12 +80,17 @@ public class AdjacentMerger implements Merger {
         continue;
       }
       MergeConflict mc = (MergeConflict) ce;
-      String leftLines = StringsPlume.join("", mc.left());
-      String rightLines = StringsPlume.join("", mc.right());
+      String leftContent = StringsPlume.join("", mc.left());
+      String rightContent = StringsPlume.join("", mc.right());
       if (verbose) {
-        System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", leftLines, rightLines);
+        System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", leftContent, rightContent);
       }
-      List<Diff> diffs = dmp.diff_main(leftLines, rightLines);
+
+      // TODO
+
+      // List<Patch> patches = dmp.patch_make(DmpLibrary.diffByLines(leftContent, rightContent));
+
+      List<Diff> diffs = dmp.diff_main(leftContent, rightContent);
       if (verbose) {
         System.err.printf("called diff_main => %s%n%n", diffs);
       }
@@ -157,7 +162,7 @@ public class AdjacentMerger implements Merger {
     if (regexes.length < 2) {
       throw new Error("not enough arguments to or(): " + Arrays.toString(regexes));
     }
-    List<String> groupedElts = CollectionsPlume.mapList(JavaAdjacentMerger::group, regexes);
+    List<String> groupedElts = CollectionsPlume.mapList(AdjacentMerger::group, regexes);
     return group(String.join("|", groupedElts));
   }
 

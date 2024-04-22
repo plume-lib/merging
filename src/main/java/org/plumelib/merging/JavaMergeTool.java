@@ -62,25 +62,35 @@ public class JavaMergeTool extends AbstractMergeTool {
   /** Does the work of JavaMergeTool. */
   public void mainHelper() {
 
-    if (!mergedFileName.endsWith(".java")) {
-      System.exit(1);
+    try {
+
+      if (!mergedFileName.endsWith(".java")) {
+        System.exit(1);
+      }
+
+      MergeState ms =
+          new MergeState(baseFileName, leftFileName, rightFileName, mergedFileName, true);
+
+      // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
+
+      // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
+      if (jclo.annotations) {
+        new JavaAnnotationsMerger().merge(ms);
+      }
+
+      // Imports should come last, because it does nothing unless every non-import conflict
+      // has already been resolved.
+      if (jclo.imports) {
+        new JavaImportsMerger().merge(ms);
+      }
+
+      ms.writeBack();
+
+      System.exit(ms.hasConflict() ? 1 : 0);
+    } catch (Throwable t) {
+      t.printStackTrace(System.out);
+      t.printStackTrace(System.err);
+      System.exit(129);
     }
-
-    MergeState ms = new MergeState(baseFileName, leftFileName, rightFileName, mergedFileName, true);
-
-    // TODO: common (but short) code with JavaMergeDriver and JavaMergeTool.
-
-    // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
-    if (jclo.annotations) {
-      new JavaAnnotationsMerger().merge(ms);
-    }
-
-    if (jclo.imports) {
-      new JavaImportsMerger().merge(ms);
-    }
-
-    ms.writeBackToBackup();
-
-    System.exit(ms.hasConflict() ? 1 : 0);
   }
 }

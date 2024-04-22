@@ -58,8 +58,8 @@ public class JavaAnnotationsMerger implements Merger {
   }
 
   /**
-   * Given a conflicted file, returns a new file contents, possibly with some conflicts resolved.
-   * Returns null if no changes were made.
+   * Given a conflicted file, returns a new one, possibly with some conflicts resolved. Returns null
+   * if no changes were made.
    *
    * @param cf the conflicted file, which should not be erroneous
    * @return the new file contents, or null if no changes were made
