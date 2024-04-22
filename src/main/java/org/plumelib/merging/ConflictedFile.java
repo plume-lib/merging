@@ -614,117 +614,122 @@ public class ConflictedFile {
     "index" // todo
   })
   private void parse() {
-    int numLines = lines().size();
+    try {
+      int numLines = lines().size();
 
-    List<ConflictElement> result = new ArrayList<>();
+      List<ConflictElement> result = new ArrayList<>();
 
-    int i = 0;
-    int lastConflictEnder = -1;
-    while (i < numLines) {
-      String line = lines.get(i);
-      if (!line.startsWith("<<<<<<")) {
-        i++;
-        continue;
-      }
-
-      int conflictStart = i;
-
-      // We found <<<<<<, the left conflict start marker.
-      if (i > lastConflictEnder + 1) {
-        List<String> commonText = lines.subList(lastConflictEnder + 1, i);
-        if (commonText.size() != 0) {
-          result.add(new CommonLines(commonText));
-        }
-      }
-      int leftConflictMarker = i;
-      i++;
-      // Determine the left text, and the base text if it exists.
-      List<String> left = null;
-      boolean foundBaseSeparator = false;
+      int i = 0;
+      int lastConflictEnder = -1;
       while (i < numLines) {
-        line = lines.get(i);
-        foundBaseSeparator = line.startsWith("||||||");
-        if (foundBaseSeparator || line.startsWith("======")) {
-          left = lines.subList(leftConflictMarker + 1, i);
-          break;
-        } else {
+        String line = lines.get(i);
+        if (!line.startsWith("<<<<<<")) {
           i++;
+          continue;
         }
-      }
-      if (i == numLines) {
-        parseError =
-            "No ====== or |||||| line found after <<<<<< on line " + (leftConflictMarker + 1);
-        return;
-      }
-      assert left != null : "@AssumeAssertion(nullness): due to test of i==numLines";
-      List<String> base = null;
-      int baseConflictMarker = -1;
-      if (foundBaseSeparator) {
-        // We found ||||||, still need to find ======.
-        baseConflictMarker = i;
+
+        int conflictStart = i;
+
+        // We found <<<<<<, the left conflict start marker.
+        if (i > lastConflictEnder + 1) {
+          List<String> commonText = lines.subList(lastConflictEnder + 1, i);
+          if (commonText.size() != 0) {
+            result.add(new CommonLines(commonText));
+          }
+        }
+        int leftConflictMarker = i;
         i++;
+        // Determine the left text, and the base text if it exists.
+        List<String> left = null;
+        boolean foundBaseSeparator = false;
         while (i < numLines) {
           line = lines.get(i);
-          if (line.startsWith("======")) {
-            base = lines.subList(baseConflictMarker + 1, i);
+          foundBaseSeparator = line.startsWith("||||||");
+          if (foundBaseSeparator || line.startsWith("======")) {
+            left = lines.subList(leftConflictMarker + 1, i);
+            break;
+          } else {
+            i++;
+          }
+        }
+        if (i == numLines) {
+          parseError =
+              "No ====== or |||||| line found after <<<<<< on line " + (leftConflictMarker + 1);
+          return;
+        }
+        assert left != null : "@AssumeAssertion(nullness): due to test of i==numLines";
+        List<String> base = null;
+        int baseConflictMarker = -1;
+        if (foundBaseSeparator) {
+          // We found ||||||, still need to find ======.
+          baseConflictMarker = i;
+          i++;
+          while (i < numLines) {
+            line = lines.get(i);
+            if (line.startsWith("======")) {
+              base = lines.subList(baseConflictMarker + 1, i);
+              break;
+            }
+            i++;
+          }
+          if (i == numLines) {
+            String msg1 = "No ====== line found after <<<<<< on line " + (leftConflictMarker + 1);
+            String msg2;
+            if (foundBaseSeparator) {
+              msg2 = " and |||||| on line " + (baseConflictMarker + 1);
+            } else {
+              msg2 = "";
+            }
+            parseError = msg1 + msg2;
+            return;
+          }
+        }
+        // We have read the left conflict text, and the base conflict text if any.
+        @SuppressWarnings("interning:not.interned")
+        boolean sameLine = (line == lines.get(i));
+        assert sameLine;
+        assert line.startsWith("======")
+            : "line " + (i + 1) + " doesn't start with \"======\": " + line;
+        int rightConflictMarker = i;
+        i++;
+        List<String> right = null;
+        while (i < numLines) {
+          line = lines.get(i);
+          if (line.startsWith(">>>>>>")) {
+            right = lines.subList(rightConflictMarker + 1, i);
             break;
           }
           i++;
         }
-        if (i == numLines) {
-          String msg1 = "No ====== line found after <<<<<< on line " + (leftConflictMarker + 1);
-          String msg2;
-          if (foundBaseSeparator) {
-            msg2 = " and |||||| on line " + (baseConflictMarker + 1);
-          } else {
-            msg2 = "";
-          }
-          parseError = msg1 + msg2;
+        if (right == null) {
+          parseError =
+              "No >>>>>> line found after <<<<<< on line "
+                  + (leftConflictMarker + 1)
+                  + " and ====== on line "
+                  + (rightConflictMarker + 1);
           return;
         }
-      }
-      // We have read the left conflict text, and the base conflict text if any.
-      @SuppressWarnings("interning:not.interned")
-      boolean sameLine = (line == lines.get(i));
-      assert sameLine;
-      assert line.startsWith("======")
-          : "line " + (i + 1) + " doesn't start with \"======\": " + line;
-      int rightConflictMarker = i;
-      i++;
-      List<String> right = null;
-      while (i < numLines) {
-        line = lines.get(i);
-        if (line.startsWith(">>>>>>")) {
-          right = lines.subList(rightConflictMarker + 1, i);
-          break;
+        assert right != null : "@AssumeAssertion(nullness): if left is non-null, so is right";
+        ConflictElement ce = MergeConflict.of(left, right, base, conflictStart, i + 1);
+        if (ce instanceof CommonLines) {
+          hasTrivalConflict = true;
         }
+        result.add(ce);
+        lastConflictEnder = i;
         i++;
+      } // while (i < numLines)
+      assert i == numLines;
+      List<String> lastCommon = lines.subList(lastConflictEnder + 1, i);
+      if (!lastCommon.isEmpty()) {
+        result.add(new CommonLines(lastCommon));
       }
-      if (right == null) {
-        parseError =
-            "No >>>>>> line found after <<<<<< on line "
-                + (leftConflictMarker + 1)
-                + " and ====== on line "
-                + (rightConflictMarker + 1);
-        return;
+      hunks = result;
+      if (hasTrivalConflict) {
+        resetLinesAndFileContents();
       }
-      assert right != null : "@AssumeAssertion(nullness): if left is non-null, so is right";
-      ConflictElement ce = MergeConflict.of(left, right, base, conflictStart, i + 1);
-      if (ce instanceof CommonLines) {
-        hasTrivalConflict = true;
-      }
-      result.add(ce);
-      lastConflictEnder = i;
-      i++;
-    } // while (i < numLines)
-    assert i == numLines;
-    List<String> lastCommon = lines.subList(lastConflictEnder + 1, i);
-    if (!lastCommon.isEmpty()) {
-      result.add(new CommonLines(lastCommon));
-    }
-    hunks = result;
-    if (hasTrivalConflict) {
-      resetLinesAndFileContents();
+    } catch (Throwable e) {
+      System.out.println(this);
+      throw e;
     }
   }
 
