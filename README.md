@@ -35,6 +35,8 @@ annotations.
 
 3. Put directory `.../merge-tools/src/main/sh/` on your PATH,
 adjusting "..." according to where you cloned this repository.
+After changing a dotfile to set PATH, you may need to log out
+and log back in again to have the change take effect.
 (Or, use the absolute pathname in uses of `*.sh` files below.)
 
 
