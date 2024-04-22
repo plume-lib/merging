@@ -49,8 +49,8 @@ driver whenever you do a git merge of Java files.
 
 ```
 [merge "merge-java"]
-  name = Merge Java files
-  driver = java-merge-driver.sh "%A" "%O" "%B"
+        name = Merge Java files
+        driver = java-merge-driver.sh "%A" "%O" "%B"
 ```
 
 2. In a gitattributes file, add:
@@ -70,7 +70,7 @@ gitattributes file.  The user-level gitattributes file is by default
 
 ### How to use as a merge tool
 
-First, do the setup just below.
+First, edit your `~/.gitconfig` file as shown below.
 
 Run the following after you do a git merge that leaves conflicts:
 
@@ -84,19 +84,17 @@ that wasn't perfectly merged.  This question is not helpful, the `-y` and
 keep typing "y".
 
 
-#### Setup for use as a merge tool
+#### `~/.gitconfig` setup for use as a merge tool
 
-There is just one step for setup.
-
-1. In your `~/.gitconfig` file, add:
+In your `~/.gitconfig` file, add:
 
 ```
 [merge]
 # Show original in addition to the two conflicting edits.
-  conflictstyle = zdiff3
+        conflictstyle = zdiff3
 
 [merge]
-  tool = merge-java
+        tool = merge-java
 
 [mergetool.merge-java]
         cmd = java-merge-tool.sh "${BASE}" "${LOCAL}" "${REMOTE}" "${MERGED}"
@@ -107,8 +105,7 @@ There is just one step for setup.
 ## Git merge terminology
 
 A **merge driver** is automatically called during `git merge` whenever no two of
-{base,edit1,edit2} are the same.  It observes the original version of the base
-file and the two edited files.  It writes a merged file, which may or may not
+{base,edit1,edit2} are the same.  It writes a merged file, which may or may not
 contain conflict markers.
 
 A **merge tool** is called manually by the programmer.  For each file that
@@ -117,8 +114,8 @@ edit2, and the conflicted merge (which the merge tool can overwrite with a new
 merge result).  If the merge driver produced a clean merge for a given file,
 then the merge tool is not run on the file.
 
-After running `git merge`, you might run a merge tool to resolve further
-conflicts (possibly after manually resolving some of the conflicts).
+After running `git merge` (and perhaps manually resolving some of the
+conflicts), you might run a merge tool to resolve further conflicts.
 
 
 ## License
