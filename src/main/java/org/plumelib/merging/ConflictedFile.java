@@ -11,6 +11,7 @@ import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.Pure;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.StringsPlume;
@@ -435,6 +436,7 @@ public class ConflictedFile {
      *
      * @return the base text
      */
+    @Pure
     public @Nullable List<String> base() {
       return base;
     }
@@ -444,6 +446,7 @@ public class ConflictedFile {
      *
      * @return the left text
      */
+    @Pure
     public List<String> left() {
       return left;
     }
@@ -453,6 +456,7 @@ public class ConflictedFile {
      *
      * @return the right text
      */
+    @Pure
     public List<String> right() {
       return right;
     }
@@ -462,6 +466,7 @@ public class ConflictedFile {
      *
      * @return the first line in the conflict
      */
+    @Pure
     public int start() {
       return start;
     }
@@ -471,6 +476,7 @@ public class ConflictedFile {
      *
      * @return the line after the conflict
      */
+    @Pure
     public int end() {
       return end;
     }

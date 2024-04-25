@@ -3,6 +3,7 @@ package org.plumelib.merging;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import name.fraser.neil.plaintext.diff_match_patch.Operation;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
@@ -11,14 +12,13 @@ import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
 
 /**
- * A RieDiff is one of the operations "equal", "replace", or "insert".
+ * A RDiff is one of the operations "equal", "replace", or "insert".
  *
- * <p>I am hopeful this representation will be easier to work with.
- *
- * <p>The edit operations of many diff tools are "insert", "delete", and "equal".
+ * <p>By contrast, the edit operations of {@link diff_match_patch} are "insert", "delete", and
+ * "equal".
  */
 @SuppressWarnings({"index:argument", "lowerbound:argument"})
-public abstract class RieDiff {
+public abstract class RDiff {
 
   /**
    * Returns the text that the operation processes.
@@ -35,60 +35,42 @@ public abstract class RieDiff {
   public abstract String postText();
 
   /**
-   * Returns the size of the text that the operation processes.
+   * Returns true if this RDiff supports splitting.
    *
-   * @return the size of the text that the operation processes
-   */
-  public int preLength() {
-    return preText().length();
-  }
-
-  /**
-   * Returns the size of the text that the operat produces.
-   *
-   * @return the size of the text that the operation produces
-   */
-  public int postLength() {
-    return postText().length();
-  }
-
-  /**
-   * Returns true if this RieDiff supports splitting.
-   *
-   * @return true if this RieDiff supports splitting
+   * @return true if this RDiff supports splitting
    */
   public boolean canSplit() {
     return false;
   }
 
   /**
-   * Returns a RieDiff that is the prefix of this one, with the given preLength.
+   * Returns a RDiff that is the prefix of this one, with the given preLength.
    *
-   * <p>For any RieDiff {@code r}, the effect of {@code r} is the same as the combined effect of
+   * <p>For any RDiff {@code r}, the effect of {@code r} is the same as the combined effect of
    * {@code r.beforeSplit(n)} and {@code r.afterSplit(n)}.
    *
-   * @param len the length of the returned RieDiff
-   * @return a RieDiff that does the first {@code len} edits of this one
+   * @param len the length of the returned RDiff
+   * @return a RDiff that does the first {@code len} edits of this one
    */
-  public RieDiff beforeSplit(int len) {
+  public RDiff beforeSplit(int len) {
     throw new Error("Don't split " + this);
   }
 
   /**
-   * Returns a RieDiff that is the suffix of this one, after the given preLength.
+   * Returns a RDiff that is the suffix of this one, after the given preLength.
    *
-   * <p>For any RieDiff {@code r}, the effect of {@code r} is the same as the combined effect of
+   * <p>For any RDiff {@code r}, the effect of {@code r} is the same as the combined effect of
    * {@code r.beforeSplit(n)} and {@code r.afterSplit(n)}.
    *
-   * @param len where the returned RieDiff starts (within this one)
-   * @return a RieDiff that does all but the first {@code len} edits of this one
+   * @param len where the returned RDiff starts (within this one)
+   * @return a RDiff that does all but the first {@code len} edits of this one
    */
-  public RieDiff afterSplit(int len) {
+  public RDiff afterSplit(int len) {
     throw new Error("Don't split " + this);
   }
 
   /** A replacement operation. */
-  public static class Replace extends RieDiff {
+  public static class Replace extends RDiff {
     /** The text being replaced. */
     String before;
 
@@ -113,7 +95,7 @@ public abstract class RieDiff {
      * @param after the replacement text
      * @return an operation for the replacement
      */
-    public static RieDiff of(String before, String after) {
+    public static RDiff of(String before, String after) {
       if (before.equals(after)) {
         if (before.equals("")) {
           return NoOp.it;
@@ -147,7 +129,7 @@ public abstract class RieDiff {
 
   // TODO: Represent this via a replacement operation?
   /** An insertion operation. */
-  public static class Insert extends RieDiff {
+  public static class Insert extends RDiff {
     /** The text being inserted. */
     String text;
 
@@ -177,7 +159,7 @@ public abstract class RieDiff {
   }
 
   /** An equality operation. */
-  public static class Equal extends RieDiff {
+  public static class Equal extends RDiff {
     /** The text that is unchanged. */
     String text;
 
@@ -201,14 +183,14 @@ public abstract class RieDiff {
     }
 
     @Override
-    public RieDiff beforeSplit(int len) {
+    public RDiff beforeSplit(int len) {
       assert 0 < len;
       assert len < text.length();
       return new Equal(text.substring(0, len));
     }
 
     @Override
-    public RieDiff afterSplit(int len) {
+    public RDiff afterSplit(int len) {
       assert 0 < len;
       assert len < text.length();
       return new Equal(text.substring(len));
@@ -221,7 +203,7 @@ public abstract class RieDiff {
   }
 
   /** A no-op operation, which transforms "" into "". */
-  public static class NoOp extends RieDiff {
+  public static class NoOp extends RDiff {
 
     /** The no-op operation. */
     public static final NoOp it = new NoOp();
@@ -246,13 +228,13 @@ public abstract class RieDiff {
   }
 
   /**
-   * Converts a list of diff_match_patch.Diff to a list of RieDiff.
+   * Converts a list of diff_match_patch.Diff to a list of RDiff.
    *
    * @param diffs a list of diff_match_patch.Diff
-   * @return an equivalent list of RieDiff
+   * @return an equivalent list of RDiff
    */
-  static List<RieDiff> diffsToRieDiffs(List<Diff> diffs) {
-    List<RieDiff> result = new ArrayList<>();
+  static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
+    List<RDiff> result = new ArrayList<>();
 
     // prev is always a deletion
     Diff prev = null;
@@ -293,49 +275,52 @@ public abstract class RieDiff {
 
   // TODO: Make the resulting lists have equal length?
   /**
-   * Breaks {@link Equal} RieDiffs so that, for every RieDiff in either output list, there is
-   * RieDiff in the other output list that starts in the same character location (in the original
-   * text). If this is not possible, return null.
+   * Breaks {@link Equal} RDiffs so that, for every RDiff in either output list, there is RDiff in
+   * the other output list that starts in the same character location (in the original text). If
+   * this is not possible, return null.
    *
    * @param edits1 edits to a text
    * @param edits2 different edits to the same text
    * @return new lists with aligned diffs
    */
-  static @Nullable IPair<List<RieDiff>, List<RieDiff>> align(
-      List<RieDiff> edits1, List<RieDiff> edits2) {
-    Iterator<RieDiff> itor1 = edits1.iterator();
-    Iterator<RieDiff> itor2 = edits2.iterator();
-    RieDiff edit1 = itor1.hasNext() ? itor1.next() : null;
-    RieDiff edit2 = itor2.hasNext() ? itor2.next() : null;
+  static @Nullable IPair<List<RDiff>, List<RDiff>> align(List<RDiff> edits1, List<RDiff> edits2) {
+    Iterator<RDiff> itor1 = edits1.iterator();
+    Iterator<RDiff> itor2 = edits2.iterator();
+    RDiff edit1 = itor1.hasNext() ? itor1.next() : null;
+    RDiff edit2 = itor2.hasNext() ? itor2.next() : null;
 
     // Invariant: The sum of preLengths of elements of `result1` and `result2` are equal.
-    List<RieDiff> result1 = new ArrayList<>();
-    List<RieDiff> result2 = new ArrayList<>();
+    List<RDiff> result1 = new ArrayList<>();
+    List<RDiff> result2 = new ArrayList<>();
 
     while (edit1 != null || edit2 != null) {
       if (edit1 == null) {
         assert edit2 != null : "@AssumeAssertion(nullness): at most one editN is null";
-        assert edit2.preLength() == 0;
+        assert edit2.preText().isEmpty();
         result1.add(NoOp.it);
         result2.add(edit2);
         edit2 = itor2.hasNext() ? itor2.next() : null;
         continue;
       } else if (edit2 == null) {
         assert edit1 != null : "@AssumeAssertion(nullness): at most one editN is null";
-        assert edit1.preLength() == 0;
+        assert edit1.preText().isEmpty();
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
         result2.add(NoOp.it);
         continue;
       }
-      int preLen1 = edit1.preLength();
-      int preLen2 = edit2.preLength();
+      int preLen1 = edit1.preText().length();
+      int preLen2 = edit2.preText().length();
 
       if (preLen1 == preLen2) {
-        result1.add(edit1);
-        edit1 = itor1.hasNext() ? itor1.next() : null;
-        result2.add(edit2);
-        edit2 = itor2.hasNext() ? itor2.next() : null;
+        if (edit1 instanceof Equal || edit2 instanceof Equal) {
+          result1.add(edit1);
+          edit1 = itor1.hasNext() ? itor1.next() : null;
+          result2.add(edit2);
+          edit2 = itor2.hasNext() ? itor2.next() : null;
+        } else {
+          return null;
+        }
       } else if (preLen1 == 0) {
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
@@ -348,18 +333,16 @@ public abstract class RieDiff {
         if (!edit2.canSplit()) {
           return null;
         }
-        int len = edit1.preLength();
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
-        result2.add(edit2.afterSplit(len));
-        edit2 = edit2.afterSplit(len);
+        result2.add(edit2.afterSplit(preLen1));
+        edit2 = edit2.afterSplit(preLen1);
       } else if (preLen1 > preLen2) {
         if (!edit1.canSplit()) {
           return null;
         }
-        int len = edit2.preLength();
-        result1.add(edit1.beforeSplit(len));
-        edit1 = edit1.afterSplit(len);
+        result1.add(edit1.beforeSplit(preLen2));
+        edit1 = edit1.afterSplit(preLen2);
         result2.add(edit2);
         edit2 = itor2.hasNext() ? itor2.next() : null;
       } else {

@@ -1,21 +1,17 @@
 package org.plumelib.merging;
 
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 import name.fraser.neil.plaintext.DmpLibrary;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.checker.regex.qual.Regex;
-import org.plumelib.javacparse.JavacParse;
 import org.plumelib.merging.ConflictedFile.ConflictElement;
 import org.plumelib.merging.ConflictedFile.MergeConflict;
-import org.plumelib.merging.RieDiff.Equal;
+import org.plumelib.merging.RDiff.Equal;
+import org.plumelib.merging.RDiff.NoOp;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.CollectionsPlume.Replacement;
 import org.plumelib.util.IPair;
@@ -96,6 +92,9 @@ public class AdjacentMerger implements Merger {
       }
 
       List<String> merged = mergedWithAdjacent(mc);
+      if (merged == null) {
+        merged = mergedLinewise(mc);
+      }
       if (merged != null) {
         replacements.add(Replacement.of(mc.start(), mc.end() - 1, merged));
       }
@@ -133,14 +132,14 @@ public class AdjacentMerger implements Merger {
       System.out.printf("left diffs: %s%n", leftDmpDiffs);
       System.out.printf("right diffs: %s%n", rightDmpDiffs);
     }
-    List<RieDiff> leftUnaligned = RieDiff.diffsToRieDiffs(leftDmpDiffs);
-    List<RieDiff> rightUnaligned = RieDiff.diffsToRieDiffs(rightDmpDiffs);
-    IPair<List<RieDiff>, List<RieDiff>> pair = RieDiff.align(leftUnaligned, rightUnaligned);
+    List<RDiff> leftUnaligned = RDiff.diffsToRDiffs(leftDmpDiffs);
+    List<RDiff> rightUnaligned = RDiff.diffsToRDiffs(rightDmpDiffs);
+    IPair<List<RDiff>, List<RDiff>> pair = RDiff.align(leftUnaligned, rightUnaligned);
     if (pair == null) {
       return null;
     }
-    List<RieDiff> leftDiffs = pair.first;
-    List<RieDiff> rightDiffs = pair.second;
+    List<RDiff> leftDiffs = pair.first;
+    List<RDiff> rightDiffs = pair.second;
     if (verbose) {
       System.out.printf("left diffs: %s%n", leftDiffs);
       System.out.printf("right diffs: %s%n", rightDiffs);
@@ -148,14 +147,14 @@ public class AdjacentMerger implements Merger {
     assert leftDiffs.size() == rightDiffs.size();
 
     List<String> result = new ArrayList<>();
-    for (Iterator<RieDiff> i1 = leftDiffs.iterator(), i2 = rightDiffs.iterator();
+    for (Iterator<RDiff> i1 = leftDiffs.iterator(), i2 = rightDiffs.iterator();
         i1.hasNext() && i2.hasNext(); ) {
-      RieDiff d1 = i1.next();
-      RieDiff d2 = i2.next();
+      RDiff d1 = i1.next();
+      RDiff d2 = i2.next();
       assert d1.preText().equals(d2.preText());
-      if (d1 instanceof Equal) {
+      if (d1 instanceof Equal || d1 instanceof NoOp) {
         result.add(d2.postText());
-      } else if (d2 instanceof Equal) {
+      } else if (d2 instanceof Equal || d2 instanceof NoOp) {
         result.add(d1.postText());
       } else if (d1.postText().equals(d2.postText())) {
         // Can this happen?
@@ -169,245 +168,36 @@ public class AdjacentMerger implements Merger {
   }
 
   /**
-   * Groups the regex.
+   * If all three texts have the same length, and for every line, at least two of {base, left,
+   * right} are the same, then return a linewise merge. Otherwise, return null.
    *
-   * @param regex a regex
-   * @return the regex, grouped
+   * @param mc the merge conflict, which includes the base, left, and right texts
+   * @return the merged differences or null
    */
-  protected static String group(String regex) {
-    return "(?:" + regex + ")";
-  }
-
-  /**
-   * Returns a regex that matches any of the given regexes.
-   *
-   * @param regexes the disjuncts
-   * @return a regex that matches any of the given regexes
-   */
-  protected static String or(String... regexes) {
-    if (regexes.length < 2) {
-      throw new Error("not enough arguments to or(): " + Arrays.toString(regexes));
+  private static @Nullable List<String> mergedLinewise(MergeConflict mc) {
+    if (mc.base() == null
+        || mc.base().size() != mc.left().size()
+        || mc.base().size() != mc.right().size()) {
+      return null;
     }
-    List<String> groupedElts = CollectionsPlume.mapList(AdjacentMerger::group, regexes);
-    return group(String.join("|", groupedElts));
-  }
-
-  /**
-   * Matches one or more of the given regex, separated by the given separator (also a regex).
-   *
-   * @param regex the regex to possibly repeat
-   * @param separator the regex that separates the occurrences
-   * @return a regex that matches one or more of the given regex, separated by the given separator
-   */
-  protected static String oneOrMoreRegex(String regex, String separator) {
-    return group(regex) + group(group(separator) + group(regex)) + "*";
-  }
-
-  /**
-   * Matches zero or more of the given regex, separated by the given separator (also a regex).
-   *
-   * @param regex the regex to possibly repeat
-   * @param separator the regex that separates the occurrences
-   * @return a regex that matches zero or more of the given regex, separated by the given separator
-   */
-  protected static String zeroOrMoreRegex(String regex, String separator) {
-    return group(oneOrMoreRegex(regex, separator)) + "?";
-  }
-
-  /** Matches a Java identifier. */
-  protected static final String javaIdentifierRegex =
-      "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
-
-  /**
-   * Matches dotted identifiers, which might be an enum or CLASSNAME.class, both of which are
-   * permitted as annotation arguments.
-   */
-  protected static final String javaDottedIdentifiersRegex =
-      oneOrMoreRegex(javaIdentifierRegex, "\\.");
-
-  /** Matches an integral or floating-point value. */
-  protected static final String numberRegex =
-      "[-+]?"
-          + group(
-              String.join(
-                  "|",
-                  // has a whole-number part
-                  // The possessive qualifier "++" is important for efficiency.
-                  group("[0-9]++(\\.[0-9]*)?"),
-                  // has no whole-number part
-                  "\\.[0-9]+"));
-
-  /** Matches a string. */
-  protected static final String stringRegex = "\"(?:[^\\\"]|\\.)*\"";
-
-  /** A single annotation value. */
-  protected static final String annotationValueSingleRegex =
-      or(stringRegex, numberRegex, javaDottedIdentifiersRegex);
-
-  /**
-   * Zero or more non-array annotation values, separated by commas and possibly followed by a comma.
-   */
-  @SuppressWarnings("regex:assignment") // string concatenation
-  protected static final @Regex String annotationArrayContentsRegex =
-      // Java permits a trailing comma in an array initializer.  Is it permitted if there are no
-      // elements?
-      or("", oneOrMoreRegex(annotationValueSingleRegex, "\\s*,\\s*") + "\\s*(?:,\\s*)?");
-
-  /** An annotation value (that is possibly an array). This does not match nested arrays. */
-  @SuppressWarnings("regex:assignment") // string concatenation
-  protected static final @Regex String annotationValueRegex =
-      or(annotationValueSingleRegex, "\\{" + "\\s*+" + annotationArrayContentsRegex + "\\}");
-
-  /** Matches an annotation argument. */
-  protected static final @Regex String annotationArgumentRegex =
-      // Optional field name
-      ("(?:" + javaIdentifierRegex + "\\s*=\\s*" + ")?")
-          // The value
-          + annotationValueRegex;
-
-  /**
-   * Matches zero or more annotation arguments. This is what goes inside parentheses in an
-   * annotation.
-   */
-  @SuppressWarnings("regex:assignment") // string concatenation
-  protected static final @Regex String annotationArgumentsRegex =
-      zeroOrMoreRegex(annotationArgumentRegex, "\\s*,\\s*");
-
-  /** Matches one Java annotation. */
-  protected static final @Regex String annotationOnlyRegex =
-      // at-sign
-      "@"
-          // Java identifier
-          + javaIdentifierRegex
-          // optional arguments
-          + ("(?:\\s*\\(" + annotationArgumentsRegex + "\\))?");
-
-  /** Matches one Java annotation OR modifier. */
-  @SuppressWarnings("regex:assignment") // string concatenation
-  protected static final @Regex String annotationRegex =
-      // creates fewer gratuitous groups than `or(...)`
-      String.join(
-          "|",
-          group(annotationOnlyRegex),
-          "abstract",
-          "final",
-          "private",
-          "protected",
-          "public",
-          "static",
-          "synchronized",
-          "transient",
-          "volatile");
-
-  /** Matches one or more Java annotations. */
-  @SuppressWarnings("regex:assignment") // string concatenation to create regex
-  protected static final @Regex String annotationsRegex = oneOrMoreRegex(annotationRegex, "\\s+");
-
-  /** Matches one or more Java annotations. */
-  protected static final Pattern annotationsPattern = Pattern.compile(annotationsRegex);
-
-  /** Matches zero or more Java annotations, each followed by space. */
-  protected static final String annotationsSpacesRegex = "(?:(?:" + annotationRegex + ")\\s+)*";
-
-  /** Matches a type, possibly followed by type parameters. */
-  protected static final String parameterizedTypeRegex =
-      javaDottedIdentifiersRegex
-          + ("(?:<"
-              + oneOrMoreRegex(annotationsSpacesRegex + javaIdentifierRegex, "\\s*,\\s*")
-              + ">)?");
-
-  /** Matches a "this" formal parameter. */
-  @SuppressWarnings("regex:assignment") // string concatenation to create regex
-  protected static final @Regex String thisRegex =
-      annotationsSpacesRegex + parameterizedTypeRegex + "\\s+" + "this";
-
-  /** Matches a "this" formal parameter. */
-  protected static Pattern thisPattern = Pattern.compile(thisRegex);
-
-  /** Matches an extends clause. */
-  @SuppressWarnings("regex:assignment") // string concatenation to create regex
-  protected static final @Regex String extendsRegex =
-      "extends\\s+" + annotationsSpacesRegex + parameterizedTypeRegex;
-
-  /** Matches an extends clause. */
-  protected static Pattern extendsPattern = Pattern.compile(extendsRegex);
-
-  // TODO: Should this handle multiline?
-  /** Matches an end-of-line comment. */
-  protected static final Pattern commentPattern = Pattern.compile("//.*(\\z|[\r\n]+)");
-
-  /** Matches the start of a Java annotation OR modifier. */
-  @SuppressWarnings("regex:assignment") // string concatenation
-  protected static final @Regex String annotationStartRegex =
-      "^"
-          + String.join(
-              "|",
-              "@\\p{javaJavaIdentifierStart}",
-              "abstract",
-              "final",
-              "private",
-              "protected",
-              "public",
-              "static",
-              "synchronized",
-              "transient",
-              "volatile")
-          + "\\b";
-
-  /** Matches the start of a Java annotation OR modifier. */
-  protected static final Pattern annotationStartPattern = Pattern.compile(annotationStartRegex);
-
-  /**
-   * Returns true if the given text is one or more Java annotations.
-   *
-   * @param text a string
-   * @return true if the given text is one or more Java annotations
-   */
-  // "protected" to permit tests to access it.
-  protected static boolean isJavaAdjacent(String text) {
-    text = commentPattern.matcher(text).replaceAll(" ");
-    text = text.trim();
-    if (text.isEmpty()) {
-      return true;
+    List<String> result = new ArrayList<>();
+    for (Iterator<String> iBase = mc.base().iterator(),
+            iLeft = mc.left().iterator(),
+            iRight = mc.right().iterator();
+        iBase.hasNext() && iLeft.hasNext() && iRight.hasNext(); ) {
+      String base = iBase.next();
+      String left = iLeft.next();
+      String right = iRight.next();
+      if (left.equals(right)) {
+        result.add(left);
+      } else if (base.equals(left)) {
+        result.add(right);
+      } else if (base.equals(right)) {
+        result.add(left);
+      } else {
+        return null;
+      }
     }
-
-    // At one time, the parser calls were very expensive, and text matching was cheaper.
-    // I have not re-measured recently.
-
-    // Set to false only to double-check that parsing and regexes give the same result (by running
-    // the unit tests).
-    final boolean useRegex = true;
-
-    String declText = null;
-    // The test for " this" must precede the test for "@", because both can be true.
-    if (text.endsWith(" this")) {
-      if (useRegex && thisPattern.matcher(text).matches()) {
-        return true;
-      } else {
-        declText = text.substring(0, text.length() - 4) + "varname";
-      }
-    } else if (text.startsWith("extends ")) {
-      if (useRegex && extendsPattern.matcher(text).matches()) {
-        return true;
-      } else {
-        declText = text.substring(8) + " varname";
-      }
-    } else if (annotationStartPattern.matcher(text).find()) {
-      if (useRegex && annotationsPattern.matcher(text).matches()) {
-        return true;
-      } else {
-        declText = text + " String varname";
-      }
-    } else {
-      return false;
-    }
-    String classText = "class MyClass {" + declText + ";" + "}";
-
-    // Use this diagnostic to determine which strings are still getting parsed.
-    // Perhaps write regular expressions for them to improve performance.
-    // System.out.printf("isJavaAdjacent: %s%n", text);
-
-    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(classText);
-    return mergedCU != null;
+    return result;
   }
 }

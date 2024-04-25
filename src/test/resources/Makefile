@@ -1,6 +1,6 @@
 test: test-adjacent test-annotations test-imports
 
-test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff
+test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff AdjacentTest4.diff
 
 test-annotations: AnnotationsTest1.diff
 
@@ -17,7 +17,6 @@ Adjacent%.diff:
 	cp -f $(basename $@)A.java $(basename $@)Output.java
 	-../../main/sh/java-merge-driver.sh --only-adjacent \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java
-	echo "checking for $(basename $@)Goal-forward.java"
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
 	else \
