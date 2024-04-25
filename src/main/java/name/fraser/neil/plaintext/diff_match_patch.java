@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.plumelib.util.StringsPlume;
 
 /*
  * Functions for diff, match and patch.
@@ -116,7 +117,7 @@ public class diff_match_patch {
    *  Diff(Operation.EQUAL, " world.")}
    * which means: delete "Hello", add "Goodbye" and keep " world."
    */
-  public enum Operation {
+  public static enum Operation {
     /** Deletion. */
     DELETE,
     /** Insertion. */
@@ -2351,7 +2352,7 @@ public class diff_match_patch {
      * @return text version.
      */
     public String toString() {
-      String prettyText = this.text.replace('\n', '\u00b6');
+      String prettyText = StringsPlume.escapeNonASCII(text);
       return "Diff(" + this.operation + ",\"" + prettyText + "\")";
     }
 

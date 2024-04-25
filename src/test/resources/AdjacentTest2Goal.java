@@ -1,5 +1,3 @@
-a
-bleft1
-bleft2
-bleft3
+aleft
+b
 d
