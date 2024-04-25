@@ -115,7 +115,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
 
       if (jclo.adjacent) {
-        new AdjacentMerger().merge(ms);
+        new AdjacentLinesMerger().merge(ms);
       }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.

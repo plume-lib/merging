@@ -18,13 +18,13 @@ import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
 
 /** This is a merger that resolves conflicts where the edits are on different but adjacent lines. */
-public class AdjacentMerger implements Merger {
+public class AdjacentLinesMerger implements Merger {
 
   /** If true, produce debugging output. */
   private static boolean verbose = false;
 
-  /** Creates a JavaAdjacentMerger. */
-  AdjacentMerger() {}
+  /** Creates a JavaAdjacentLinesMerger. */
+  AdjacentLinesMerger() {}
 
   @Override
   public void merge(MergeState mergeState) {
@@ -34,7 +34,7 @@ public class AdjacentMerger implements Merger {
 
     ConflictedFile cf = mergeState.conflictedFile();
     if (cf.parseError() != null) {
-      String message = "AdjacentMerger: trouble reading merged file: " + cf.parseError();
+      String message = "AdjacentLinesMerger: trouble reading merged file: " + cf.parseError();
       System.out.println(message);
       System.err.println(message);
       return;
@@ -44,7 +44,7 @@ public class AdjacentMerger implements Merger {
     @NonNull List<ConflictElement> ces = cf.hunks();
     if (verbose) {
       System.out.printf(
-          "AdjacentMerger: conflicted file (size %s)=%s%n",
+          "AdjacentLinesMerger: conflicted file (size %s)=%s%n",
           (ces == null ? "null" : ("" + ces.size())), cf);
     }
 
@@ -88,7 +88,7 @@ public class AdjacentMerger implements Merger {
 
       String baseJoined = mc.baseJoined();
       if (baseJoined == null) {
-        throw new Error("AdjacentMerger needs a 3-way diff");
+        throw new Error("AdjacentLinesMerger needs a 3-way diff");
       }
 
       List<String> merged = mergedWithAdjacent(mc);
@@ -123,7 +123,7 @@ public class AdjacentMerger implements Merger {
     List<String> baseLines = mc.base();
     String baseJoined = mc.baseJoined();
     if (baseLines == null || baseJoined == null) {
-      throw new Error("AdjacentMerger needs a 3-way diff");
+      throw new Error("AdjacentLinesMerger needs a 3-way diff");
     }
 
     List<Diff> leftDmpDiffs = DmpLibrary.diffByLines(baseJoined, mc.leftJoined());

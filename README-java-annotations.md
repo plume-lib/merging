@@ -20,3 +20,6 @@ The Java annotation merger would resolve the conflict as:
 ```
   private long foo(byte[] bytes, @NonNegative int length) {
 ```
+
+Note that modifiers such as `public` and `private` are merged just as
+annotations are.

@@ -1,4 +1,4 @@
-# Adjacent
+# Adjacent lines
 
 This merger resolves conflicts that result from edits on different but adjacent
 lines.  By default, git reports such edits as conflicts that must be manually
@@ -22,7 +22,7 @@ b
 d
 ```
 
-The adjacent merger would resolve the conflict as:
+The adjacent-lines merger would resolve the conflict as:
 
 ```
 a
