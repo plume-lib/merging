@@ -64,14 +64,19 @@ public class JavaMergeTool extends AbstractMergeTool {
 
     try {
 
-      if (!mergedFileName.endsWith(".java")) {
-        System.exit(1);
-      }
+      // Don't do this until there is a separate MergeTool class for non-Java files.
+      // if (!adjacent && !mergedFileName.endsWith(".java")) {
+      //   System.exit(1);
+      // }
 
       MergeState ms =
           new MergeState(baseFileName, leftFileName, rightFileName, mergedFileName, true);
 
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
+
+      if (jclo.adjacent) {
+        new AdjacentLinesMerger().merge(ms);
+      }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {

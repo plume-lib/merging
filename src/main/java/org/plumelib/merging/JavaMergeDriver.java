@@ -41,9 +41,6 @@ public class JavaMergeDriver extends AbstractMergeDriver {
     super(args);
   }
 
-  /** The time at the beginning of {@code main()}. */
-  public static long start;
-
   /**
    * A git merge driver to merge a Java file.
    *
@@ -72,6 +69,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
     jmd.mainHelper();
   }
 
+  // TODO: Can this be moved into a separate file and shared with merge drivers?
   /** Does the work of JavaMergeDriver. */
   public void mainHelper() {
 
