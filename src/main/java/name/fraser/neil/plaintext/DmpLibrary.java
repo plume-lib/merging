@@ -21,10 +21,12 @@ public class DmpLibrary {
   }
 
   /** A diff_match_patch for which context is 0; that is, Patch_Margin is 0. */
-  static diff_match_patch dmp;
+  protected static diff_match_patch dmp;
 
   static {
     dmp = new diff_match_patch();
+    // This is essential when comparing via diffLineHash.
+    dmp.Diff_EditCost = 0;
     dmp.Match_Threshold = 0.0f;
     dmp.Patch_DeleteThreshold = 0.0f;
   }
@@ -61,15 +63,15 @@ public class DmpLibrary {
    * @param text2 a string
    * @return the differences
    */
-  private static LinkedList<Diff> diffLineHash(String text1, String text2) {
+  public static LinkedList<Diff> diffLineHash(String text1, String text2) {
     LinesToCharsResult a = dmp.diff_linesToChars(text1, text2);
-    text1 = a.chars1;
-    text2 = a.chars2;
+    String chars1 = a.chars1;
+    String chars2 = a.chars2;
 
-    LinkedList<Diff> diffs = dmp.diff_main(text1, text2, false);
+    LinkedList<Diff> diffs = dmp.diff_main(chars1, chars2, false);
 
-    // Eliminate freak matches (e.g. blank lines)
-    dmp.diff_cleanupSemantic(diffs);
+    // Don't do `dmp.diff_cleanupSemantic(diffs);` because it changes "edit,equal,edit" into one
+    // larger edit, which I do not want.
 
     return diffs;
   }

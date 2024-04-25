@@ -1,4 +1,4 @@
-a
-bright
-c
-dright
+aright
+b
+cright
+d

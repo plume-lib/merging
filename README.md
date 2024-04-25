@@ -26,7 +26,8 @@ only affect different lines.  By default, git considers edits to different,
 adjacent lines to be a conflict.
 
 You can enable and disable each feature individually, or enable just one feature.
-These command-line arguments are supported by the merge driver and merge tool.
+These command-line arguments are supported by the merge driver
+`java-merge-driver.sh` and the merge tool `java-merge-tool.sh`.
  * `--imports`, `--no-imports', `--only-imports` [default: enabled]
  * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
  * `--adjacent`, `--no-adjacent', `--only-adjacent` [default: disabled]

@@ -1,6 +1,8 @@
 .gradle
 build
 
+AdjacentTest*Output.java
+AdjacentTest*.diff
 AnnotationsTest*Output.java
 AnnotationsTest*.diff
 ImportsTest*Output.java

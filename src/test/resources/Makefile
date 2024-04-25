@@ -1,6 +1,6 @@
-test: test-imports test-annotations
+test: test-adjacent test-annotations test-imports
 
-test-adjacent: AdjacentTest1.diff
+test-adjacent: AdjacentTest1.diff AdjacentTest2.diff
 
 test-annotations: AnnotationsTest1.diff
 

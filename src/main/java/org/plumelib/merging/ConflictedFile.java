@@ -294,8 +294,8 @@ public class ConflictedFile {
   }
 
   /**
-   * Returns the lines of the conflicted file, including conflict markers. Do not mutate the return
-   * value.
+   * Returns the lines of the conflicted file, including conflict markers. Clients should not mutate
+   * the return value.
    *
    * @return the lines of the conflicted file
    * @see #fileContents()
@@ -345,14 +345,14 @@ public class ConflictedFile {
   /** A single merge conflict (part of a conflicted file). */
   // This cannot be a record because I don't want the default constructor to be public.
   public static class MergeConflict implements ConflictElement {
+    /** The base text; empty string means empty, null means unknown. */
+    @MonotonicNonNull List<String> base;
+
     /** The left text. */
     List<String> left;
 
     /** The right text. */
     List<String> right;
-
-    /** The base text; empty string means empty, null means unknown. */
-    @MonotonicNonNull List<String> base;
 
     /** The first line in the conflict --- that is, the line with {@code <<<<<<}. */
     int start;
@@ -371,10 +371,10 @@ public class ConflictedFile {
      *     >>>>>>}
      */
     private MergeConflict(
-        List<String> left, List<String> right, @Nullable List<String> base, int start, int end) {
+        @Nullable List<String> base, List<String> left, List<String> right, int start, int end) {
+      this.base = base;
       this.left = left;
       this.right = right;
-      this.base = base;
       this.start = start;
       this.end = end;
     }
@@ -411,23 +411,32 @@ public class ConflictedFile {
     /**
      * Creates a MergeConflict. Creates a CommonLines if the merge conflict would be trivial.
      *
+     * @param base the base text
      * @param left the left text
      * @param right the right text
-     * @param base the base text
      * @param start the first line in the conflict --- that is, the line with {@code <<<<<<}
      * @param end the line after the conflict --- that is, the line after the one with {@code
      *     >>>>>>}
      * @return a new MergeConflict or CommonLines
      */
     public static ConflictElement of(
-        List<String> left, List<String> right, @Nullable List<String> base, int start, int end) {
+        @Nullable List<String> base, List<String> left, List<String> right, int start, int end) {
       if (left.equals(right) || left.equals(base)) {
         return new CommonLines(right);
       } else if (right.equals(base)) {
         return new CommonLines(left);
       } else {
-        return new MergeConflict(left, right, base, start, end);
+        return new MergeConflict(base, left, right, start, end);
       }
+    }
+
+    /**
+     * Returns the base text.
+     *
+     * @return the base text
+     */
+    public @Nullable List<String> base() {
+      return base;
     }
 
     /**
@@ -449,15 +458,6 @@ public class ConflictedFile {
     }
 
     /**
-     * Returns the base text.
-     *
-     * @return the base text
-     */
-    public @Nullable List<String> base() {
-      return base;
-    }
-
-    /**
      * Returns the first line in the conflict --- that is, the line with {@code <<<<<<}.
      *
      * @return the first line in the conflict
@@ -476,9 +476,7 @@ public class ConflictedFile {
     }
 
     /**
-     * Returns the base text as a single string. Is expensive if there are many lines.
-     *
-     * <p>This exists for the convenience of testing.
+     * Returns the base text as a single string.
      *
      * @return the base text as a single string
      */
@@ -488,6 +486,24 @@ public class ConflictedFile {
       } else {
         return String.join("", base);
       }
+    }
+
+    /**
+     * Returns the left text as a single string.
+     *
+     * @return the left text as a single string
+     */
+    protected String leftJoined() {
+      return String.join("", left);
+    }
+
+    /**
+     * Returns the right text as a single string.
+     *
+     * @return the right text as a single string
+     */
+    protected String rightJoined() {
+      return String.join("", right);
     }
 
     @Override
@@ -510,9 +526,9 @@ public class ConflictedFile {
     @Override
     public String toString() {
       return "MergeConflict"
+          + ("{base=" + base + "}")
           + ("{left=" + left + "}")
-          + ("{right=" + right + "}")
-          + ("{base=" + base + "}");
+          + ("{right=" + right + "}");
     }
   }
 
@@ -710,7 +726,7 @@ public class ConflictedFile {
           return;
         }
         assert right != null : "@AssumeAssertion(nullness): if left is non-null, so is right";
-        ConflictElement ce = MergeConflict.of(left, right, base, conflictStart, i + 1);
+        ConflictElement ce = MergeConflict.of(base, left, right, conflictStart, i + 1);
         if (ce instanceof CommonLines) {
           hasTrivalConflict = true;
         }

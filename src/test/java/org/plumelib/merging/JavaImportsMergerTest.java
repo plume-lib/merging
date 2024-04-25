@@ -45,7 +45,7 @@ public class JavaImportsMergerTest {
 
   void assertMergeImportConflictCommentwise(
       List<String> left, List<String> right, List<String> goal) {
-    ConflictElement ce = MergeConflict.of(left, right, null, 0, 0);
+    ConflictElement ce = MergeConflict.of(null, left, right, 0, 0);
     CommonLines cl;
     if (ce instanceof MergeConflict mc) {
       cl = JavaImportsMerger.mergeImportConflictCommentwise(mc);

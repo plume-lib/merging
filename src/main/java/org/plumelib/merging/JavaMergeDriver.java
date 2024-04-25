@@ -81,7 +81,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
       // Make a copy of the file that will be overwritten, for passing to external tools.
       // TODO: Can I do this more lazily, to avoid the expense if it will not be needed?
       try {
-        File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".java");
+        File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".bak");
         leftFileSaved.deleteOnExit();
         leftFileSavedName = leftFileSaved.toString();
         // REPLACE_EXISTING is needed because createTempFile creates an empty file.
@@ -113,6 +113,10 @@ public class JavaMergeDriver extends AbstractMergeDriver {
               gitMergeFileExitCode != 0);
 
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
+
+      if (jclo.adjacent) {
+        new AdjacentMerger().merge(ms);
+      }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {

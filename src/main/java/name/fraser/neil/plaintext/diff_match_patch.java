@@ -226,7 +226,8 @@ public class diff_match_patch {
    * @param deadline Time when the diff should be complete by.
    * @return Linked List of Diff objects.
    */
-  private LinkedList<Diff> diff_compute(String text1, String text2,
+  // "protected" to permit testing.
+  protected LinkedList<Diff> diff_compute(String text1, String text2,
                                         boolean checklines, long deadline) {
     LinkedList<Diff> diffs = new LinkedList<Diff>();
 

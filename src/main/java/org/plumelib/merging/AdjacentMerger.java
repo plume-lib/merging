@@ -3,11 +3,13 @@ package org.plumelib.merging;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import name.fraser.neil.plaintext.DmpLibrary;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
+import name.fraser.neil.plaintext.diff_match_patch.Operation;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
@@ -86,18 +88,18 @@ public class AdjacentMerger implements Merger {
         System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", leftContent, rightContent);
       }
 
-      // TODO
-
-      // List<Patch> patches = dmp.patch_make(DmpLibrary.diffByLines(leftContent, rightContent));
-
-      List<Diff> diffs = dmp.diff_main(leftContent, rightContent);
-      if (verbose) {
-        System.err.printf("called diff_main => %s%n%n", diffs);
+      String baseJoined = mc.baseJoined();
+      if (baseJoined == null) {
+        throw new Error("AdjacentMerger needs a 3-way diff");
       }
-      String merged = mergedWithAdjacent(diffs);
+      if (DmpLibrary.affectedLinesOverlap(baseJoined, mc.leftJoined(), mc.rightJoined())) {
+        System.out.println("Affected lines overlap: " + mc);
+        return null;
+      }
+
+      List<String> merged = mergedWithAdjacent(mc);
       if (merged != null) {
-        replacements.add(
-            Replacement.of(mc.start(), mc.end() - 1, Collections.singletonList(merged)));
+        replacements.add(Replacement.of(mc.start(), mc.end() - 1, merged));
       }
     }
 
@@ -114,32 +116,128 @@ public class AdjacentMerger implements Merger {
   }
 
   /**
-   * If all the differences are annotations, then return a string that contains them all. Otherwise,
-   * return null.
+   * If all the edits are on different lines, then return a string that contains them all.
+   * Otherwise, return null.
    *
-   * @param diffs the differences
+   * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
-  private static @Nullable String mergedWithAdjacent(List<Diff> diffs) {
-    StringBuilder result = new StringBuilder();
-    for (Diff diff : diffs) {
-      switch (diff.operation) {
-        case INSERT:
-        case DELETE:
-          if (isJavaAdjacent(diff.text)) {
-            result.append(diff.text);
-          } else {
-            return null;
+  private static @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
+    List<String> baseLines = mc.base();
+    String baseJoined = mc.baseJoined();
+    if (baseLines == null || baseJoined == null) {
+      throw new Error("AdjacentMerger needs a 3-way diff");
+    }
+    Iterator<Diff> itorLeft = DmpLibrary.diffLineHash(baseJoined, mc.leftJoined()).iterator();
+    Iterator<Diff> itorRight = DmpLibrary.diffLineHash(baseJoined, mc.rightJoined()).iterator();
+    Diff leftDiff = itorLeft.hasNext() ? itorLeft.next() : null;
+    Diff rightDiff = itorRight.hasNext() ? itorRight.next() : null;
+    // The line number in the base, left, or right text.
+    int baseLineNumber = 0;
+    int leftLineNumber = 0;
+    int rightLineNumber = 0;
+    // The line number in the base text
+    int leftBaseLineNumber = 0;
+    int rightBaseLineNumber = 0;
+
+    List<String> result = new ArrayList<>();
+    int numBaseLines = baseLines.size();
+    while (baseLineNumber < numBaseLines) {
+      if (verbose) {
+        System.out.printf(
+            "baseLineNumber=%s leftLineNumber=%s rightLineNumber=%s leftBaseLineNumber=%s"
+                + " rightBaseLineNumber=%s%n",
+            baseLineNumber,
+            leftLineNumber,
+            rightLineNumber,
+            leftBaseLineNumber,
+            rightBaseLineNumber);
+      }
+      boolean leftMatches = baseLineNumber == leftBaseLineNumber;
+      boolean rightMatches = baseLineNumber == rightBaseLineNumber;
+      if (!leftMatches && !rightMatches) {
+        result.add(baseLines.get(baseLineNumber));
+        baseLineNumber++;
+      } else if (leftMatches && rightMatches) {
+        boolean leftIsEqual = leftDiff != null && leftDiff.operation == Operation.EQUAL;
+        boolean rightIsEqual = rightDiff != null && rightDiff.operation == Operation.EQUAL;
+        if (!leftIsEqual && !rightIsEqual) {
+          // The edits overlap.  This isn't the only way they can overlap, but it's the only one we
+          // double-check in this algorithm.
+          throw new Error("Overlapping edits.");
+        }
+        if (leftIsEqual) {
+          assert leftDiff != null : "@AssumeAssertion(nullness): leftIsEqual => leftDiff!=null";
+          leftLineNumber += leftDiff.text.length();
+          leftBaseLineNumber += leftDiff.text.length();
+          leftDiff = itorLeft.hasNext() ? itorLeft.next() : null;
+          if (leftDiff == null) {
+            leftLineNumber = -1;
+            leftBaseLineNumber = -1;
           }
-          break;
-        case EQUAL:
-          result.append(diff.text);
-          break;
-        default:
-          throw new Error("unexpected operation " + diff.operation);
+        }
+        if (rightIsEqual) {
+          assert rightDiff != null : "@AssumeAssertion(nullness): rightIsEqual => rightDiff!=null";
+          rightLineNumber += rightDiff.text.length();
+          rightBaseLineNumber += rightDiff.text.length();
+          rightDiff = itorRight.hasNext() ? itorRight.next() : null;
+          if (rightDiff == null) {
+            rightLineNumber = -1;
+            rightBaseLineNumber = -1;
+          }
+        }
+      } else if (leftMatches) {
+        assert leftDiff != null : "@AssumeAssertion(nullness): leftMatches => leftDiff!=null";
+        int leftLength = leftDiff.text.length();
+        switch (leftDiff.operation) {
+          case EQUAL -> {
+            leftLineNumber += leftLength;
+            leftBaseLineNumber += leftLength;
+          }
+          case INSERT -> {
+            for (int i = 0; i < leftLength; i++) {
+              result.add(mc.left().get(leftLineNumber));
+              leftLineNumber++;
+            }
+          }
+          case DELETE -> {
+            leftBaseLineNumber += leftLength;
+          }
+        }
+        leftDiff = itorLeft.hasNext() ? itorLeft.next() : null;
+        if (leftDiff == null) {
+          leftLineNumber = -1;
+          leftBaseLineNumber = -1;
+        }
+      } else if (rightMatches) {
+        assert rightDiff != null : "@AssumeAssertion(nullness): rightMatches => rightDiff!=null";
+        int rightLength = rightDiff.text.length();
+        switch (rightDiff.operation) {
+          case EQUAL -> {
+            rightLineNumber += rightLength;
+            rightBaseLineNumber += rightLength;
+          }
+          case INSERT -> {
+            for (int i = 0; i < rightLength; i++) {
+              result.add(mc.right().get(rightLineNumber));
+              rightLineNumber++;
+            }
+          }
+          case DELETE -> {
+            rightBaseLineNumber += rightLength;
+          }
+        }
+        rightDiff = itorRight.hasNext() ? itorRight.next() : null;
+        if (rightDiff == null) {
+          rightLineNumber = -1;
+          rightBaseLineNumber = -1;
+        }
+      } else {
+        throw new Error("this can't happen");
       }
     }
-    return result.toString();
+
+    return result;
   }
 
   /**
