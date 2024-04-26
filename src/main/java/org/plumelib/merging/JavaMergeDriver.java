@@ -41,9 +41,6 @@ public class JavaMergeDriver extends AbstractMergeDriver {
     super(args);
   }
 
-  /** The time at the beginning of {@code main()}. */
-  public static long start;
-
   /**
    * A git merge driver to merge a Java file.
    *
@@ -57,7 +54,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
     String[] orig_args = args;
     Options options =
         new Options(
-            "JavaMergeTool [options] basefile leftfile rightfile mergedfile",
+            "JavaMergeDriver [options] basefile leftfile rightfile mergedfile",
             jclo,
             JavaMergeDriver.class);
     args = options.parse(true, orig_args);
@@ -72,6 +69,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
     jmd.mainHelper();
   }
 
+  // TODO: Can this be moved into a separate file and shared with merge drivers?
   /** Does the work of JavaMergeDriver. */
   public void mainHelper() {
 
@@ -81,7 +79,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
       // Make a copy of the file that will be overwritten, for passing to external tools.
       // TODO: Can I do this more lazily, to avoid the expense if it will not be needed?
       try {
-        File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".java");
+        File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".bak");
         leftFileSaved.deleteOnExit();
         leftFileSavedName = leftFileSaved.toString();
         // REPLACE_EXISTING is needed because createTempFile creates an empty file.
@@ -112,13 +110,19 @@ public class JavaMergeDriver extends AbstractMergeDriver {
               currentFileName,
               gitMergeFileExitCode != 0);
 
-      // TODO: common (but short) code with JavaMergeDriver and JavaMergeTool.
+      // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
+
+      if (jclo.adjacent) {
+        new AdjacentLinesMerger().merge(ms);
+      }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
         new JavaAnnotationsMerger().merge(ms);
       }
 
+      // Imports should come last, because it does nothing unless every non-import conflict
+      // has already been resolved.
       if (jclo.imports) {
         new JavaImportsMerger().merge(ms);
       }

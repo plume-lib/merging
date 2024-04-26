@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.plumelib.util.StringsPlume;
 
 /*
  * Functions for diff, match and patch.
@@ -84,13 +85,13 @@ public class diff_match_patch {
    * Internal class for returning results from diff_linesToChars().
    * Other less paranoid languages just use a three-element array.
    */
-  protected static class LinesToCharsResult {
+  public static class LinesToCharsResult {
     /** The first characters. */
-    protected String chars1;
+    public final String chars1;
     /** The second characters. */
-    protected String chars2;
+    public final String chars2;
     /** The lines. */
-    protected List<String> lineArray;
+    public final List<String> lineArray;
 
     /**
      * Creates a LinesToCharsResult.
@@ -116,7 +117,7 @@ public class diff_match_patch {
    *  Diff(Operation.EQUAL, " world.")}
    * which means: delete "Hello", add "Goodbye" and keep " world."
    */
-  public enum Operation {
+  public static enum Operation {
     /** Deletion. */
     DELETE,
     /** Insertion. */
@@ -226,7 +227,8 @@ public class diff_match_patch {
    * @param deadline Time when the diff should be complete by.
    * @return Linked List of Diff objects.
    */
-  private LinkedList<Diff> diff_compute(String text1, String text2,
+  // "protected" to permit testing.
+  protected LinkedList<Diff> diff_compute(String text1, String text2,
                                         boolean checklines, long deadline) {
     LinkedList<Diff> diffs = new LinkedList<Diff>();
 
@@ -517,7 +519,7 @@ public class diff_match_patch {
    *     the List of unique strings.  The zeroth element of the List of
    *     unique strings is intentionally blank.
    */
-  protected LinesToCharsResult diff_linesToChars(String text1, String text2) {
+  public LinesToCharsResult diff_linesToChars(String text1, String text2) {
     List<String> lineArray = new ArrayList<String>();
     Map<String, Integer> lineHash = new HashMap<String, Integer>();
     // e.g. linearray[4] == "Hello\n"
@@ -582,7 +584,7 @@ public class diff_match_patch {
    * @param diffs List of Diff objects.
    * @param lineArray List of unique strings.
    */
-  protected void diff_charsToLines(List<Diff> diffs,
+  public void diff_charsToLines(List<Diff> diffs,
                                   List<String> lineArray) {
     StringBuilder text;
     for (Diff diff : diffs) {
@@ -2350,7 +2352,7 @@ public class diff_match_patch {
      * @return text version.
      */
     public String toString() {
-      String prettyText = this.text.replace('\n', '\u00b6');
+      String prettyText = StringsPlume.escapeNonASCII(text);
       return "Diff(" + this.operation + ",\"" + prettyText + "\")";
     }
 

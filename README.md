@@ -2,13 +2,11 @@
 
 This project contains git merge drivers and git merge tools.
 
-Currently they only work on Java files.
+Currently some only work on Java files, and some are more general.
 
 Currently they are relatively slow:  about 1/3 second per Java file that was
 modified in both versions to be merged.  Most merges involve few Java files that
 were modified in both versions, but if there are many, the merge will be slow.
-For example, merging 300 files (that were modified in both versions) takes about
-a minute and a half.
 
 
 ## Features
@@ -20,6 +18,17 @@ removing a needed `import` statement, even if the merge would be clean.
 * [Java annotations](README-java-annotations.md):  This resolves conflicts in
 favor of retaining a Java annotation, when the only textual difference is in
 annotations.
+
+* [Adjacent lines](README-adjacent-lines.md): This resolves conflicts when the two edits
+only affect different lines.  By default, git considers edits to different,
+adjacent lines to be a conflict.
+
+You can enable and disable each feature individually, or enable just one feature.
+These command-line arguments are supported by the merge driver
+`java-merge-driver.sh` and the merge tool `java-merge-tool.sh`.
+ * `--imports`, `--no-imports`, `--only-imports` [default: enabled]
+ * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
+ * `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
 
 
 ## How to use
@@ -43,9 +52,10 @@ and log back in again to have the change take effect.
 ### How to use as a merge driver
 
 After performing the following steps, git will automatically use this merge
-driver whenever you do a git merge of Java files.
+driver for every merge of Java files.
 
-1. In your `~/.gitconfig` file, add:
+1. In your `~/.gitconfig` file (or in a repository's `.git/config` file,
+to take effect for only that repository), add:
 
 ```
 [merge "merge-java"]
@@ -60,6 +70,7 @@ driver whenever you do a git merge of Java files.
 ```
 
 To enable this for a single repository, add this to the repository's `.gitattributes` file.
+(Or to its `.git/info/attributes` file, in which case it won't be committed with the project.)
 
 To enable this for all repositories, add this to your your user-level
 gitattributes file.  The user-level gitattributes file is by default
@@ -72,7 +83,7 @@ gitattributes file.  The user-level gitattributes file is by default
 
 First, edit your `~/.gitconfig` file as shown below.
 
-Run the following after you do a git merge that leaves conflicts:
+Run the following after a git merge that leaves conflicts:
 
 ```
 yes | git mergetool --tool=merge-java
@@ -80,13 +91,15 @@ yes | git mergetool --tool=merge-java
 
 The reason for `yes |` is that `git mergetool` stops and asks after each file
 that wasn't perfectly merged.  This question is not helpful, the `-y` and
-'--no-prompt` command-line arguments do not suppress it, and it's tedious to
+`--no-prompt` command-line arguments do not suppress it, and it's tedious to
 keep typing "y".
 
 
 #### `~/.gitconfig` setup for use as a merge tool
 
-In your `~/.gitconfig` file, add:
+There is just one step for setup.
+
+1. In your `~/.gitconfig` file, add:
 
 ```
 [merge]

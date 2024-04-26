@@ -175,7 +175,7 @@ public class MergeState {
 
   /** Writes the conflicted file back to the file system, if needed. */
   public void writeBack() {
-    if (conflictedFileChanged || conflictedFile.hasTrivalConflict()) {
+    if (conflictedFileChanged || (conflictedFile != null && conflictedFile.hasTrivalConflict())) {
       writeBack(mergedPath);
       // By default, if a mergetool returns a non-zero status, git discards any edits done by the
       // mergetool, reverting to the state before the mergetool was run from a backup file. To work
