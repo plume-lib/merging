@@ -45,7 +45,8 @@ and log back in again to have the change take effect.
 After performing the following steps, git will automatically use this merge
 driver whenever you do a git merge of Java files.
 
-1. In your `~/.gitconfig` file, add:
+1. In your `~/.gitconfig` file (or in a repository's `.git/config` file,
+to take effect for only that repository), add:
 
 ```
 [merge "merge-java"]
@@ -60,6 +61,7 @@ driver whenever you do a git merge of Java files.
 ```
 
 To enable this for a single repository, add this to the repository's `.gitattributes` file.
+(Or to its `.git/info/attributes` file, in which case it won't be committed with the project.)
 
 To enable this for all repositories, add this to your your user-level
 gitattributes file.  The user-level gitattributes file is by default

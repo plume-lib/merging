@@ -112,13 +112,15 @@ public class JavaMergeDriver extends AbstractMergeDriver {
               currentFileName,
               gitMergeFileExitCode != 0);
 
-      // TODO: common (but short) code with JavaMergeDriver and JavaMergeTool.
+      // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
         new JavaAnnotationsMerger().merge(ms);
       }
 
+      // Imports should come last, because it does nothing unless every non-import conflict
+      // has already been resolved.
       if (jclo.imports) {
         new JavaImportsMerger().merge(ms);
       }
