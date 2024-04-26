@@ -127,7 +127,6 @@ public abstract class RDiff {
     }
   }
 
-  // TODO: Represent this via a replacement operation?
   /** An insertion operation. */
   public static class Insert extends RDiff {
     /** The text being inserted. */
@@ -236,7 +235,7 @@ public abstract class RDiff {
   static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
     List<RDiff> result = new ArrayList<>();
 
-    // prev is always a deletion
+    // `prev` is always a deletion operation.
     Diff prev = null;
     for (Diff diff : diffs) {
       switch (diff.operation) {
@@ -273,10 +272,9 @@ public abstract class RDiff {
     return result;
   }
 
-  // TODO: Make the resulting lists have equal length?
   /**
-   * Breaks {@link Equal} RDiffs so that, for every RDiff in either output list, there is RDiff in
-   * the other output list that starts in the same character location (in the original text). If
+   * Breaks {@link Equal} RDiffs so that, for every RDiff in either output list, there is an RDiff
+   * in the other output list that starts in the same character location (in the original text). If
    * this is not possible, return null.
    *
    * @param edits1 edits to a text

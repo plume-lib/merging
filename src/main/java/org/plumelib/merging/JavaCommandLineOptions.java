@@ -56,11 +56,12 @@ public class JavaCommandLineOptions {
 
     if ((only_adjacent ? 1 : 0) + (only_annotations ? 1 : 0) + (only_imports ? 1 : 0) > 1) {
       exitErroneously(
-          "Do not supply more than one  --only-* flag.  Arguments: " + String.join(" ", args));
+          "Do not supply more than one --only-* flag.  Arguments: " + String.join(" ", args));
     }
 
-    // A user could supply a redundant flag, as in "--only-annotations --imports", and won't be
-    // warned about "--imports" because it doesn't change the value from the default.
+    // A weakness of this test is that a user could supply a redundant flag, as in
+    // "--only-annotations --imports", and the user won't be warned about supplying "--imports"
+    // because it doesn't change the value from the default.
     if ((only_adjacent || only_annotations || only_imports)
         && ((adjacent && (adjacent != adjacentDefault))
             || (annotations && (annotations != annotationsDefault))
