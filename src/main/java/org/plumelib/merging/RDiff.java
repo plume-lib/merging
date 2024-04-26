@@ -21,7 +21,7 @@ import org.plumelib.util.StringsPlume;
 public abstract class RDiff {
 
   /** Creates a new RDiff. */
-  public abstract RDiff() {}
+  public RDiff() {}
 
   /**
    * Returns the text that the operation processes.
