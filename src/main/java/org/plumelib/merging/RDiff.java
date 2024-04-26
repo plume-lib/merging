@@ -20,6 +20,9 @@ import org.plumelib.util.StringsPlume;
 @SuppressWarnings({"index:argument", "lowerbound:argument"})
 public abstract class RDiff {
 
+  /** Creates a new RDiff. */
+  public abstract RDiff() {}
+
   /**
    * Returns the text that the operation processes.
    *
