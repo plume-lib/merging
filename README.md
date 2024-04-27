@@ -57,14 +57,15 @@ and log back in again to have the change take effect.
 After performing the following steps, git will automatically use this merge
 driver for every merge of Java files.
 
-1. In your `~/.gitconfig` file (or in a repository's `.git/config` file,
-to take effect for only that repository), add:
+1. Run these commands:
+```
+git config --global merge.conflictstyle diff3
+git config --global merge.merge-java.name "Merge Java files"
+git config --global merge.merge-java.driver 'java-merge-driver.sh %A %O %B'
+```
 
-```
-[merge "merge-java"]
-        name = Merge Java files
-        driver = java-merge-driver.sh "%A" "%O" "%B"
-```
+To take effect only for one repository, replace `--global` by `--local` and run
+the commands within the repository.
 
 2. In a gitattributes file, add:
 
@@ -102,20 +103,18 @@ keep typing "y".
 
 There is just one step for setup.
 
-1. In your `~/.gitconfig` file, add:
+1. Run the following commands:
 
 ```
-[merge]
-# Show original in addition to the two conflicting edits.
-        conflictstyle = zdiff3
-
-[merge]
-        tool = merge-java
-
-[mergetool.merge-java]
-        cmd = java-merge-tool.sh "${BASE}" "${LOCAL}" "${REMOTE}" "${MERGED}"
-        trustExitCode = true
+git config --global merge.conflictstyle diff3
+git config --global merge.tool merge-java
+git config --global mergetool.prompt false
+git config --global mergetool.merge-java.cmd 'java-merge-tool.sh ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
+git config --global mergetool.merge-java.trustExitCode true
 ```
+
+To take effect only for one repository, replace `--global` by `--local` and run
+the commands within the repository.
 
 
 ## Git merge terminology
