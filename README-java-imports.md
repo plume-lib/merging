@@ -13,19 +13,25 @@ If the only conflicts are in import statements, or there are no conflicts, then:
  * Remove all unneeded imports.  A needed import is one that is used
    somewhere in the Java file.
 
+(If there are conflicts beyound import statements, such as in code or in
+comments, then you should first resolve those other conflicts, then run the Java
+imports merger as a merge tool.)
+
+## Example
+
 Here is an example:
 
 ```
-BASE:          EDIT 1:         EDIT 2:
+BASE:          EDIT 1:         EDIT 2:        Remarks (not in either edit):
 
 import A.a;    import A.a;    import A.a;
-               import B.b;    import C.c;     // different additions; git considers this a conflict
+               import B.b;    import C.c;     different additions; git considers this a conflict
 import D.d;    import D.d;    import D.d;
-import E.e;                   import E.e;     // edit 1 removed, but edit 2 still needs
+import E.e;                   import E.e;     edit 1 removed, but edit 2 still needs
 import F.f;    import F.f;    import F.f;
-import G.g;                   import G.g;     // edit 1 removed, and edit 2 does not need
+import G.g;                   import G.g;     edit 1 removed, and edit 2 does not need
 import H.h;    import H.h;    import H.h;
-import I.i;                                   // neither edit needs "I"
+import I.i;                                   neither edit needs "I"
 import J.j;    import J.j;    import J.j;
 ```
 

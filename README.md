@@ -1,8 +1,10 @@
 # merge-tools
 
-This project contains git merge drivers and git merge tools.
+This project contains git merge drivers and git merge tools.  (See the end of
+this document for definitions of "merge drive" and "merge tool".)  The merge
+drivers first call `git merge-file`, then resolve some conflicts left by git.
 
-Currently some only work on Java files, and some are more general.
+Currently some of the mergers only work on Java files, and some are more general.
 
 Currently they are relatively slow:  about 1/3 second per Java file that was
 modified in both versions to be merged.  Most merges involve few Java files that
@@ -13,7 +15,8 @@ were modified in both versions, but if there are many, the merge will be slow.
 
 * [Java imports](README-java-imports.md):  This handles conflicts in `import`
 statements, keeping all the necessary imports.  It also prevents a merge from
-removing a needed `import` statement, even if the merge would be clean.
+removing a needed `import` statement, even if the merge would be clean.  It does
+nothing if the file's conflicts contain anything other than import statements.
 
 * [Java annotations](README-java-annotations.md):  This resolves conflicts in
 favor of retaining a Java annotation, when the only textual difference is in

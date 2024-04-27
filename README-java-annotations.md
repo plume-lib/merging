@@ -3,6 +3,8 @@
 This merger resolves conflicts in favor of retaining a
 Java annotation, when the only textual difference is in annotations.
 
+## Example
+
 Suppose that a git merge yielded a conflict in one of your `.java` files:
 
 ```
