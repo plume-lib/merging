@@ -32,11 +32,12 @@ import F.f;    import F.f;    import F.f;
 import G.g;                   import G.g;     edit 1 removed, and edit 2 does not need
 import H.h;    import H.h;    import H.h;
 import I.i;                                   neither edit needs "I"
-import J.j;    import J.j;    import J.j;
+import J.j;    import J.j;    import J.j;     neither edit needs "J", but neither removed it
+import K.k;    import K.k;    import K.k;
 ```
 
 `merge-imports` merges the above edits in the way a programmer would want:
-retain "B", "C", and "E", but do not retain "G" or "I".
+retain "B", "C", and "E", but do not retain "G", "I", or "J".
 
 ```
 MERGED:
@@ -48,5 +49,5 @@ import D.d;
 import E.e;
 import F.f;
 import H.h;
-import J.j;
+import K.k;
 ```
