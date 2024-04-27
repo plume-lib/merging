@@ -97,6 +97,11 @@ public class JavaMergeDriver extends AbstractMergeDriver {
         // There is initially a merge conflict, which appears in currentFile.
         gitMergeFileExitCode = 1;
       }
+      if (jclo.verbose) {
+        System.out.printf(
+            "status %d for: git merge-file %s %s %s%n",
+            gitMergeFileExitCode, currentFileName, baseFileName, otherFileName);
+      }
 
       // Look for trivial merge conflicts
       ConflictedFile cf = new ConflictedFile(currentPath);
@@ -113,23 +118,36 @@ public class JavaMergeDriver extends AbstractMergeDriver {
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
 
       if (jclo.adjacent) {
+        if (jclo.verbose) {
+          System.out.printf("calling adjacent%n");
+        }
         new AdjacentLinesMerger().merge(ms);
       }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
+        if (jclo.verbose) {
+          System.out.printf("calling annotations%n");
+        }
         new JavaAnnotationsMerger().merge(ms);
       }
 
       // Imports should come last, because it does nothing unless every non-import conflict
       // has already been resolved.
       if (jclo.imports) {
-        new JavaImportsMerger().merge(ms);
+        if (jclo.verbose) {
+          System.out.printf("calling imports%n");
+        }
+        new JavaImportsMerger(jclo.verbose).merge(ms);
       }
 
-      ms.writeBack();
+      ms.writeBack(jclo.verbose);
 
-      System.exit(ms.hasConflict() ? 1 : 0);
+      int exitStatus = ms.hasConflict() ? 1 : 0;
+      if (jclo.verbose) {
+        System.out.printf("Exiting with status %d.%n", exitStatus);
+      }
+      System.exit(exitStatus);
     } catch (Throwable t) {
       t.printStackTrace(System.out);
       t.printStackTrace(System.err);

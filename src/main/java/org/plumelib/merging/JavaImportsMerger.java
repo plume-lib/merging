@@ -1,12 +1,10 @@
 package org.plumelib.merging;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.plumelib.util.CollectionsPlume.mapList;
 
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.RemoveUnusedImports;
 import com.sun.source.tree.ImportTree;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +15,6 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.javacparse.JavacParse;
 import org.plumelib.merging.ConflictedFile.CommonLines;
 import org.plumelib.merging.ConflictedFile.ConflictElement;
 import org.plumelib.merging.ConflictedFile.MergeConflict;
@@ -34,10 +31,21 @@ import org.plumelib.util.CollectionsPlume;
 public class JavaImportsMerger implements Merger {
 
   /** If true, print diagnostics for debugging. */
-  private static final boolean verbose = false;
+  private final boolean verbose;
 
   /** Creates a JavaImportsMerger. */
-  public JavaImportsMerger() {}
+  public JavaImportsMerger() {
+    this(false);
+  }
+
+  /**
+   * Creates a JavaImportsMerger.
+   *
+   * @param verbose if true, output diagnostic information
+   */
+  public JavaImportsMerger(boolean verbose) {
+    this.verbose = verbose;
+  }
 
   /**
    * Merges the Java imports of the input.
@@ -211,6 +219,10 @@ public class JavaImportsMerger implements Merger {
       System.out.println("mergedFileContents=" + mergedFileContents);
     }
 
+    // This parse fails only if there is a bug earlier in the process,
+    // and it is not otherwise used any more.
+    // So, remove it for efficiency.
+    /*
     JCCompilationUnit mergedCU = JavacParse.parseJavaCode(mergedFileContents);
     if (mergedCU == null) {
       // Our merge is nonsyntactic, so don't write it out.
@@ -226,8 +238,7 @@ public class JavaImportsMerger implements Merger {
     if (verbose) {
       System.out.printf("mergedImports=%s%n", mergedImports);
     }
-
-    // TODO: handle static imports
+    */
 
     String gjfFileContents;
     try {
@@ -238,13 +249,18 @@ public class JavaImportsMerger implements Merger {
       }
       gjfFileContents = mergedFileContents;
     }
-    if (gjfFileContents.equals(mergedFileContents)) {
-      // gjf made no changes.
-      if (verbose) {
-        System.out.printf("gjf removed no imports%n");
-      }
-      mergeState.setConflictedFile(new ConflictedFile(mergedFileContents, false));
-      return;
+
+    mergeState.setConflictedFile(new ConflictedFile(gjfFileContents, false));
+  }
+
+  // OLD, excessively complex implementation of removing imports, which gjf already did.
+  /*
+    // TODO: handle static imports
+
+    // TODO: At this point, can I just use gjfFileContents rather than removing from elsewhere?
+
+    if (verbose) {
+      System.out.printf("Output of gjf.removeUnusedImports:%n%s%n", gjfFileContents);
     }
 
     JCCompilationUnit gjfCU = JavacParse.parseJavaCode(gjfFileContents);
@@ -273,11 +289,18 @@ public class JavaImportsMerger implements Merger {
       List<ConflictElement> ces = cf.hunks();
       assert ces.size() == cls.size();
       int size = ces.size();
+      if (verbose) {
+        System.out.printf("Before removal of %s:%n%s%n", removedImports, cls);
+      }
       for (int i = 0; i < size; i++) {
-        if (ces.get(i) instanceof MergeConflict) {
-          // TODO: Side-effecting the list is probably a bad idea.  I can return a new one.
-          cls.set(i, cls.get(i).removeMatchingLines(removedImportPattern));
-        }
+        // This needs to happen for every CommonLines hunk in cls, not just those that correspond to
+        // a conflict in cf.
+
+        // TODO: Side-effecting the list is probably a bad idea.  I can return a new one.
+        cls.set(i, cls.get(i).removeMatchingLines(removedImportPattern));
+      }
+      if (verbose) {
+        System.out.printf("After removal of %s:%n%s%n", removedImports, cls);
       }
     }
 
@@ -285,7 +308,7 @@ public class JavaImportsMerger implements Merger {
 
     List<String> prunedFileLines = CommonLines.toLines(cls);
     mergeState.setConflictedFile(new ConflictedFile(prunedFileLines, false));
-  }
+  */
 
   /**
    * Represents an import statement.
