@@ -1,7 +1,7 @@
 # merge-tools
 
 This project contains git merge drivers and git merge tools.  (See the end of
-this document for definitions of "merge drive" and "merge tool".)  The merge
+this document for definitions of "merge driver" and "merge tool".)  The merge
 drivers first call `git merge-file`, then resolve some conflicts left by git.
 
 Currently some of the mergers only work on Java files, and some are more general.
@@ -99,7 +99,7 @@ that wasn't perfectly merged.  This question is not helpful, the `-y` and
 keep typing "y".
 
 
-#### `~/.gitconfig` setup for use as a merge tool
+#### Setup for use as a merge tool
 
 There is just one step for setup.
 
