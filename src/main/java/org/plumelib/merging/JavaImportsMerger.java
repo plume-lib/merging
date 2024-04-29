@@ -792,10 +792,8 @@ public class JavaImportsMerger implements Merger {
     if (m.matches()) {
       String withSpaces = m.group(1);
       String withoutSpaces = horizontalSpace.matcher(withSpaces).replaceAll("");
-      System.out.printf("imported(%s) => %s%n", line, withSpaces);
       return withoutSpaces;
     } else {
-      System.out.printf("imported(%s) => null%n", line);
       return null;
     }
   }
