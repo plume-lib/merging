@@ -195,7 +195,7 @@ public class JavaAnnotationsMerger implements Merger {
    * permitted as annotation arguments.
    */
   protected static final String javaDottedIdentifiersRegex =
-      oneOrMoreRegex(javaIdentifierRegex, "\\.");
+      oneOrMoreRegex(javaIdentifierRegex, "\\s*\\.\\s*");
 
   /** Matches an integral or floating-point value. */
   protected static final String numberRegex =

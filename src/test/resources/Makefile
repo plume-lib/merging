@@ -4,7 +4,7 @@ test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff Adjacent
 
 test-annotations: AnnotationsTest1.diff
 
-test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff
+test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff
 
 
 Adjacent%.diff:

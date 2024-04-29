@@ -6,12 +6,15 @@ It also prevents a merge from removing a needed `import` statement, even if the
 merge would be clean.
 
 If the only conflicts are in import statements, or there are no conflicts, then:
- * Resolve conflicts by unioning the imports, being careful not to
-   lose comments that appear within the conflict.
- * Reinster all `import` statements that were removed by a clean
-   merge.
- * Remove all unneeded imports.  A needed import is one that is used
-   somewhere in the Java file.
+
+ * Resolve conflicts by unioning the imports.  If an import was renamed (e.g.,
+   "import a.b.c.Foo;" was deleted and "import d.e.Foo;" was inserted), then the
+   old name is not included in the union of imports.  This unioning is also
+   careful not to lose comments that appear within the conflict.
+ * Reinsert all `import` statements that were removed by a clean merge.  (Except
+   those that were renamed.)
+ * Remove all unneeded imports.  A needed import is one that is used somewhere
+   in the Java file.
 
 (If there are conflicts beyound import statements, such as in code or in
 comments, then you should first resolve those other conflicts, then run the Java
