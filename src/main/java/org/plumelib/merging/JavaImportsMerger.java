@@ -721,7 +721,6 @@ public class JavaImportsMerger implements Merger {
         }
       }
     }
-    System.out.printf("changedImports => %s %s%n", deleted, inserted);
     return IPair.of(deleted, inserted);
   }
 
