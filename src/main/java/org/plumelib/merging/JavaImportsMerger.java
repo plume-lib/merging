@@ -7,14 +7,22 @@ import com.google.googlejavaformat.java.RemoveUnusedImports;
 import com.sun.source.tree.ImportTree;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import name.fraser.neil.plaintext.DmpLibrary;
+import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.merging.ConflictedFile.CommonLines;
 import org.plumelib.merging.ConflictedFile.ConflictElement;
 import org.plumelib.merging.ConflictedFile.MergeConflict;
@@ -22,6 +30,8 @@ import org.plumelib.merging.Diff3File.Diff3Hunk;
 import org.plumelib.merging.Diff3File.Diff3HunkSection;
 import org.plumelib.merging.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
+import org.plumelib.util.IPair;
+import org.plumelib.util.StringsPlume;
 
 /**
  * This class tries to resolve conflicts in {@code import} statements and to re-insert any {@code
@@ -80,11 +90,24 @@ public class JavaImportsMerger implements Merger {
 
     // There are no merge conflicts except possibly within the imports.
 
-    // TODO: If this is too restrictive, expand it.
+    // TODO: If hasDifferingComments is too restrictive, expand it.
     // If an import merge conflict has different comments within it, give up.
     if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::hasDifferingComments)) {
       return;
     }
+
+    // The imports merger will introduce every `import` statement that was on either of the two
+    // parents.  However, if an import was moved -- that is, one parent removed `import a.b.c.Foo`
+    // and added `import d.e.Foo` -- then don't re-introduce the removed one.
+
+    // This doesn't use ConflictedFile because we are also interested in changes made by clean
+    // merges.
+    List<String> forbiddenImports = new ArrayList<>();
+    String baseContents = String.join("", mergeState.baseFileLines());
+    String leftContents = String.join("", mergeState.leftFileLines());
+    String rightContents = String.join("", mergeState.rightFileLines());
+    forbiddenImports.addAll(renamedImports(baseContents, leftContents));
+    forbiddenImports.addAll(renamedImports(baseContents, rightContents));
 
     // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
@@ -147,8 +170,6 @@ public class JavaImportsMerger implements Merger {
 
     int startLineOffset = 0;
     List<String> mergedFileContentsLines = CommonLines.toLines(cls);
-    // TODO: I should probably track how the insertion of import statements has changed where other
-    // import statemets should be inserted.
     for (Diff3Hunk h : diff3file.contents()) {
       List<String> lines = h.section2().lines();
       List<String> importStatementsThatMightBeRemoved =
@@ -213,6 +234,14 @@ public class JavaImportsMerger implements Merger {
       }
       startLineOffset += h.lineChangeSize();
     }
+
+    mergedFileContentsLines =
+        CollectionsPlume.filter(
+            mergedFileContentsLines,
+            (String line) -> {
+              final String imported = imported(line);
+              return imported == null || !forbiddenImports.contains(imported);
+            });
 
     String mergedFileContents = String.join("", mergedFileContentsLines);
     if (verbose) {
@@ -568,7 +597,7 @@ public class JavaImportsMerger implements Merger {
    * A pattern that matches an import line in Java code. Does not match import lines with a trailing
    * comment.
    */
-  private static Pattern importPattern = Pattern.compile("\s*import .*;\\R?");
+  private static Pattern importPattern = Pattern.compile("\\s*import\\s.*;\\R?");
 
   /**
    * Returns true if the given line is an import statement.
@@ -654,5 +683,120 @@ public class JavaImportsMerger implements Merger {
   public static int indexOf(List<?> list, Object value, int start) {
     int idx = list.subList(start, list.size()).indexOf(value);
     return idx == -1 ? -1 : idx + start;
+  }
+
+  /**
+   * Returns a pair of (deleted imports, inserted imports).
+   *
+   * @param javaCode1 the first Java program
+   * @param javaCode2 the second Java program
+   * @return the deleted and changed imports, each as a list of dotted identifiers
+   */
+  static IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
+    // This implementation is hacky in that it works textually instead of parsing the Java code.
+    // So, it will not handle bizarrely formatted code.
+    LinkedList<Diff> diffs = DmpLibrary.diffByLines(javaCode1, javaCode2);
+    List<String> inserted = new ArrayList<>();
+    List<String> deleted = new ArrayList<>();
+    for (Diff diff : diffs) {
+      switch (diff.operation) {
+        case INSERT -> {
+          for (String insertedLine : StringsPlume.splitLines(diff.text)) {
+            String imported = imported(insertedLine);
+            if (imported != null) {
+              inserted.add(imported);
+            }
+          }
+        }
+        case DELETE -> {
+          for (String deletedLine : StringsPlume.splitLines(diff.text)) {
+            String imported = imported(deletedLine);
+            if (imported != null) {
+              deleted.add(imported);
+            }
+          }
+        }
+        case EQUAL -> {
+          // Nothing to do
+        }
+      }
+    }
+    System.out.printf("changedImports => %s %s%n", deleted, inserted);
+    return IPair.of(deleted, inserted);
+  }
+
+  /**
+   * Returns a list of deleted imports that were also inserted with a different prefix. For example,
+   * if "import a.b.c.Foo;" was deleted, and "import d.e.Foo" was added, the result contains
+   * "a.b.c.Foo". These should not be re-inserted.
+   *
+   * @param javaCode1 the first Java program
+   * @param javaCode2 the second Java program
+   * @return the renamed imports, as a list of dotted identifiers (for their old names)
+   */
+  static List<String> renamedImports(String javaCode1, String javaCode2) {
+    IPair<List<String>, List<String>> changedImports = changedImports(javaCode1, javaCode2);
+    List<String> deleted = changedImports.first;
+    List<String> inserted = changedImports.second;
+    if (deleted.isEmpty() || inserted.isEmpty()) {
+      return Collections.emptyList();
+    }
+    Set<String> insertedIdentifiers =
+        new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
+    List<String> result = new ArrayList<>();
+    for (String dotted : deleted) {
+      String deletedIdentifier = lastIdentifier(dotted);
+      if (insertedIdentifiers.contains(deletedIdentifier)) {
+        result.add(dotted);
+      }
+    }
+    System.out.printf("renamed imports: %s%n", result);
+    return Collections.unmodifiableList(result);
+  }
+
+  /**
+   * Returns the text after the last period in the input.
+   *
+   * @param dottedIdentifiers dotted identifiers
+   * @return the last of the dotted identifiers
+   */
+  private static String lastIdentifier(String dottedIdentifiers) {
+    int dotPos = dottedIdentifiers.lastIndexOf(".");
+    if (dotPos == -1) {
+      return dottedIdentifiers;
+    } else {
+      return dottedIdentifiers.substring(dotPos + 1);
+    }
+  }
+
+  /** Matches an import line in a Java program. */
+  @SuppressWarnings({"regex:argument", "regex:assignment"}) // string concatenation
+  private static @Regex(1) Pattern importLine =
+      Pattern.compile(
+          "^\\s*+import\\s++(?:static\\s++)?+("
+              + JavaAnnotationsMerger.javaDottedIdentifiersRegex
+              + ")\\s*+;\\s*+\\R?$");
+
+  /** Matches horizontal whitespace. */
+  private static Pattern horizontalSpace = Pattern.compile("\\s+");
+
+  /**
+   * If the given line is an import statement, then return what is being imported, as a dotted
+   * identifier.
+   *
+   * @param line a line of code
+   * @return what is being imported, or null if the line isn't an import statement
+   */
+  static String imported(String line) {
+    Matcher m = importLine.matcher(line);
+    if (m.matches()) {
+      String withSpaces = m.group(1);
+      String withoutSpaces = horizontalSpace.matcher(withSpaces).replaceAll("");
+      System.out.printf("imported(%s) => %s%n", line, withSpaces);
+      return withoutSpaces;
+    } else {
+      System.out.printf("imported(%s) => null%n", line);
+      return null;
+    }
   }
 }
