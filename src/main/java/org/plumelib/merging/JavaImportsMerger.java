@@ -749,7 +749,6 @@ public class JavaImportsMerger implements Merger {
         result.add(dotted);
       }
     }
-    System.out.printf("renamed imports: %s%n", result);
     return Collections.unmodifiableList(result);
   }
 
