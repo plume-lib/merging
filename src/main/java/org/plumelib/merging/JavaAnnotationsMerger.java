@@ -8,12 +8,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.javacparse.JavacParse;
 import org.plumelib.merging.fileformat.ConflictedFile;
-import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.CollectionsPlume.Replacement;
@@ -23,13 +21,16 @@ import org.plumelib.util.StringsPlume;
  * This is a merger for Java files. It handles conflicts where the edits differ only in adding
  * annotations or modifiers. It merges such conflicts, accepting the annotations as additions.
  */
-public class JavaAnnotationsMerger implements Merger {
+public class JavaAnnotationsMerger extends Merger {
 
-  /** If true, produce debugging output. */
-  private static boolean verbose = false;
-
-  /** Creates a JavaAnnotationsMerger. */
-  JavaAnnotationsMerger() {}
+  /**
+   * Creates a JavaAnnotationsMerger.
+   *
+   * @param verbose if true, output diagnostic information
+   */
+  public JavaAnnotationsMerger(boolean verbose) {
+    super(verbose);
+  }
 
   @Override
   public void merge(MergeState mergeState) {
@@ -37,38 +38,11 @@ public class JavaAnnotationsMerger implements Merger {
       return;
     }
 
-    ConflictedFile cf = mergeState.conflictedFile();
-    if (cf.parseError() != null) {
-      String message = "JavaAnnotationsMerger: trouble reading merged file: " + cf.parseError();
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
-
-    @SuppressWarnings("nullness:assignment") // cf.parseError() == null => cf.contents() != null
-    @NonNull List<ConflictElement> hunks = cf.hunks();
-    if (verbose) {
-      System.out.printf(
-          "conflicted file (size %s)=%s%n", (hunks == null ? "null" : ("" + hunks.size())), cf);
-    }
-    if (hunks == null) {
-      throw new Error("Erroneous ConflictedFile");
-    }
-
-    ConflictedFile newCf = resolveConflicts(cf);
-    if (newCf != null) {
-      mergeState.setConflictedFile(newCf);
-    }
+    super.merge(mergeState);
   }
 
-  /**
-   * Given a conflicted file, returns a new one, possibly with some conflicts resolved. Returns null
-   * if no changes were made.
-   *
-   * @param cf the conflicted file, which should not be erroneous
-   * @return the new file contents, or null if no changes were made
-   */
-  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf) {
+  @Override
+  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<Replacement<String>> replacements = new ArrayList<>();
 

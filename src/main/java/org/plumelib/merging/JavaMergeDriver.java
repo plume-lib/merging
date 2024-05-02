@@ -120,7 +120,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
         if (jclo.verbose) {
           System.out.println("calling adjacent");
         }
-        new AdjacentLinesMerger().merge(ms);
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
       }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
@@ -128,7 +128,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
         if (jclo.verbose) {
           System.out.println("calling annotations");
         }
-        new JavaAnnotationsMerger().merge(ms);
+        new JavaAnnotationsMerger(jclo.verbose).merge(ms);
       }
 
       // Imports should come last, because it does nothing unless every non-import conflict

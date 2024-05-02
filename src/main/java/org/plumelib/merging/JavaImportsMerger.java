@@ -32,15 +32,7 @@ import org.plumelib.util.StringsPlume;
  * This class resolves conflicts in {@code import} statements and re-inserts any {@code import}
  * statements that were removed by a merge but are needed for compilation to succeed.
  */
-public class JavaImportsMerger implements Merger {
-
-  /** If true, print diagnostics for debugging. */
-  private final boolean verbose;
-
-  /** Creates a JavaImportsMerger. */
-  public JavaImportsMerger() {
-    this(false);
-  }
+public class JavaImportsMerger extends Merger {
 
   /**
    * Creates a JavaImportsMerger.
@@ -48,39 +40,28 @@ public class JavaImportsMerger implements Merger {
    * @param verbose if true, output diagnostic information
    */
   public JavaImportsMerger(boolean verbose) {
-    this.verbose = verbose;
+    super(verbose);
   }
 
+  // TODO: have a variable in Merger to control this.
+  // Don't override merge() to check mergeState.hasConflict(), because this merger should run
+  // regardless of whether the merge so far is clean.
+
   @Override
-  public void merge(MergeState mergeState) {
-
-    ConflictedFile cf = mergeState.conflictedFile();
-    if (verbose) {
-      System.out.printf("JavaImportsMerger: conflicted file = %s%n", cf);
-    }
-    // Don't check mergeState.hasConflict() because this merger should run
-    // regardless of whether the merge so far is clean.
-
-    List<ConflictElement> hunks = cf.hunks();
-    if (hunks == null) {
-      String message = "JavaImportsMerger: parse error in merged file: " + cf.parseError();
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
+  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<MergeConflict> mcs = cf.mergeConflicts();
 
     // Proceed only if all the merge conflicts (if any) are within the imports.
     if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::isOutsideImports)) {
-      return;
+      return null;
     }
 
     // There are no merge conflicts except possibly within the imports.
 
     // If an import merge conflict has different comments within it, give up.
     if (!CollectionsPlume.allMatch(mcs, MergeConflict::sameCommentLines)) {
-      return;
+      return null;
     }
 
     // The imports merger will introduce every `import` statement that was in either of the two
@@ -98,7 +79,8 @@ public class JavaImportsMerger implements Merger {
 
     // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
-    for (ConflictElement ce : hunks) {
+    assert cf.hunks() != null : "@AssumeAssertion(nullness): precondition of resolveConflicts";
+    for (ConflictElement ce : cf.hunks()) {
       CommonLines cl;
       if (ce instanceof CommonLines) {
         cl = (CommonLines) ce;
@@ -147,7 +129,7 @@ public class JavaImportsMerger implements Merger {
       gjfFileContents = mergedFileContents;
     }
 
-    mergeState.setConflictedFile(new ConflictedFile(gjfFileContents, false));
+    return new ConflictedFile(gjfFileContents, false);
   }
 
   /**

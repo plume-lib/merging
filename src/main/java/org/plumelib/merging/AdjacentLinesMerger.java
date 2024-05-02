@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
@@ -17,13 +16,16 @@ import org.plumelib.util.CollectionsPlume.Replacement;
 import org.plumelib.util.IPair;
 
 /** This is a merger that resolves conflicts where the edits are on different but adjacent lines. */
-public class AdjacentLinesMerger implements Merger {
+public class AdjacentLinesMerger extends Merger {
 
-  /** If true, produce debugging output. */
-  private static boolean verbose = false;
-
-  /** Creates an AdjacentLinesMerger. */
-  AdjacentLinesMerger() {}
+  /**
+   * Creates an AdjacentLinesMerger.
+   *
+   * @param verbose if true, output diagnostic information
+   */
+  public AdjacentLinesMerger(boolean verbose) {
+    super(verbose);
+  }
 
   @Override
   public void merge(MergeState mergeState) {
@@ -31,36 +33,11 @@ public class AdjacentLinesMerger implements Merger {
       return;
     }
 
-    ConflictedFile cf = mergeState.conflictedFile();
-    if (cf.parseError() != null) {
-      String message = "AdjacentLinesMerger: trouble reading merged file: " + cf.parseError();
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
-
-    @SuppressWarnings("nullness:assignment") // cf.parseError() == null => cf.hunks() != null
-    @NonNull List<ConflictElement> ces = cf.hunks();
-    if (verbose) {
-      System.out.printf(
-          "AdjacentLinesMerger: conflicted file (size %s)=%s%n",
-          (ces == null ? "null" : ("" + ces.size())), cf);
-    }
-
-    ConflictedFile newCf = resolveConflicts(cf);
-    if (newCf != null) {
-      mergeState.setConflictedFile(newCf);
-    }
+    super.merge(mergeState);
   }
 
-  /**
-   * Given a conflicted file, returns a new one with some conflicts resolved. Returns null if no
-   * changes were made.
-   *
-   * @param cf the conflicted file, which should not be erroneous
-   * @return the new file contents, or null if no changes were made
-   */
-  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf) {
+  @Override
+  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<ConflictElement> ces = cf.hunks();
     if (ces == null) {
@@ -102,7 +79,7 @@ public class AdjacentLinesMerger implements Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
-  private static @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
+  private @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
     String baseJoined = mc.baseJoined();
     if (baseJoined == null) {
       throw new Error("AdjacentLinesMerger needs a 3-way diff");

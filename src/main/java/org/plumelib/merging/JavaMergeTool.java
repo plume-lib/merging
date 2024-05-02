@@ -71,18 +71,18 @@ public class JavaMergeTool extends AbstractMergeTool {
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
 
       if (jclo.adjacent) {
-        new AdjacentLinesMerger().merge(ms);
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
       }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
-        new JavaAnnotationsMerger().merge(ms);
+        new JavaAnnotationsMerger(jclo.verbose).merge(ms);
       }
 
       // Imports must come last, because it does nothing unless every non-import conflict
       // has already been resolved.
       if (jclo.imports) {
-        new JavaImportsMerger().merge(ms);
+        new JavaImportsMerger(jclo.verbose).merge(ms);
       }
 
       ms.writeBack(jclo.verbose);

@@ -100,8 +100,8 @@ public class JavaImportsMergerTest {
       throw new Error("Problem copying " + pathA + " to " + pathOutput, e);
     }
     MergeState ms = new MergeState(fileBase, fileA, fileB, fileOutput, true);
-    JavaImportsMerger jimd = new JavaImportsMerger();
-    jimd.merge(ms);
+    JavaImportsMerger jim = new JavaImportsMerger(false);
+    jim.merge(ms);
     try {
       assertEquals(
           -1L,
