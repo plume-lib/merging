@@ -33,15 +33,6 @@ public class JavaAnnotationsMerger extends Merger {
   }
 
   @Override
-  public void merge(MergeState mergeState) {
-    if (!mergeState.hasConflict()) {
-      return;
-    }
-
-    super.merge(mergeState);
-  }
-
-  @Override
   @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<Replacement<String>> replacements = new ArrayList<>();

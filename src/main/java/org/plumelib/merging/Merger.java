@@ -12,27 +12,44 @@ abstract class Merger {
   /** If true, print diagnostics for debugging. */
   protected final boolean verbose;
 
+  /** If true, run the merger even if there are no conflicts. */
+  protected final boolean alwaysRun;
+
   /**
    * Creates a Merger.
    *
    * @param verbose if true, print diagnostics for debugging.
    */
   public Merger(boolean verbose) {
+    this(verbose, false);
+  }
+
+  /**
+   * Creates a Merger.
+   *
+   * @param verbose if true, print diagnostics for debugging.
+   * @param alwaysRun if true, run the merger even if there are no conflicts
+   */
+  public Merger(boolean verbose, boolean alwaysRun) {
     this.verbose = verbose;
+    this.alwaysRun = alwaysRun;
   }
 
   /**
    * Possibly side-effects its arguments to resolve some conflicts.
    *
-   * <p>The way an implementation performs the side effect is typically by calling {@link
-   * MergeState#setConflictedFile}.
+   * <p>Most subclasses do not need to override this.
    *
    * @param mergeState the merge to be improved; is side-effected
    */
   void merge(MergeState mergeState) {
+    if (!alwaysRun && !mergeState.hasConflict()) {
+      return;
+    }
+
     ConflictedFile cf = mergeState.conflictedFile();
     if (verbose) {
-      System.out.printf("JavaImportsMerger: conflicted file = %s%n", cf);
+      System.out.printf("%s: conflicted file = %s%n", this.getClass().getSimpleName(), cf);
     }
 
     @SuppressWarnings("nullness:assignment") // cf.parseError() == null => cf.hunks() != null

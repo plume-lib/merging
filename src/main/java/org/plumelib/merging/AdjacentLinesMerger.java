@@ -28,15 +28,6 @@ public class AdjacentLinesMerger extends Merger {
   }
 
   @Override
-  public void merge(MergeState mergeState) {
-    if (!mergeState.hasConflict()) {
-      return;
-    }
-
-    super.merge(mergeState);
-  }
-
-  @Override
   @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<ConflictElement> ces = cf.hunks();

@@ -40,12 +40,8 @@ public class JavaImportsMerger extends Merger {
    * @param verbose if true, output diagnostic information
    */
   public JavaImportsMerger(boolean verbose) {
-    super(verbose);
+    super(verbose, true);
   }
-
-  // TODO: have a variable in Merger to control this.
-  // Don't override merge() to check mergeState.hasConflict(), because this merger should run
-  // regardless of whether the merge so far is clean.
 
   @Override
   @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
