@@ -1,7 +1,7 @@
-package name.fraser.neil.plaintext;
+package org.plumelib.merging;
 
 import java.util.LinkedList;
-import java.util.List;
+import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import name.fraser.neil.plaintext.diff_match_patch.LinesToCharsResult;
 import name.fraser.neil.plaintext.diff_match_patch.Patch;
@@ -19,7 +19,7 @@ public class DmpLibrary {
 
   static {
     dmp = new diff_match_patch();
-    // This is essential when comparing via diffLineHash.
+    // This is essential when comparing via lines.
     dmp.Diff_EditCost = 0;
     dmp.Match_Threshold = 0.0f;
     dmp.Patch_DeleteThreshold = 0.0f;
@@ -34,40 +34,16 @@ public class DmpLibrary {
    */
   @SuppressWarnings("NonApiType") // diff_match_patch specifies LinkedList
   public static LinkedList<Diff> diffByLines(String text1, String text2) {
+    // Convert each line to a single character.
     LinesToCharsResult a = dmp.diff_linesToChars(text1, text2);
-    text1 = a.chars1;
-    text2 = a.chars2;
-    List<String> linearray = a.lineArray;
 
-    LinkedList<Diff> diffs = dmp.diff_main(text1, text2, false);
+    // Do a character-wise diff.
+    LinkedList<Diff> diffs = dmp.diff_main(a.chars1, a.chars2, false);
 
-    // Convert the diff back to original text.
-    dmp.diff_charsToLines(diffs, linearray);
+    // Convert the character-wise diff back to lines.
+    dmp.diff_charsToLines(diffs, a.lineArray);
     // Do not call `dmp.diff_cleanupSemantic(diffs)` because it adjusts boundaries.
     // All boundaries are currently at line ends, which is where we want them.
-
-    return diffs;
-  }
-
-  /**
-   * Converts each line to a hash; converts each hash to a Unicode character; then diffs the
-   * resulting strings. This is useful for understanding the diff relationship between two lines,
-   * without knowing the content of each line.
-   *
-   * @param text1 a string
-   * @param text2 a string
-   * @return the differences (as one character per line)
-   */
-  @SuppressWarnings("NonApiType") // diff_match_patch specifies LinkedList
-  public static LinkedList<Diff> diffLineHash(String text1, String text2) {
-    LinesToCharsResult a = dmp.diff_linesToChars(text1, text2);
-    String chars1 = a.chars1;
-    String chars2 = a.chars2;
-
-    LinkedList<Diff> diffs = dmp.diff_main(chars1, chars2, false);
-
-    // Don't do `dmp.diff_cleanupSemantic(diffs);` because it changes "edit,equal,edit" into one
-    // larger edit, which I do not want.
 
     return diffs;
   }

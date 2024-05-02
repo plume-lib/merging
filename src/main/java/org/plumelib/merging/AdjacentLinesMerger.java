@@ -3,7 +3,6 @@ package org.plumelib.merging;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import name.fraser.neil.plaintext.DmpLibrary;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;

@@ -12,15 +12,8 @@ import org.plumelib.options.Options;
  * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
  * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
  * to abort the merge.
- *
- * <p>This program tries to correct conflicts in annotations and tries to improve merges in {@code
- * import} statements.
  */
 public class JavaMergeTool extends AbstractMergeTool {
-
-  // TODO: Should this be an instance variable?
-  /** Holds command-line options. */
-  public static final JavaCommandLineOptions jclo = new JavaCommandLineOptions();
 
   /**
    * Creates a JavaMergeTool.
@@ -41,6 +34,7 @@ public class JavaMergeTool extends AbstractMergeTool {
    */
   public static void main(String[] args) {
 
+    JavaCommandLineOptions jclo = new JavaCommandLineOptions();
     String[] orig_args = args;
     Options options =
         new Options("JavaMergeTool [options] basefile leftfile rightfile mergedfile", jclo);
@@ -54,16 +48,19 @@ public class JavaMergeTool extends AbstractMergeTool {
 
     JavaMergeTool jmt = new JavaMergeTool(args);
 
-    jmt.mainHelper();
+    jmt.mainHelper(jclo);
   }
 
-  // TODO: Can this be moved into a separate file and shared with merge tools?
-  /** Does the work of JavaMergeTool. */
-  public void mainHelper() {
+  /**
+   * Does the work of JavaMergeTool.
+   *
+   * @param jclo the command-line options
+   */
+  public void mainHelper(JavaCommandLineOptions jclo) {
 
     try {
 
-      // Don't do this until there is a separate MergeTool class for non-Java files.
+      // Don't do this until there is a separate MergeTool for non-Java files.
       // if (!adjacent && !mergedFileName.endsWith(".java")) {
       //   System.exit(1);
       // }
@@ -82,7 +79,7 @@ public class JavaMergeTool extends AbstractMergeTool {
         new JavaAnnotationsMerger().merge(ms);
       }
 
-      // Imports should come last, because it does nothing unless every non-import conflict
+      // Imports must come last, because it does nothing unless every non-import conflict
       // has already been resolved.
       if (jclo.imports) {
         new JavaImportsMerger().merge(ms);

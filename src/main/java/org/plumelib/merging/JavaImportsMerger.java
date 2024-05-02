@@ -19,7 +19,6 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import name.fraser.neil.plaintext.DmpLibrary;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -761,7 +760,6 @@ public class JavaImportsMerger implements Merger {
   }
 
   /** Matches an import line in a Java program. */
-  @SuppressWarnings({"regex:argument", "regex:assignment"}) // string concatenation
   private static @Regex(1) Pattern importLine =
       Pattern.compile(
           "^\\s*+import\\s++(?:static\\s++)?+("
