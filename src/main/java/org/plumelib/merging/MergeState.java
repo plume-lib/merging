@@ -19,7 +19,7 @@ public class MergeState {
   /** The left file name. Also known as "current" or "ours". */
   public final String leftFileName;
 
-  /** The right file name. Also known as "theirs". */
+  /** The right file name. Also known as "other" or "theirs". */
   public final String rightFileName;
 
   /** The merged file name. */
@@ -62,8 +62,8 @@ public class MergeState {
    * Creates a MergeState.
    *
    * @param baseFileName the base file name
-   * @param leftFileName the left, or left, file name; is overwritten by a merge driver
-   * @param rightFileName the other file name
+   * @param leftFileName the left (aka current or ours), file name; is overwritten by a merge driver
+   * @param rightFileName the right (aka other or theirs) file name
    * @param mergedFileName the merged file name; is overwritten by a merge tool; is null for a merge
    *     driver
    * @param hasConflictInitially true if the merged file contains a conflict
@@ -79,10 +79,10 @@ public class MergeState {
     this.leftFileName = leftFileName;
     this.rightFileName = rightFileName;
     this.mergedFileName = mergedFileName;
-    basePath = Path.of(baseFileName);
-    leftPath = Path.of(leftFileName);
-    rightPath = Path.of(rightFileName);
-    mergedPath = Path.of(mergedFileName);
+    this.basePath = Path.of(baseFileName);
+    this.leftPath = Path.of(leftFileName);
+    this.rightPath = Path.of(rightFileName);
+    this.mergedPath = Path.of(mergedFileName);
     this.hasConflictInitially = hasConflictInitially;
     if (!Files.isReadable(basePath)) {
       exitErroneously("file is not readable: " + baseFileName);
@@ -157,8 +157,6 @@ public class MergeState {
    */
   public ConflictedFile conflictedFile() {
     if (conflictedFile == null) {
-      // TODO: make it possible to pass in both fileContents and lines, to save work in
-      // ConflictedFile.  Anyway, MergeState should not be doing any splitting work here.
       conflictedFile = new ConflictedFile(mergedPath, hasConflictInitially);
     }
     return conflictedFile;
@@ -180,7 +178,8 @@ public class MergeState {
    * @param verbose if true, print diagnostic information
    */
   public void writeBack(boolean verbose) {
-    if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivalConflict())) {
+    conflictedFile();
+    if (conflictedFileChanged || (conflictedFile != null && conflictedFile.hasTrivalConflict())) {
       if (verbose) {
         System.out.printf("Writing back to %s .%n", mergedPath);
       }
@@ -203,9 +202,7 @@ public class MergeState {
    */
   @RequiresNonNull("conflictedFile")
   private void writeBack(Path path) {
-    // TODO: It may be more efficient not to make one big string, but that inefficiency is
-    // probably so small that it does not matter.
-    FilesPlume.writeString(path, conflictedFile.fileContents());
+    FilesPlume.writeString(path, conflictedFile().fileContents());
   }
 
   /**

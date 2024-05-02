@@ -136,10 +136,11 @@ public class JavaAnnotationsMerger implements Merger {
   }
 
   /**
-   * Returns true if the given text is one or more Java annotations.
+   * Returns true if the given text is one or more Java annotations or modifiers. Acutally permits
+   * ancillary text too; for example "@Anno ClassName this" and "extends @Anno Object"
    *
    * @param text a string
-   * @return true if the given text is one or more Java annotations
+   * @return true if the given text is one or more Java annotations or modifiers
    */
   // "protected" to permit tests to access it.
   protected static boolean isJavaAnnotations(String text) {
@@ -149,7 +150,7 @@ public class JavaAnnotationsMerger implements Merger {
       return true;
     }
 
-    // At one time, the parser calls were very expensive, and text matching was cheaper.
+    // At one time, the parser calls were very expensive, and text matching via regexes was cheaper.
     // I have not re-measured recently.
 
     // Set to false only to double-check that parsing and regexes give the same result (by running
@@ -158,11 +159,11 @@ public class JavaAnnotationsMerger implements Merger {
 
     String declText = null;
     // The test for " this" must precede the test for "@", because both can be true.
-    if (text.endsWith(" this")) {
+    if (text.endsWith(" this") || text.endsWith(" this,")) {
       if (useRegex && thisPattern.matcher(text).matches()) {
         return true;
       } else {
-        declText = text.substring(0, text.length() - 4) + "varname";
+        declText = text.substring(0, text.length() - 5) + " " + "varname";
       }
     } else if (text.startsWith("extends ")) {
       if (useRegex && extendsPattern.matcher(text).matches()) {
@@ -295,7 +296,7 @@ public class JavaAnnotationsMerger implements Merger {
    * annotation.
    */
   protected static final @Regex String annotationArgumentsRegex =
-      zeroOrMore(annotationArgumentRegex, "\\s*,\\s*");
+      zeroOrMore(annotationArgumentRegex, "\\s*,");
 
   /** Matches one Java annotation. */
   protected static final @Regex String annotationOnlyRegex =
@@ -304,7 +305,7 @@ public class JavaAnnotationsMerger implements Merger {
           // Java identifier
           + javaIdentifierRegex
           // optional arguments
-          + ("(?:\\s*\\(" + annotationArgumentsRegex + "\\))?");
+          + ("(?:\\s*\\(\\s*" + annotationArgumentsRegex + "\\s*\\))?");
 
   /** Matches one Java annotation OR modifier. */
   @SuppressWarnings("regex:assignment") // string concatenation
@@ -323,10 +324,10 @@ public class JavaAnnotationsMerger implements Merger {
           "transient",
           "volatile");
 
-  /** Matches one or more Java annotations. */
+  /** Matches one or more Java annotations separated by spaces. */
   protected static final @Regex String annotationsRegex = oneOrMore(annotationRegex, "\\s+");
 
-  /** Matches one or more Java annotations. */
+  /** Matches one or more Java annotations separated by spaces. */
   protected static final Pattern annotationsPattern = Pattern.compile(annotationsRegex);
 
   /** Matches zero or more Java annotations, each followed by space. */
@@ -335,42 +336,45 @@ public class JavaAnnotationsMerger implements Merger {
   /** Matches a type, possibly followed by type parameters. */
   protected static final String parameterizedTypeRegex =
       javaDottedIdentifiersRegex
-          + ("(?:<" + oneOrMore(annotationsSpacesRegex + javaIdentifierRegex, "\\s*,\\s*") + ">)?");
+          + ("(?:<\\s*"
+              + oneOrMore(annotationsSpacesRegex + javaIdentifierRegex, "\\s*,\\s*")
+              + "\\s*>)?");
 
   /** Matches a "this" formal parameter. */
   protected static final @Regex String thisRegex =
-      annotationsSpacesRegex + parameterizedTypeRegex + "\\s+" + "this";
+      annotationsSpacesRegex + parameterizedTypeRegex + "\\s+" + "this" + "(?:\\s*,)";
 
   /** Matches a "this" formal parameter. */
   protected static Pattern thisPattern = Pattern.compile(thisRegex);
 
-  /** Matches an extends clause. */
+  /** Matches an "extends Object" clause. */
   protected static final @Regex String extendsRegex =
-      "extends\\s+" + annotationsSpacesRegex + parameterizedTypeRegex;
+      "extends\\s+" + annotationsSpacesRegex + "Object";
 
   /** Matches an extends clause. */
   protected static Pattern extendsPattern = Pattern.compile(extendsRegex);
 
   // TODO: Should this handle multiline?
   /** Matches an end-of-line comment. */
-  protected static final Pattern commentPattern = Pattern.compile("//.*(\\z|[\r\n]+)");
+  protected static final Pattern commentPattern = Pattern.compile("//.*(\\z|\\R)");
 
   /** Matches the start of a Java annotation OR modifier. */
   @SuppressWarnings("regex:assignment") // string concatenation
   protected static final @Regex String annotationStartRegex =
       "^"
-          + String.join(
-              "|",
-              "@\\p{javaJavaIdentifierStart}",
-              "abstract",
-              "final",
-              "private",
-              "protected",
-              "public",
-              "static",
-              "synchronized",
-              "transient",
-              "volatile")
+          + group(
+              String.join(
+                  "|",
+                  "@" + javaIdentifierRegex,
+                  "abstract",
+                  "final",
+                  "private",
+                  "protected",
+                  "public",
+                  "static",
+                  "synchronized",
+                  "transient",
+                  "volatile"))
           + "\\b";
 
   /** Matches the start of a Java annotation OR modifier. */

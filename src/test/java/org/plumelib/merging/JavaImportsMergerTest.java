@@ -48,7 +48,7 @@ public class JavaImportsMergerTest {
     ConflictElement ce = MergeConflict.of(null, left, right, 0, 0);
     CommonLines cl;
     if (ce instanceof MergeConflict mc) {
-      cl = JavaImportsMerger.mergeImportConflictCommentwise(mc);
+      cl = JavaImportsMerger.mergeImportsCommentwise(mc);
     } else {
       cl = (CommonLines) ce;
     }

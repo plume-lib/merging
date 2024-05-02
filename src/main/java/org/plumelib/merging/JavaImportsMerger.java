@@ -37,8 +37,8 @@ import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
 
 /**
- * This class tries to resolve conflicts in {@code import} statements and to re-insert any {@code
- * import} statements that were removed but are needed for compilation to succeed.
+ * This class resolves conflicts in {@code import} statements and re-inserts any {@code import}
+ * statements that were removed by a merge but are needed for compilation to succeed.
  */
 public class JavaImportsMerger implements Merger {
 
@@ -59,11 +59,6 @@ public class JavaImportsMerger implements Merger {
     this.verbose = verbose;
   }
 
-  /**
-   * Merges the Java imports of the input.
-   *
-   * @param mergeState the merge state, which is side-effected
-   */
   @Override
   public void merge(MergeState mergeState) {
 
@@ -84,26 +79,24 @@ public class JavaImportsMerger implements Merger {
 
     List<MergeConflict> mcs = cf.mergeConflicts();
 
-    // There are merge conflicts.
-    // Proceed only if all the merge conflicts are within the imports.
+    // Proceed only if all the merge conflicts (if any) are within the imports.
     if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::isOutsideImports)) {
       return;
     }
 
     // There are no merge conflicts except possibly within the imports.
 
-    // TODO: If hasDifferingComments is too restrictive, expand it.
     // If an import merge conflict has different comments within it, give up.
     if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::hasDifferingComments)) {
       return;
     }
 
-    // The imports merger will introduce every `import` statement that was on either of the two
+    // The imports merger will introduce every `import` statement that was in either of the two
     // parents.  However, if an import was moved -- that is, one parent removed `import a.b.c.Foo`
     // and added `import d.e.Foo` -- then don't re-introduce the removed one.
 
-    // This doesn't use ConflictedFile because we are also interested in changes made by clean
-    // merges.
+    // This doesn't use `cf.conflictedFile()` because we are also interested in changes made by
+    // clean merges.
     List<String> forbiddenImports = new ArrayList<>();
     String baseContents = String.join("", mergeState.baseFileLines());
     String leftContents = String.join("", mergeState.leftFileLines());
@@ -118,19 +111,19 @@ public class JavaImportsMerger implements Merger {
       if (ce instanceof CommonLines) {
         cl = (CommonLines) ce;
       } else if (ce instanceof MergeConflict) {
-        cl = mergeImportConflictCommentwise((MergeConflict) ce);
+        cl = mergeImportsCommentwise((MergeConflict) ce);
         if (verbose) {
           System.out.printf("merged commentwise = %s%n", cl);
         }
       } else {
-        throw new Error();
+        throw new Error("what ConflictElement? " + ce.getClass() + " " + ce);
       }
       cls.add(cl);
     }
 
-    // If git produced a clean merge that removed an import from one of the two sides, reintroduce
+    // If git produced a merge that removed an import from one of the two sides, reintroduce
     // that import.
-    // Run diff3 to obtain all the differences.
+    // Run diff3 to obtain all the differences, even the ones that `git merge-file` merged.
     ProcessBuilder pbDiff3 =
         new ProcessBuilder(
             "diff3", mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
@@ -144,7 +137,7 @@ public class JavaImportsMerger implements Merger {
       if (verbose) {
         System.out.println("diff3Output: " + diff3Output);
       }
-      // It is essential to call waitFor *after* reading the output (from getInputStream()).
+      // It is essential to call waitFor *after* reading the output from getInputStream().
       int diff3ExitCode = pDiff3.waitFor();
       if (diff3ExitCode != 0 && diff3ExitCode != 1) {
         // `diff3` erred, so abort the merge
@@ -172,6 +165,7 @@ public class JavaImportsMerger implements Merger {
 
     int startLineOffset = 0;
     List<String> mergedFileContentsLines = CommonLines.toLines(cls);
+    // Iterate through the difs, adding lines to `mergedFileContentsLines`.
     for (Diff3Hunk h : diff3file.contents()) {
       List<String> lines = h.section2().lines();
       List<String> importStatementsThatMightBeRemoved =
@@ -241,7 +235,7 @@ public class JavaImportsMerger implements Merger {
         CollectionsPlume.filter(
             mergedFileContentsLines,
             (String line) -> {
-              final String imported = imported(line);
+              final String imported = getImportedType(line);
               return imported == null || !forbiddenImports.contains(imported);
             });
 
@@ -249,27 +243,6 @@ public class JavaImportsMerger implements Merger {
     if (verbose) {
       System.out.println("mergedFileContents=" + mergedFileContents);
     }
-
-    // This parse fails only if there is a bug earlier in the process,
-    // and it is not otherwise used any more.
-    // So, remove it for efficiency.
-    /*
-    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(mergedFileContents);
-    if (mergedCU == null) {
-      // Our merge is nonsyntactic, so don't write it out.
-      // The problem might be an earlier stage in the merge pipeline.
-      String message =
-          String.format("Cannot parse: %n%s%nEnd of cannot parse.%n", mergedFileContents);
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
-
-    List<? extends ImportTree> mergedImports = mergedCU.getImports();
-    if (verbose) {
-      System.out.printf("mergedImports=%s%n", mergedImports);
-    }
-    */
 
     String gjfFileContents;
     try {
@@ -283,63 +256,6 @@ public class JavaImportsMerger implements Merger {
 
     mergeState.setConflictedFile(new ConflictedFile(gjfFileContents, false));
   }
-
-  // OLD, excessively complex implementation of removing imports, which gjf already did.
-  /*
-    // TODO: handle static imports
-
-    // TODO: At this point, can I just use gjfFileContents rather than removing from elsewhere?
-
-    if (verbose) {
-      System.out.printf("Output of gjf.removeUnusedImports:%n%s%n", gjfFileContents);
-    }
-
-    JCCompilationUnit gjfCU = JavacParse.parseJavaCode(gjfFileContents);
-    if (gjfCU == null) {
-      throw new Error();
-    }
-
-    List<Import> gjfImports = mapList(Import::new, gjfCU.getImports());
-
-    List<Import> removedImports = new ArrayList<>();
-    for (ImportTree it : mergedImports) {
-      // TODO: different predicate?
-      Import i = new Import(it);
-      if (!gjfImports.contains(i)) {
-        removedImports.add(i);
-      }
-    }
-
-    if (verbose) {
-      System.out.printf("removedImports=%s%n", removedImports);
-    }
-
-    if (!removedImports.isEmpty()) {
-      Pattern removedImportPattern = Import.removedImportPattern(removedImports);
-
-      List<ConflictElement> ces = cf.hunks();
-      assert ces.size() == cls.size();
-      int size = ces.size();
-      if (verbose) {
-        System.out.printf("Before removal of %s:%n%s%n", removedImports, cls);
-      }
-      for (int i = 0; i < size; i++) {
-        // This needs to happen for every CommonLines hunk in cls, not just those that correspond to
-        // a conflict in cf.
-
-        // TODO: Side-effecting the list is probably a bad idea.  I can return a new one.
-        cls.set(i, cls.get(i).removeMatchingLines(removedImportPattern));
-      }
-      if (verbose) {
-        System.out.printf("After removal of %s:%n%s%n", removedImports, cls);
-      }
-    }
-
-    // TODO: I need to turn some conflicts into CommonLines, if they are resolvable.
-
-    List<String> prunedFileLines = CommonLines.toLines(cls);
-    mergeState.setConflictedFile(new ConflictedFile(prunedFileLines, false));
-  */
 
   /**
    * Represents an import statement.
@@ -479,7 +395,7 @@ public class JavaImportsMerger implements Merger {
    * @return the result of merging the conflict
    */
   // "protected" so test code can call it.
-  protected static CommonLines mergeImportConflictCommentwise(MergeConflict mc) {
+  protected static CommonLines mergeImportsCommentwise(MergeConflict mc) {
     List<String> leftLines = mc.left();
     List<String> rightLines = mc.right();
     int leftLen = leftLines.size();
@@ -694,7 +610,7 @@ public class JavaImportsMerger implements Merger {
       switch (diff.operation) {
         case INSERT -> {
           for (String insertedLine : StringsPlume.splitLines(diff.text)) {
-            String imported = imported(insertedLine);
+            String imported = getImportedType(insertedLine);
             if (imported != null) {
               inserted.add(imported);
             }
@@ -702,7 +618,7 @@ public class JavaImportsMerger implements Merger {
         }
         case DELETE -> {
           for (String deletedLine : StringsPlume.splitLines(diff.text)) {
-            String imported = imported(deletedLine);
+            String imported = getImportedType(deletedLine);
             if (imported != null) {
               deleted.add(imported);
             }
@@ -776,7 +692,7 @@ public class JavaImportsMerger implements Merger {
    * @param line a line of code
    * @return what is being imported, or null if the line isn't an import statement
    */
-  static @Nullable String imported(String line) {
+  static @Nullable String getImportedType(String line) {
     @Regex(1) Matcher m = importLine.matcher(line);
     if (m.matches()) {
       @SuppressWarnings("nullness:assignment") // this ought to type-check
