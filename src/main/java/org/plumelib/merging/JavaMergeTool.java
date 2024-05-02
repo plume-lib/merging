@@ -16,7 +16,6 @@ import org.plumelib.options.Options;
  * <p>This program tries to correct conflicts in annotations and tries to improve merges in {@code
  * import} statements.
  */
-@SuppressWarnings({"lock"}) // todo
 public class JavaMergeTool extends AbstractMergeTool {
 
   // TODO: Should this be an instance variable?

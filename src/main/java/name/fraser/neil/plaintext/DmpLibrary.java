@@ -7,7 +7,6 @@ import name.fraser.neil.plaintext.diff_match_patch.LinesToCharsResult;
 import name.fraser.neil.plaintext.diff_match_patch.Patch;
 
 /** This class contains static methods for use with diff_match_patch. */
-@SuppressWarnings({"UnusedMethod", "UnusedVariable", "NonApiType"}) // TEMPORARY
 public class DmpLibrary {
 
   /** Do not instantiate. */
@@ -33,6 +32,7 @@ public class DmpLibrary {
    * @param text2 a string
    * @return the differences
    */
+  @SuppressWarnings("NonApiType") // diff_match_patch specifies LinkedList
   public static LinkedList<Diff> diffByLines(String text1, String text2) {
     LinesToCharsResult a = dmp.diff_linesToChars(text1, text2);
     text1 = a.chars1;
@@ -58,6 +58,7 @@ public class DmpLibrary {
    * @param text2 a string
    * @return the differences (as one character per line)
    */
+  @SuppressWarnings("NonApiType") // diff_match_patch specifies LinkedList
   public static LinkedList<Diff> diffLineHash(String text1, String text2) {
     LinesToCharsResult a = dmp.diff_linesToChars(text1, text2);
     String chars1 = a.chars1;

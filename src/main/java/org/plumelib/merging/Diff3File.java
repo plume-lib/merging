@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.FilesPlume;
@@ -23,7 +24,6 @@ import org.plumelib.util.IPair;
  * <p>For documentation of the file format, see
  * https://www.gnu.org/software/diffutils/manual/diffutils.html#Comparing-Three-Files.
  */
-@SuppressWarnings("lock") // todo
 public class Diff3File {
 
   /** If true, output diagnostic information for debugging. */
@@ -95,7 +95,7 @@ public class Diff3File {
   }
 
   @Override
-  public String toString() {
+  public String toString(@GuardSatisfied Diff3File this) {
     return contents.toString();
   }
 
