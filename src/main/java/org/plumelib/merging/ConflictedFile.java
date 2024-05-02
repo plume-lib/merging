@@ -46,7 +46,6 @@ import org.plumelib.util.StringsPlume;
  * >>>>>>> theirs
  * }</pre>
  */
-@SuppressWarnings("lock") // todo
 public class ConflictedFile {
 
   // /** If true, output diagnostic information for debugging. */
@@ -329,7 +328,7 @@ public class ConflictedFile {
 
   @Override
   @SideEffectFree
-  public String toString() {
+  public String toString(@GuardSatisfied ConflictedFile this) {
     if (parseError != null) {
       return "ParseError{" + parseError + "}";
     } else if (hunks != null) {
@@ -543,7 +542,7 @@ public class ConflictedFile {
     }
 
     @Override
-    public String toString() {
+    public String toString(@GuardSatisfied MergeConflict this) {
       return "MergeConflict"
           + ("{base=" + base + "}")
           + ("{left=" + left + "}")
@@ -566,6 +565,7 @@ public class ConflictedFile {
      */
     public CommonLines {}
 
+    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
     @Override
     public String toString(@GuardSatisfied CommonLines this) {
       return textLines.toString();

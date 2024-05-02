@@ -21,6 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import name.fraser.neil.plaintext.DmpLibrary;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
+import org.checkerframework.checker.lock.qual.GuardSatisfied;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.merging.ConflictedFile.CommonLines;
@@ -37,7 +39,6 @@ import org.plumelib.util.StringsPlume;
  * This class tries to resolve conflicts in {@code import} statements and to re-insert any {@code
  * import} statements that were removed but are needed for compilation to succeed.
  */
-@SuppressWarnings({"lock", "nullness"}) // todo
 public class JavaImportsMerger implements Merger {
 
   /** If true, print diagnostics for debugging. */
@@ -72,9 +73,9 @@ public class JavaImportsMerger implements Merger {
     // Don't check mergeState.hasConflict() because this merger should run
     // regardless of whether the merge so far is clean.
 
-    String parseError = cf.parseError();
-    if (parseError != null) {
-      String message = "JavaImportsMerger: parse error in merged file: " + parseError;
+    List<ConflictElement> hunks = cf.hunks();
+    if (hunks == null) {
+      String message = "JavaImportsMerger: parse error in merged file: " + cf.parseError();
       System.out.println(message);
       System.err.println(message);
       return;
@@ -111,7 +112,7 @@ public class JavaImportsMerger implements Merger {
 
     // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
-    for (ConflictElement ce : cf.hunks()) {
+    for (ConflictElement ce : hunks) {
       CommonLines cl;
       if (ce instanceof CommonLines) {
         cl = (CommonLines) ce;
@@ -349,7 +350,6 @@ public class JavaImportsMerger implements Merger {
    * @param isStatic true if the import is a static import
    * @param identifier the identifier being imported
    */
-  @SuppressWarnings("lock") // todo
   static record Import(boolean isStatic, String identifier) {
     /**
      * Constructs an Import from an ImportTree.
@@ -360,8 +360,9 @@ public class JavaImportsMerger implements Merger {
       this(it.isStatic(), it.getQualifiedIdentifier().toString());
     }
 
+    @SuppressWarnings("lock") // JDK needs annotations on java.lang.Record
     @Override
-    public boolean equals(Import this, @Nullable Object o) {
+    public boolean equals(@GuardSatisfied Import this, @GuardSatisfied @Nullable Object o) {
       if (!(o instanceof Import)) {
         return false;
       }
@@ -369,13 +370,15 @@ public class JavaImportsMerger implements Merger {
       return isStatic == other.isStatic() && identifier.equals(other.identifier());
     }
 
+    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
     @Override
-    public int hashCode(Import this) {
+    public int hashCode(@GuardSatisfied Import this) {
       return Objects.hash(isStatic, identifier);
     }
 
+    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
     @Override
-    public String toString() {
+    public String toString(@GuardSatisfied Import this) {
       if (isStatic) {
         return "import static " + identifier;
       } else {
@@ -656,18 +659,6 @@ public class JavaImportsMerger implements Merger {
     return commentLinePattern.matcher(line).matches();
   }
 
-  /**
-   * Returns the imports of the given Java code.
-   *
-   * @param javaCode the contents of a Java file: a compilation unit
-   * @return the imports of the given Java code
-   */
-  @SuppressWarnings({"UnusedMethod", "UnusedVariable"}) // TODO: remove
-  private List<? extends ImportTree> getImports(String javaCode) {
-    // TODO
-    throw new Error("to implement");
-  }
-
   ///////////////////////////////////////////////////////////////////////////
 
   // TODO: use this from CollectionsPlume once plume-util is released.
@@ -785,10 +776,11 @@ public class JavaImportsMerger implements Merger {
    * @param line a line of code
    * @return what is being imported, or null if the line isn't an import statement
    */
-  static String imported(String line) {
-    Matcher m = importLine.matcher(line);
+  static @Nullable String imported(String line) {
+    @Regex(1) Matcher m = importLine.matcher(line);
     if (m.matches()) {
-      String withSpaces = m.group(1);
+      @SuppressWarnings("nullness:assignment") // this ought to type-check
+      @NonNull String withSpaces = m.group(1);
       String withoutSpaces = horizontalSpace.matcher(withSpaces).replaceAll("");
       return withoutSpaces;
     } else {

@@ -6,10 +6,10 @@ import java.nio.file.Path;
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.RequiresNonNull;
 import org.plumelib.util.FilesPlume;
 
 /** Data about a merge. */
-@SuppressWarnings("nullness") // TEMPORARY
 public class MergeState {
 
   /** The base file name. */
@@ -200,6 +200,7 @@ public class MergeState {
    *
    * @param path the path to which to write the conflicted file
    */
+  @RequiresNonNull("conflictedFile")
   private void writeBack(Path path) {
     // TODO: It may be more efficient not to make one big string, but that inefficiency is
     // probably so small that it does not matter.
