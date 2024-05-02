@@ -1,4 +1,4 @@
-package org.plumelib.merging;
+package org.plumelib.merging.fileformat;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -102,7 +102,7 @@ public class Diff3File {
    * @param section2 the second text section
    * @param section3 the third text section
    */
-  record Diff3Hunk(
+  public static record Diff3Hunk(
       Diff3HunkKind kind,
       Diff3HunkSection section1,
       Diff3HunkSection section2,
@@ -189,7 +189,7 @@ public class Diff3File {
      * @param section2 the second section
      * @param section3 the third section
      */
-    static record ThreeSections(
+    public static record ThreeSections(
         Diff3HunkSection section1, Diff3HunkSection section2, Diff3HunkSection section3) {
 
       /**
@@ -386,7 +386,7 @@ public class Diff3File {
   }
 
   /** The kind of a diff3 hunk. */
-  static enum Diff3HunkKind {
+  public static enum Diff3HunkKind {
     /** Section 1 text differs, sections 2 and 3 have the same text. */
     ONE_DIFFERS,
     /** Section 2 text differs, sections 1 and 3 have the same text. */
@@ -426,7 +426,7 @@ public class Diff3File {
    * @param command the command
    * @param lines the text
    */
-  static record Diff3HunkSection(Diff3Command command, List<String> lines) {
+  public static record Diff3HunkSection(Diff3Command command, List<String> lines) {
 
     /**
      * Parses a Diff3HunkSection.
@@ -469,7 +469,7 @@ public class Diff3File {
   }
 
   /** The kind of a diff3 command: append or change. */
-  static enum Diff3CommandKind {
+  public static enum Diff3CommandKind {
     /** Append (insert) text. */
     APPEND,
     /** Change text. */
@@ -484,7 +484,8 @@ public class Diff3File {
    * @param startLine the first line at which to edit
    * @param endLine the last line at which to edit
    */
-  static record Diff3Command(int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
+  public static record Diff3Command(
+      int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
 
     /**
      * Creates a Diff3Command record.
@@ -494,7 +495,7 @@ public class Diff3File {
      * @param startLine the first line at which to edit
      * @param endLine the last line at which to edit
      */
-    Diff3Command {
+    public Diff3Command {
       assert inputFile >= 1 && inputFile <= 3;
       assert startLine >= 0;
       assert endLine >= startLine;
@@ -565,7 +566,7 @@ public class Diff3File {
   ///////////////////////////////////////////////////////////////////////////
 
   /** An error when parsing the output of diff3. This is a checked exception. */
-  static class Diff3ParseException extends Exception {
+  public static class Diff3ParseException extends Exception {
 
     /** Unique identifier for serialization. If you add or remove fields, change this number. */
     static final long serialVersionUID = 20240331;

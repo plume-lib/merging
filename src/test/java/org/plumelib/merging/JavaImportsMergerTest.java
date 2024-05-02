@@ -11,9 +11,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.plumelib.merging.ConflictedFile.CommonLines;
-import org.plumelib.merging.ConflictedFile.ConflictElement;
-import org.plumelib.merging.ConflictedFile.MergeConflict;
+import org.plumelib.merging.fileformat.ConflictedFile.CommonLines;
+import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
+import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 
 public class JavaImportsMergerTest {
 

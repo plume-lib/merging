@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 

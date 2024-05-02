@@ -1,4 +1,4 @@
-package org.plumelib.merging;
+package org.plumelib.merging.fileformat;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -241,7 +241,7 @@ public abstract class RDiff {
    * @param diffs a list of diff_match_patch.Diff
    * @return an equivalent list of RDiff
    */
-  static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
+  public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
     List<RDiff> result = new ArrayList<>();
 
     // `prev` is always a deletion operation or null.
@@ -291,7 +291,8 @@ public abstract class RDiff {
    * @param edits2 different edits to the same text
    * @return new lists with aligned diffs
    */
-  static @Nullable IPair<List<RDiff>, List<RDiff>> align(List<RDiff> edits1, List<RDiff> edits2) {
+  public static @Nullable IPair<List<RDiff>, List<RDiff>> align(
+      List<RDiff> edits1, List<RDiff> edits2) {
     Iterator<RDiff> itor1 = edits1.iterator();
     Iterator<RDiff> itor2 = edits2.iterator();
     RDiff edit1 = itor1.hasNext() ? itor1.next() : null;

@@ -6,9 +6,10 @@ import java.util.List;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.plumelib.merging.ConflictedFile.CommonLines;
-import org.plumelib.merging.ConflictedFile.ConflictElement;
-import org.plumelib.merging.ConflictedFile.MergeConflict;
+import org.plumelib.merging.fileformat.ConflictedFile;
+import org.plumelib.merging.fileformat.ConflictedFile.CommonLines;
+import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
+import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.util.FilesPlume;
 
 public class ConflictedFileTest {
