@@ -78,47 +78,6 @@ public class ConflictedFile {
   private boolean hasTrivalConflict = false;
 
   /**
-   * Create a new ConflictedFile.
-   *
-   * @param lines the lines in the conflicted file, including conflict markers
-   * @param hunks the contents of the conflicted file
-   */
-  public ConflictedFile(List<String> lines, List<ConflictElement> hunks) {
-    this.fileContents = null;
-    this.lines = lines;
-    this.hunks = hunks;
-  }
-
-  /**
-   * Create a new erroneous ConflictedFile.
-   *
-   * @param lines the lines in the conflicted file, including conflict markers
-   * @param parseError the error message
-   */
-  public ConflictedFile(List<String> lines, String parseError) {
-    this.fileContents = null;
-    this.lines = lines;
-    this.hunks = null;
-    this.parseError = parseError;
-    this.hasConflictInitialized = true;
-    this.hasConflict = true;
-  }
-
-  /**
-   * Create a new ConflictedFile.
-   *
-   * @param lines the lines in the conflicted file, including conflict markers
-   * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
-   */
-  public ConflictedFile(List<String> lines, boolean hasConflict) {
-    this.fileContents = null;
-    this.lines = lines;
-    this.hunks = null;
-    this.hasConflictInitialized = true;
-    this.hasConflict = hasConflict;
-  }
-
-  /**
    * Parse a conflicted file.
    *
    * @param path the path of the conflicted file
