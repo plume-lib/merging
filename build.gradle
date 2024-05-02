@@ -86,9 +86,12 @@ test {
 }
 
 task runMakefileTests(type: Exec, description: 'Run tests defined in Makefile') {
+  group = 'Verification'
   commandLine 'make', '-C', file('src/test/resources').absolutePath
 }
-test.dependsOn runMakefileTests
+check.dependsOn runMakefileTests
+// The "test" task runs the JUnit tests, whose failure is more informative than system tests.
+runMakefileTests.mustRunAfter(test)
 
 spotless {
   format 'misc', {
