@@ -13,7 +13,7 @@ public class JavaLibrary {
   }
 
   /** A pattern that matches a string consisting only of whitespace. */
-  private static Pattern whitespacePattern = Pattern.compile("\s*\\R*");
+  private static Pattern whitespacePattern = Pattern.compile("\\s*\\R*");
 
   /**
    * Returns true if the given string is a blank line.
@@ -51,7 +51,6 @@ public class JavaLibrary {
     return CollectionsPlume.filter(lines, JavaLibrary::isCommentLine);
   }
 
-  // TODO: Should this forbid leading whitespace, to avoid false positive matches?
   /**
    * A pattern that matches an import line in Java code. Does not match import lines with a trailing
    * comment.
@@ -69,16 +68,13 @@ public class JavaLibrary {
   }
 
   /**
-   * Given a line of code, return true if can appear in an import block: it is an <code>import
-   * </code>, blank line, or comment.
+   * Given a line of code, return true if can appear in an import block: it is an {@code import},
+   * blank line, or comment.
    *
    * @param line a line of code
    * @return true if the line can be in an import block
    */
   public static boolean isImportBlockLine(String line) {
-    return line.isEmpty()
-        || whitespacePattern.matcher(line).matches()
-        || isCommentLine(line)
-        || isImportStatement(line);
+    return line.isEmpty() || isBlankLine(line) || isCommentLine(line) || isImportStatement(line);
   }
 }

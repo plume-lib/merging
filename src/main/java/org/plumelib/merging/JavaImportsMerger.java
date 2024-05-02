@@ -137,7 +137,7 @@ public class JavaImportsMerger implements Merger {
       int diff3ExitCode = pDiff3.waitFor();
       if (diff3ExitCode != 0 && diff3ExitCode != 1) {
         // `diff3` erred, so abort the merge
-        String message = "diff3 erred: " + diff3Output;
+        String message = "diff3 erred (status " + diff3ExitCode + "): " + diff3Output;
         System.out.println(message);
         System.err.println(message);
         return;
@@ -278,8 +278,8 @@ public class JavaImportsMerger implements Merger {
   }
 
   /**
-   * Given a merge conflict that is an import block, merge it, retaining comments but not caring for
-   * whitespace.
+   * Given a merge conflict that is an import block, merge it, retaining comments but not caring
+   * about whitespace.
    *
    * @param mc a merge conflict that is an import block. The left and right variants contain the
    *     same comment lines in the same order.
@@ -307,10 +307,10 @@ public class JavaImportsMerger implements Merger {
     int leftIndex = 0; // the index after the most recently found comment
     int rightIndex = 0; // the index after the most recently found comment
     for (String comment : leftComments) {
-      int leftCommentIndex = indexOf(leftLines, comment, leftIndex);
-      int rightCommentIndex = indexOf(rightLines, comment, rightIndex);
+      int leftCommentIndex = CollectionsPlume.indexOf(leftLines, comment, leftIndex);
+      int rightCommentIndex = CollectionsPlume.indexOf(rightLines, comment, rightIndex);
       if (leftCommentIndex == -1 || rightCommentIndex == -1) {
-        throw new Error();
+        throw new Error("didn't find comment: " + comment);
       }
       result.addAll(
           mergeImportsAndSpaces(
@@ -342,38 +342,35 @@ public class JavaImportsMerger implements Merger {
   private static List<String> mergeImportsAndSpaces(
       List<String> leftLines, List<String> rightLines) {
 
-    // `leftLines` and `rightLines` are portions of a merge conflict, so they could be equal.
-    if (leftLines.equals(rightLines)) {
-      return leftLines;
-    }
-    if (leftLines.isEmpty()) {
-      return rightLines;
-    }
-    if (rightLines.isEmpty()) {
-      return leftLines;
-    }
+    // `leftLines` and `rightLines` are *portions* of a merge conflict, so they could be equal.
     int leftLen = leftLines.size();
-    int rightLen = leftLines.size();
-    if (leftLen > rightLen
-        && CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
-      return leftLines;
-    } else if (rightLen > leftLen
-        && CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
-      return rightLines;
+    int rightLen = rightLines.size();
+    if (leftLen == rightLen) {
+      if (leftLines.equals(rightLines)) {
+        return leftLines;
+      }
+    } else if (leftLen > rightLen) {
+      if (rightLen == 0
+          || CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
+        return leftLines;
+      }
+    } else if (rightLen > leftLen) {
+      if (leftLen == 0 || CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
+        return rightLines;
+      }
     }
 
+    assert !leftLines.isEmpty() : "leftLines=" + leftLines + ", rightLines=" + rightLines;
+    assert !rightLines.isEmpty() : "leftLines=" + leftLines + ", rightLines=" + rightLines;
     // If non-null, the empty first line.
     String firstLineEmpty =
-        (!leftLines.isEmpty() && JavaLibrary.isBlankLine(leftLines.get(0)))
+        JavaLibrary.isBlankLine(leftLines.get(0))
             ? leftLines.get(0)
-            : ((!rightLines.isEmpty() && JavaLibrary.isBlankLine(rightLines.get(0)))
-                ? rightLines.get(0)
-                : null);
+            : (JavaLibrary.isBlankLine(rightLines.get(0)) ? rightLines.get(0) : null);
     String lastLineEmpty =
-        (!leftLines.isEmpty() && JavaLibrary.isBlankLine(leftLines.get(leftLines.size() - 1)))
+        JavaLibrary.isBlankLine(leftLines.get(leftLines.size() - 1))
             ? leftLines.get(leftLines.size() - 1)
-            : ((!rightLines.isEmpty()
-                    && JavaLibrary.isBlankLine(rightLines.get(rightLines.size() - 1)))
+            : (JavaLibrary.isBlankLine(rightLines.get(rightLines.size() - 1))
                 ? rightLines.get(rightLines.size() - 1)
                 : null);
     SortedSet<String> imports = new TreeSet<>();
@@ -391,21 +388,6 @@ public class JavaImportsMerger implements Merger {
   }
 
   ///////////////////////////////////////////////////////////////////////////
-
-  // TODO: use this from CollectionsPlume once plume-util is released.
-  /**
-   * Returns the first index of the given value in the list, starting at the given index. Uses
-   * {@code Object.equals} for comparison.
-   *
-   * @param list a list
-   * @param start the starting index
-   * @param value the value to search for
-   * @return the index of the value in the list, at or after the given index
-   */
-  public static int indexOf(List<?> list, Object value, int start) {
-    int idx = list.subList(start, list.size()).indexOf(value);
-    return idx == -1 ? -1 : idx + start;
-  }
 
   /**
    * Returns a pair of (deleted imports, inserted imports).
@@ -448,7 +430,7 @@ public class JavaImportsMerger implements Merger {
 
   /**
    * Returns a list of deleted imports that were also inserted with a different prefix. For example,
-   * if "import a.b.c.Foo;" was deleted, and "import d.e.Foo" was added, the result contains
+   * if "import a.b.c.Foo" was deleted and "import d.e.Foo" was added, then the result contains
    * "a.b.c.Foo". These should not be re-inserted.
    *
    * @param javaCode1 the first Java program
