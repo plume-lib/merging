@@ -81,9 +81,7 @@ public class Diff3File {
       if (!line.startsWith("====")) {
         throw new Error("Expected \"====\" at line " + (i + 1) + ", found: " + line);
       }
-      IPair<Integer, Diff3Hunk> hunkPair = Diff3Hunk.parse(lines, i);
-      i = hunkPair.first;
-      result.add(hunkPair.second);
+      i = Diff3Hunk.parse(lines, i, result);
     }
 
     return new Diff3File(result);
@@ -147,14 +145,16 @@ public class Diff3File {
     }
 
     /**
-     * Reads a Diff3Hunk from the given lines, starting at index {@code start}.
+     * Reads a Diff3Hunk from the given lines, starting at index {@code start}. Adds the hunk to
+     * {@code sink}.
      *
      * @param lines the lines to read from
      * @param start the first line to read
-     * @return a pair of (first_line_following_hunk, hunk)
+     * @param sink where to put the newly-read Diff3Hunk
+     * @return the first line following the hunk
      * @throws Diff3ParseException if the input is malformed
      */
-    public static IPair<Integer, Diff3Hunk> parse(List<String> lines, int start)
+    public static int parse(List<String> lines, int start, List<Diff3Hunk> sink)
         throws Diff3ParseException {
       if (verbose) {
         System.out.printf("Starting to parse hunk starting at line " + start + ".%n");
@@ -168,18 +168,7 @@ public class Diff3File {
       } catch (Diff3ParseException e) {
         throw new Diff3ParseException("At line " + (start + 1) + ": " + e.getMessage());
       }
-      IPair<Integer, ThreeSections> pair3 = ThreeSections.parse(lines, start + 1, kind);
-      ThreeSections threeSections = pair3.second;
-
-      Diff3Hunk result =
-          new Diff3Hunk(
-              kind, threeSections.section1(), threeSections.section2(), threeSections.section3());
-
-      if (verbose) {
-        System.out.printf("Parsed hunk ending at line " + pair3.first + ": " + result);
-      }
-
-      return IPair.of(pair3.first, result);
+      return ThreeSections.parse(lines, start + 1, kind, sink);
     }
 
     /**
@@ -198,11 +187,13 @@ public class Diff3File {
        * @param lines lines of text from which to parse
        * @param startLine where to start parsing within the text
        * @param kind the kind of diff3 hunk whose sections are being parsed
+       * @param sink where to store the parsed Diff3Hunk
        * @return three sections
        * @throws Diff3ParseException if the input is malformed
        */
-      private static IPair<Integer, ThreeSections> parse(
-          List<String> lines, int startLine, Diff3HunkKind kind) throws Diff3ParseException {
+      private static int parse(
+          List<String> lines, int startLine, Diff3HunkKind kind, List<Diff3Hunk> sink)
+          throws Diff3ParseException {
         if (verbose) {
           System.out.printf("Starting to parse 3 sections at line %s.%n", startLine + 1);
           System.out.flush();
@@ -227,7 +218,8 @@ public class Diff3File {
               "Finished parsing 3 sections, ending before line " + i + ": " + filled);
           System.out.flush();
         }
-        return IPair.of(i, filled);
+        sink.add(new Diff3Hunk(kind, filled.section1(), filled.section2(), filled.section3()));
+        return i;
       }
 
       /**
