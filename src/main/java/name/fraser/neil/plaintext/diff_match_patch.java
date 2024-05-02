@@ -1,3 +1,6 @@
+// This code is from
+// https://github.com/google/diff-match-patch/blob/master/java/src/name/fraser/neil/plaintext/diff_match_patch.java
+
 /*
  * Diff Match and Patch
  * Copyright 2018 The diff-match-patch Authors.
