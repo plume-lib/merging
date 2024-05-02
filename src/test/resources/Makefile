@@ -11,12 +11,12 @@ Adjacent%.diff:
 	@(cd ../../.. && ./gradlew -q assemble)
 
 	cp -f $(basename $@)A.java $(basename $@).git-merge
-	-git merge-file \
-	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java
+	git merge-file \
+	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	-../../main/sh/java-merge-driver.sh --only-adjacent \
-	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java
+	../../main/sh/java-merge-driver.sh --only-adjacent \
+	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
 	else \
@@ -24,8 +24,8 @@ Adjacent%.diff:
 	fi
 
 	cp -f $(basename $@)B.java $(basename $@)Output.java
-	-../../main/sh/java-merge-driver.sh --only-adjacent \
-	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java
+	../../main/sh/java-merge-driver.sh --only-adjacent \
+	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
 	if [ -f $(basename $@)Goal-backward.java ] ; then \
 	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
 	else \
@@ -49,8 +49,8 @@ Imports%.diff:
 	@(cd ../../.. && ./gradlew -q assemble)
 
 	cp -f $(basename $@)A.java $(basename $@).git-merge
-	-git merge-file \
-	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java
+	git merge-file \
+	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
 	../../main/sh/java-merge-driver.sh --only-imports \

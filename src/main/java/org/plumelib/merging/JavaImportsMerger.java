@@ -115,14 +115,75 @@ public class JavaImportsMerger implements Merger {
 
     // If git produced a merge that removed an import from one of the two sides, reintroduce
     // that import.
+
     // Run diff3 to obtain all the differences, even the ones that `git merge-file` merged.
     Diff3File diff3file =
         Diff3File.from3files(
             mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
 
+    // Iterate through the diffs, adding lines to the file.
+    List<String> mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+
+    mergedFileContentsLines =
+        CollectionsPlume.filter(
+            mergedFileContentsLines,
+            (String line) -> {
+              final String imported = getImportedType(line);
+              return imported == null || !forbiddenImports.contains(imported);
+            });
+
+    String mergedFileContents = String.join("", mergedFileContentsLines);
+    if (verbose) {
+      System.out.println("mergedFileContents=" + mergedFileContents);
+    }
+
+    String gjfFileContents;
+    try {
+      gjfFileContents = RemoveUnusedImports.removeUnusedImports(mergedFileContents);
+    } catch (FormatterException e) {
+      if (verbose) {
+        System.out.printf("gjf threw FormatterException: %s%n", e.getMessage());
+      }
+      gjfFileContents = mergedFileContents;
+    }
+
+    mergeState.setConflictedFile(new ConflictedFile(gjfFileContents, false));
+  }
+
+  /**
+   * Returns true if the given merge conflict is not an import block.
+   *
+   * @param mc a merge conflict
+   * @return true if the argument has with non-<code>import</code> lines
+   */
+  static boolean isOutsideImports(MergeConflict mc) {
+    List<String> base = mc.base();
+    return !(isImportBlock(mc.left())
+        && isImportBlock(mc.right())
+        && (base == null || isImportBlock(base)));
+  }
+
+  /**
+   * Given some lines of code, return true if they can all be part of an import block: every line
+   * satisfies {@link JavaLibrary#isImportBlockLine}.
+   *
+   * @param lines some lines of code
+   * @return true if the argument is an import block
+   */
+  static boolean isImportBlock(List<String> lines) {
+    return CollectionsPlume.allMatch(lines, JavaLibrary::isImportBlockLine);
+  }
+
+  /**
+   * For each diff in imports, insert the differing imports into the file.
+   *
+   * @param fileLines the lines of the file
+   * @param diff3file the diffs
+   * @return the lines of the file, after inserting more import statements
+   */
+  List<String> applyImportDiffs(List<String> fileLines, Diff3File diff3file) {
+
     int startLineOffset = 0;
-    List<String> mergedFileContentsLines = CommonLines.toLines(cls);
-    // Iterate through the difs, adding lines to `mergedFileContentsLines`.
     for (Diff3Hunk h : diff3file.contents()) {
       List<String> lines = h.section2().lines();
       List<String> importStatementsThatMightBeRemoved =
@@ -179,63 +240,16 @@ public class JavaImportsMerger implements Merger {
       }
       startLine += startLineOffset;
       if (verbose) {
-        System.out.printf("Before inserting at %d: %s%n", startLine, mergedFileContentsLines);
+        System.out.printf("Before inserting at %d: %s%n", startLine, fileLines);
       }
-      mergedFileContentsLines.addAll(startLine, importStatementsThatMightBeRemoved);
+      fileLines.addAll(startLine, importStatementsThatMightBeRemoved);
       if (verbose) {
-        System.out.printf("After inserting: %s%n", mergedFileContentsLines);
+        System.out.printf("After inserting: %s%n", fileLines);
       }
       startLineOffset += h.lineChangeSize();
     }
 
-    mergedFileContentsLines =
-        CollectionsPlume.filter(
-            mergedFileContentsLines,
-            (String line) -> {
-              final String imported = getImportedType(line);
-              return imported == null || !forbiddenImports.contains(imported);
-            });
-
-    String mergedFileContents = String.join("", mergedFileContentsLines);
-    if (verbose) {
-      System.out.println("mergedFileContents=" + mergedFileContents);
-    }
-
-    String gjfFileContents;
-    try {
-      gjfFileContents = RemoveUnusedImports.removeUnusedImports(mergedFileContents);
-    } catch (FormatterException e) {
-      if (verbose) {
-        System.out.printf("gjf threw FormatterException: %s%n", e.getMessage());
-      }
-      gjfFileContents = mergedFileContents;
-    }
-
-    mergeState.setConflictedFile(new ConflictedFile(gjfFileContents, false));
-  }
-
-  /**
-   * Returns true if the given merge conflict is not an import block.
-   *
-   * @param mc a merge conflict
-   * @return true if the argument has with non-<code>import</code> lines
-   */
-  static boolean isOutsideImports(MergeConflict mc) {
-    List<String> base = mc.base();
-    return !(isImportBlock(mc.left())
-        && isImportBlock(mc.right())
-        && (base == null || isImportBlock(base)));
-  }
-
-  /**
-   * Given some lines of code, return true if they can all be part of an import block: every line
-   * satisfies {@link JavaLibrary#isImportBlockLine}.
-   *
-   * @param lines some lines of code
-   * @return true if the argument is an import block
-   */
-  static boolean isImportBlock(List<String> lines) {
-    return CollectionsPlume.allMatch(lines, JavaLibrary::isImportBlockLine);
+    return fileLines;
   }
 
   /**
