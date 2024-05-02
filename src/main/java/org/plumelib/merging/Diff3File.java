@@ -3,23 +3,18 @@ package org.plumelib.merging;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
 
-// I could write this using LineNumberReader instead of reading the entire file at once.  That would
+// TODO: Parsing could use LineNumberReader instead of reading the entire file at once.  That would
 // be just slightly more efficient, probably, and I wouldn't have to return pairs that include line
 // numbers.
 
 /**
- * Represents a file that was output by diff3.
- *
- * <p>It is a sequence of Diff3Hunk objects.
+ * Represents a file that was output by diff3. It is a sequence of Diff3Hunk objects.
  *
  * <p>For documentation of the file format, see
  * https://www.gnu.org/software/diffutils/manual/diffutils.html#Comparing-Three-Files.
@@ -42,7 +37,7 @@ public class Diff3File {
   }
 
   /**
-   * Returns the contents of the diff3 file.
+   * Returns the contents of the diff3 file. Clients should not side-effect this.
    *
    * @return the contents of the diff3 file
    */
@@ -60,7 +55,7 @@ public class Diff3File {
     try {
       return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
     } catch (Throwable e) {
-      throw new Error(e);
+      throw new Error("Problem parsing " + filename, e);
     }
   }
 
@@ -86,9 +81,9 @@ public class Diff3File {
       if (!line.startsWith("====")) {
         throw new Error("Expected \"====\" at line " + (i + 1) + ", found: " + line);
       }
-      IPair<Integer, Diff3Hunk> hunkIPair = Diff3Hunk.parse(lines, i);
-      i = hunkIPair.first;
-      result.add(hunkIPair.second);
+      IPair<Integer, Diff3Hunk> hunkPair = Diff3Hunk.parse(lines, i);
+      i = hunkPair.first;
+      result.add(hunkPair.second);
     }
 
     return new Diff3File(result);
@@ -209,7 +204,7 @@ public class Diff3File {
       private static IPair<Integer, ThreeSections> parse(
           List<String> lines, int startLine, Diff3HunkKind kind) throws Diff3ParseException {
         if (verbose) {
-          System.out.printf("Starting to parse 3 sections at line %s%n", startLine + 1);
+          System.out.printf("Starting to parse 3 sections at line %s.%n", startLine + 1);
           System.out.flush();
         }
 
@@ -378,10 +373,10 @@ public class Diff3File {
       switch (kind()) {
         case ONE_DIFFERS:
           return lengthDifference;
-        case THREE_DIFFERS:
-          return -lengthDifference;
         case TWO_DIFFERS:
           return 0;
+        case THREE_DIFFERS:
+          return -lengthDifference;
         case THREE_WAY:
           return lengthDifference;
         default:
@@ -492,7 +487,7 @@ public class Diff3File {
   static record Diff3Command(int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
 
     /**
-     * Creates a Diff3Command.
+     * Creates a Diff3Command record.
      *
      * @param inputFile 1, 2, or 3
      * @param kind append or change
@@ -526,18 +521,14 @@ public class Diff3File {
       }
       int lengthMinusOne = line.length() - 1;
 
-      Diff3CommandKind kind;
-      switch (line.charAt(lengthMinusOne)) {
-        case 'a':
-          kind = Diff3CommandKind.APPEND;
-          break;
-        case 'c':
-          kind = Diff3CommandKind.CHANGE;
-          break;
-        default:
-          throw new Diff3ParseException(
-              "Malformed command line, should end with \"a\" or \"c\": " + line);
-      }
+      Diff3CommandKind kind =
+          switch (line.charAt(lengthMinusOne)) {
+            case 'a' -> Diff3CommandKind.APPEND;
+            case 'c' -> Diff3CommandKind.CHANGE;
+            default ->
+                throw new Diff3ParseException(
+                    "Malformed command line, should end with \"a\" or \"c\": " + line);
+          };
 
       int startLine;
       int endLine;
@@ -572,27 +563,6 @@ public class Diff3File {
   }
 
   ///////////////////////////////////////////////////////////////////////////
-
-  // TODO: Use the version from plume-util once a version after 1.9.0 is released.
-  /** A pattern that matches all common line separators: lf, cr, cr-lf. */
-  private static Pattern allLineSeparators = Pattern.compile("\n|\r\n?");
-
-  // TODO: Use the version from plume-util once a version after 1.9.0 is released.
-  /**
-   * Returns the first line separator in the given string, or "\n" if the string contains none.
-   *
-   * @param s a string
-   * @return the first line separator in the given string
-   */
-  @SuppressWarnings("regex:return") // all matches of allLineSeparators are regexes
-  public static @Regex String firstLineSeparator(String s) {
-    Matcher m = allLineSeparators.matcher(s);
-    if (m.find()) {
-      return m.group();
-    } else {
-      return "\n";
-    }
-  }
 
   /** An error when parsing the output of diff3. This is a checked exception. */
   static class Diff3ParseException extends Exception {
