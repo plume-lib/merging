@@ -6,6 +6,9 @@ public interface Merger {
   /**
    * Side-effects its arguments to perhaps resolve some conflicts.
    *
+   * <p>The way an implementation performs the side effect is typically by calling {@link
+   * MergeState#setConflictedFile}.
+   *
    * @param ms the merge to be improved; is side-effected
    */
   void merge(MergeState ms);

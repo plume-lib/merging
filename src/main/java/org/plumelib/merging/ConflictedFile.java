@@ -1,6 +1,3 @@
-// It seems that JGit's MergeResult is produced only by its own tools; that is, one cannot create a
-// MergeResult by parsing a conflicted file.
-
 package org.plumelib.merging;
 
 import java.nio.file.Path;
@@ -12,25 +9,29 @@ import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.StringsPlume;
 
+// This class is needed because it seems that JGit's MergeResult is produced only by its own tools;
+// that is, one cannot create a JGit MergeResult by parsing a conflicted file.
+
 /**
  * Represents a file that may contain conflict markers.
  *
- * <p>It is either erroneous, or it is a sequence of ConflictElement objects.
+ * <p>It is either erroneous (unparseable), or it is a sequence of ConflictElement objects.
  *
  * <p>There are two general forms of conflicted sections of a file:
  *
  * <p>diff style:
  *
  * <pre>{@code
- * <<<<<<< HEAD
+ * <<<<<<< OURS
  * puts 'hola world'
  * =======
  * puts 'hello mundo'
- * >>>>>>> mundo
+ * >>>>>>> THEIRS
  * }</pre>
  *
  * <p>diff3 style:
@@ -51,26 +52,27 @@ public class ConflictedFile {
   // /** If true, output diagnostic information for debugging. */
   // private static final boolean verbose = false;
 
-  // At least one of fileContents, lines, and hunks is always non-null.
+  // At least one of fileContents, lines, and hunks is non-null.
+
   /** The file contents, as a single string. Includes conflict markers. */
   private @MonotonicNonNull String fileContents;
 
   /** The lines of the file, including conflict markers. */
   private @MonotonicNonNull List<String> lines;
 
-  /**
-   * The contents of the conflicted file. These aren't really hunks. They are interspersed conflict
-   * hunks and common lines.
-   */
+  /** The contents of the conflicted file. They are interspersed conflict hunks and common lines. */
   private @MonotonicNonNull List<ConflictElement> hunks;
 
   /** The error message indicating why the file could not be parsed, or null. */
-  private @MonotonicNonNull String parseError;
+  private @MonotonicNonNull String parseError = null;
 
   /** True if the {@link #hasConflict} variable has been initialized. */
   private boolean hasConflictInitialized = false;
 
-  /** True if the file contains a conflict. */
+  /**
+   * True if the file contains a conflict, false if the file contains no conflict. The value is
+   * meaningful only if {@link #hasConflictInitialized} is true.
+   */
   private boolean hasConflict = false;
 
   /** True if the file had trivial conflicts that were resolved. */
@@ -86,7 +88,6 @@ public class ConflictedFile {
     this.fileContents = null;
     this.lines = lines;
     this.hunks = hunks;
-    this.parseError = null;
   }
 
   /**
@@ -108,13 +109,12 @@ public class ConflictedFile {
    * Create a new ConflictedFile.
    *
    * @param lines the lines in the conflicted file, including conflict markers
-   * @param hasConflict true if the file contains a conflict
+   * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    */
   public ConflictedFile(List<String> lines, boolean hasConflict) {
     this.fileContents = null;
     this.lines = lines;
     this.hunks = null;
-    this.parseError = null;
     this.hasConflictInitialized = true;
     this.hasConflict = hasConflict;
   }
@@ -132,7 +132,7 @@ public class ConflictedFile {
    * Parse a conflicted file.
    *
    * @param path the path of the conflicted file
-   * @param hasConflict true if the file contains a conflict
+   * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    */
   public ConflictedFile(Path path, boolean hasConflict) {
     this(FilesPlume.readString(path), hasConflict);
@@ -147,20 +147,18 @@ public class ConflictedFile {
     this.fileContents = fileContents;
     this.lines = null;
     this.hunks = null;
-    this.parseError = null;
   }
 
   /**
    * Create a new ConflictedFile.
    *
    * @param fileContents the conflicted file, as a single string
-   * @param hasConflict true if the file contains a conflict
+   * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    */
   public ConflictedFile(String fileContents, boolean hasConflict) {
     this.fileContents = fileContents;
     this.lines = null;
     this.hunks = null;
-    this.parseError = null;
     this.hasConflictInitialized = true;
     this.hasConflict = hasConflict;
   }
@@ -173,7 +171,6 @@ public class ConflictedFile {
   public ConflictedFile(List<String> lines) {
     this.lines = lines;
     this.hunks = null;
-    this.parseError = null;
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -185,6 +182,8 @@ public class ConflictedFile {
    *
    * @return the contents of the conflicted file
    */
+  @SuppressWarnings("purity") // pure from clients' point of view
+  @Pure
   public @Nullable List<ConflictElement> hunks() {
     if (hunks == null && parseError == null) {
       parse();
@@ -197,6 +196,8 @@ public class ConflictedFile {
    *
    * @return the merge conflicts in this
    */
+  @SuppressWarnings("purity") // pure from clients' point of view
+  @Pure
   public List<MergeConflict> mergeConflicts() {
     hunks();
     if (hunks == null) {
@@ -216,6 +217,7 @@ public class ConflictedFile {
    *
    * @return the format error of the conflicted file, or null
    */
+  @Pure
   public @Nullable String parseError() {
     if (parseError == null && hunks == null) {
       parse();
@@ -228,6 +230,7 @@ public class ConflictedFile {
    *
    * @return true if the conflict file has improper format
    */
+  @Pure
   public boolean isParseError() {
     return parseError() != null;
   }
@@ -236,10 +239,12 @@ public class ConflictedFile {
   private Pattern conflictStartMultilinePattern = Pattern.compile("^<<<<<<", Pattern.MULTILINE);
 
   /**
-   * Returns true if the file contains any conflicts.
+   * Returns true if the file contains any conflicts, false if the file contains no conflict.
    *
-   * @return true if the file contains any conflicts
+   * @return true if the file contains any conflicts, false if the file contains no conflict
    */
+  @SuppressWarnings("purity") // pure from clients' point of view
+  @Pure
   public boolean hasConflict() {
     if (!hasConflictInitialized) {
       if (hunks != null) {
@@ -264,6 +269,7 @@ public class ConflictedFile {
    *
    * @return true if this file contained a "trivial" conflict
    */
+  @Pure
   public boolean hasTrivalConflict() {
     return hasTrivalConflict;
   }
@@ -274,6 +280,8 @@ public class ConflictedFile {
    * @return the contents of the conflicted file
    * @see #lines()
    */
+  @SuppressWarnings("purity") // pure from clients' point of view
+  @Pure
   @EnsuresNonNull("fileContents")
   public String fileContents() {
     if (fileContents == null) {
@@ -301,6 +309,7 @@ public class ConflictedFile {
    * @return the lines of the conflicted file
    * @see #fileContents()
    */
+  @Pure
   @EnsuresNonNull("lines")
   public List<String> lines() {
     if (lines == null) {
@@ -319,6 +328,7 @@ public class ConflictedFile {
   }
 
   @Override
+  @SideEffectFree
   public String toString() {
     if (parseError != null) {
       return "ParseError{" + parseError + "}";
@@ -340,6 +350,7 @@ public class ConflictedFile {
      *
      * @return the lines in the confict-file representation of this
      */
+    @SideEffectFree
     public List<String> toLines();
   }
 
@@ -512,6 +523,8 @@ public class ConflictedFile {
       return String.join("", right);
     }
 
+    @SuppressWarnings("purity") // pure from clients' point of view (wrt `equals()`, not `==`)
+    @Pure
     @Override
     public List<String> toLines() {
       List<String> result =
@@ -632,9 +645,8 @@ public class ConflictedFile {
   ///
 
   /** Parse a conflicted file, filling in the {@link #hunks} or {@link #parseError} field. */
-  @SuppressWarnings({
-    "index" // todo
-  })
+  @SuppressWarnings("purity") // pure from clients' point of view
+  @Pure
   private void parse() {
     try {
       int numLines = lines().size();

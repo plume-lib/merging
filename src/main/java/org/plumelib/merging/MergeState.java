@@ -53,7 +53,7 @@ public class MergeState {
 
   /**
    * True if the conflictedFile is dirty: it has changed and its contents need to be written back to
-   * the file.
+   * the file. If this is true, then conflictedFile is non-null.
    */
   private boolean conflictedFileChanged;
 
@@ -179,7 +179,7 @@ public class MergeState {
    * @param verbose if true, print diagnostic information
    */
   public void writeBack(boolean verbose) {
-    if (conflictedFileChanged || (conflictedFile != null && conflictedFile.hasTrivalConflict())) {
+    if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivalConflict())) {
       if (verbose) {
         System.out.printf("Writing back to %s .%n", mergedPath);
       }

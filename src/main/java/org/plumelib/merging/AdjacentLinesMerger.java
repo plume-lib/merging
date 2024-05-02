@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import name.fraser.neil.plaintext.DmpLibrary;
-import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -15,7 +14,6 @@ import org.plumelib.merging.RDiff.NoOp;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.CollectionsPlume.Replacement;
 import org.plumelib.util.IPair;
-import org.plumelib.util.StringsPlume;
 
 /** This is a merger that resolves conflicts where the edits are on different but adjacent lines. */
 public class AdjacentLinesMerger implements Merger {
@@ -23,7 +21,7 @@ public class AdjacentLinesMerger implements Merger {
   /** If true, produce debugging output. */
   private static boolean verbose = false;
 
-  /** Creates a JavaAdjacentLinesMerger. */
+  /** Creates an AdjacentLinesMerger. */
   AdjacentLinesMerger() {}
 
   @Override
@@ -40,7 +38,7 @@ public class AdjacentLinesMerger implements Merger {
       return;
     }
 
-    @SuppressWarnings("nullness:assignment") // cf.parseError() == null => cf.contents() != null
+    @SuppressWarnings("nullness:assignment") // cf.parseError() == null => cf.hunks() != null
     @NonNull List<ConflictElement> ces = cf.hunks();
     if (verbose) {
       System.out.printf(
@@ -55,15 +53,14 @@ public class AdjacentLinesMerger implements Merger {
   }
 
   /**
-   * Given a conflicted file, returns a new one, possibly with some conflicts resolved. Returns null
-   * if no changes were made.
+   * Given a conflicted file, returns a new one with some conflicts resolved. Returns null if no
+   * changes were made.
    *
    * @param cf the conflicted file, which should not be erroneous
    * @return the new file contents, or null if no changes were made
    */
   @Nullable ConflictedFile resolveConflicts(ConflictedFile cf) {
 
-    // Todo: localize the test for conflicts.
     List<ConflictElement> ces = cf.hunks();
     if (ces == null) {
       throw new Error("Erroneous ConflictedFile");
@@ -71,26 +68,11 @@ public class AdjacentLinesMerger implements Merger {
 
     List<Replacement<String>> replacements = new ArrayList<>();
 
-    diff_match_patch dmp = new diff_match_patch();
-    dmp.Match_Threshold = 0.0f;
-    dmp.Patch_DeleteThreshold = 0.0f;
-
     for (ConflictElement ce : ces) {
       if (!(ce instanceof MergeConflict)) {
         continue;
       }
       MergeConflict mc = (MergeConflict) ce;
-      String leftContent = StringsPlume.join("", mc.left());
-      String rightContent = StringsPlume.join("", mc.right());
-      if (verbose) {
-        System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", leftContent, rightContent);
-      }
-
-      String baseJoined = mc.baseJoined();
-      if (baseJoined == null) {
-        throw new Error("AdjacentLinesMerger needs a 3-way diff");
-      }
-
       List<String> merged = mergedWithAdjacent(mc);
       if (merged == null) {
         merged = mergedLinewise(mc);
@@ -120,9 +102,8 @@ public class AdjacentLinesMerger implements Merger {
    * @return the merged differences or null
    */
   private static @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
-    List<String> baseLines = mc.base();
     String baseJoined = mc.baseJoined();
-    if (baseLines == null || baseJoined == null) {
+    if (baseJoined == null) {
       throw new Error("AdjacentLinesMerger needs a 3-way diff");
     }
 
@@ -175,9 +156,11 @@ public class AdjacentLinesMerger implements Merger {
    * @return the merged differences or null
    */
   private static @Nullable List<String> mergedLinewise(MergeConflict mc) {
-    if (mc.base() == null
-        || mc.base().size() != mc.left().size()
-        || mc.base().size() != mc.right().size()) {
+    if (mc.base() == null) {
+      throw new Error("AdjacentLinesMerger needs a 3-way diff");
+    }
+
+    if (mc.base().size() != mc.left().size() || mc.base().size() != mc.right().size()) {
       return null;
     }
     List<String> result = new ArrayList<>();
