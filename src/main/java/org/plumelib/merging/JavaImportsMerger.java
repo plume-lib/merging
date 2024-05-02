@@ -4,23 +4,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.RemoveUnusedImports;
-import com.sun.source.tree.ImportTree;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
-import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
@@ -255,82 +251,6 @@ public class JavaImportsMerger implements Merger {
     }
 
     mergeState.setConflictedFile(new ConflictedFile(gjfFileContents, false));
-  }
-
-  /**
-   * Represents an import statement.
-   *
-   * <p>One reason for this class is that ImportTree uses reference equality. Another reason is that
-   * it is expensive to repeatedly call {@code toString} on the Tree resulting from {@code
-   * ImportTree.identifier()}.
-   *
-   * @param isStatic true if the import is a static import
-   * @param identifier the identifier being imported
-   */
-  static record Import(boolean isStatic, String identifier) {
-    /**
-     * Constructs an Import from an ImportTree.
-     *
-     * @param it an ImportTree
-     */
-    public Import(ImportTree it) {
-      this(it.isStatic(), it.getQualifiedIdentifier().toString());
-    }
-
-    @SuppressWarnings("lock") // JDK needs annotations on java.lang.Record
-    @Override
-    public boolean equals(@GuardSatisfied Import this, @GuardSatisfied @Nullable Object o) {
-      if (!(o instanceof Import)) {
-        return false;
-      }
-      Import other = (Import) o;
-      return isStatic == other.isStatic() && identifier.equals(other.identifier());
-    }
-
-    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
-    @Override
-    public int hashCode(@GuardSatisfied Import this) {
-      return Objects.hash(isStatic, identifier);
-    }
-
-    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
-    @Override
-    public String toString(@GuardSatisfied Import this) {
-      if (isStatic) {
-        return "import static " + identifier;
-      } else {
-        return "import " + identifier;
-      }
-    }
-
-    /**
-     * Returns a pattern matching all the removed imports.
-     *
-     * @param removedImports the removed imports
-     * @return a pattern matching all the removed imports
-     */
-    @SuppressWarnings("regex:argument") // regex constructed via string concatenation
-    public static Pattern removedImportPattern(List<Import> removedImports) {
-      StringJoiner removedImportRegex = new StringJoiner("|", "\\s*import\\s+(", ")\\s*;\\R?");
-      for (Import i : removedImports) {
-        removedImportRegex.add(i.regexAfterImport());
-      }
-      return Pattern.compile(removedImportRegex.toString());
-    }
-
-    /**
-     * Return a regex that matches the text after "import " for this.
-     *
-     * @return a regex that matches the text after "import "
-     */
-    public String regexAfterImport() {
-      String identifierRegex = Pattern.quote(identifier);
-      if (isStatic) {
-        return "static\\s+" + identifierRegex;
-      } else {
-        return identifierRegex;
-      }
-    }
   }
 
   /**
