@@ -11,10 +11,10 @@ public class JavaCommandLineOptions {
 
   /** If true, merge adjacent. */
   @Option("Merge adjacent lines")
-  public boolean adjacent = true;
+  public boolean adjacent = false;
 
   /** Default value for --adjacent. */
-  public boolean adjacentDefault = true;
+  public boolean adjacentDefault = false;
 
   /** If true, only merge adjacent lines. */
   @Option("Only merge adjacent")
