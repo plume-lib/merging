@@ -1,10 +1,7 @@
 package org.plumelib.merging;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.RemoveUnusedImports;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,7 +24,6 @@ import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.merging.fileformat.Diff3File;
 import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
 import org.plumelib.merging.fileformat.Diff3File.Diff3HunkSection;
-import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
@@ -120,44 +116,9 @@ public class JavaImportsMerger implements Merger {
     // If git produced a merge that removed an import from one of the two sides, reintroduce
     // that import.
     // Run diff3 to obtain all the differences, even the ones that `git merge-file` merged.
-    ProcessBuilder pbDiff3 =
-        new ProcessBuilder(
-            "diff3", mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
-    if (verbose) {
-      System.out.printf("About to call: %s%n", pbDiff3.command());
-    }
-    String diff3Output;
-    try {
-      Process pDiff3 = pbDiff3.start();
-      diff3Output = new String(pDiff3.getInputStream().readAllBytes(), UTF_8);
-      if (verbose) {
-        System.out.println("diff3Output: " + diff3Output);
-      }
-      // It is essential to call waitFor *after* reading the output from getInputStream().
-      int diff3ExitCode = pDiff3.waitFor();
-      if (diff3ExitCode != 0 && diff3ExitCode != 1) {
-        // `diff3` erred, so abort the merge
-        String message = "diff3 erred (status " + diff3ExitCode + "): " + diff3Output;
-        System.out.println(message);
-        System.err.println(message);
-        return;
-      }
-    } catch (IOException | InterruptedException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
-
-    Diff3File diff3file;
-    try {
-      diff3file = Diff3File.parseFileContents(diff3Output, mergeState.leftFileName);
-    } catch (Diff3ParseException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
+    Diff3File diff3file =
+        Diff3File.from3files(
+            mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
 
     int startLineOffset = 0;
     List<String> mergedFileContentsLines = CommonLines.toLines(cls);
