@@ -7,6 +7,7 @@ import java.util.List;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
+import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.util.FilesPlume;
 
 /** Data about a merge. */

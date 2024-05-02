@@ -1,4 +1,4 @@
-package org.plumelib.merging;
+package org.plumelib.merging.fileformat;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -442,7 +442,7 @@ public class ConflictedFile {
      *
      * @return the base text as a single string
      */
-    protected @Nullable String baseJoined() {
+    public @Nullable String baseJoined() {
       if (base == null) {
         return null;
       } else {
@@ -455,7 +455,7 @@ public class ConflictedFile {
      *
      * @return the left text as a single string
      */
-    protected String leftJoined() {
+    public String leftJoined() {
       return String.join("", left);
     }
 
@@ -464,7 +464,7 @@ public class ConflictedFile {
      *
      * @return the right text as a single string
      */
-    protected String rightJoined() {
+    public String rightJoined() {
       return String.join("", right);
     }
 
