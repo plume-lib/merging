@@ -4,7 +4,7 @@ package org.plumelib.merging;
 public interface Merger {
 
   /**
-   * Side-effects its arguments to perhaps resolve some conflicts.
+   * Possibly side-effects its arguments to resolve some conflicts.
    *
    * <p>The way an implementation performs the side effect is typically by calling {@link
    * MergeState#setConflictedFile}.

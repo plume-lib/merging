@@ -604,15 +604,18 @@ public class ConflictedFile {
           continue;
         }
 
-        int conflictStart = i;
+        // We found <<<<<<, the conflict start marker.
 
-        // We found <<<<<<, the left conflict start marker.
+        // Create a CommonLines for the text up to the conflict start marker.
         if (i > lastConflictEnder + 1) {
           List<String> commonText = lines.subList(lastConflictEnder + 1, i);
           if (commonText.size() != 0) {
             result.add(new CommonLines(commonText));
           }
         }
+
+        // These two variables are always the same; the compiler will optimize them into one.
+        int conflictStart = i;
         int leftConflictMarker = i;
         i++;
         // Determine the left text, and the base text if it exists.
@@ -681,6 +684,7 @@ public class ConflictedFile {
           parseError =
               "No >>>>>> line found after <<<<<< on line "
                   + (leftConflictMarker + 1)
+                  + (foundBaseSeparator ? (" and |||||| on line " + (baseConflictMarker + 1)) : "")
                   + " and ====== on line "
                   + (rightConflictMarker + 1);
           return;

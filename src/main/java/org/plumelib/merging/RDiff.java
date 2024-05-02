@@ -14,8 +14,8 @@ import org.plumelib.util.StringsPlume;
 /**
  * A RDiff is one of the operations "equal", "replace", or "insert".
  *
- * <p>By contrast, the edit operations of {@link diff_match_patch} are "insert", "delete", and
- * "equal".
+ * <p>By contrast, the edit operations of {@code diff} and of {@link diff_match_patch} are "insert",
+ * "delete", and "equal".
  */
 @SuppressWarnings({"index:argument", "lowerbound:argument"})
 public abstract class RDiff {
@@ -31,7 +31,7 @@ public abstract class RDiff {
   public abstract String preText();
 
   /**
-   * Returns the text that the operat produces.
+   * Returns the text that the operation produces.
    *
    * @return the text that the operation produces
    */
@@ -53,7 +53,7 @@ public abstract class RDiff {
    * {@code r.beforeSplit(n)} and {@code r.afterSplit(n)}.
    *
    * @param len the length of the returned RDiff
-   * @return a RDiff that does the first {@code len} edits of this one
+   * @return a RDiff that does the first {@code len} operations of this one
    */
   public RDiff beforeSplit(int len) {
     throw new Error("Don't split " + this);
@@ -66,7 +66,7 @@ public abstract class RDiff {
    * {@code r.beforeSplit(n)} and {@code r.afterSplit(n)}.
    *
    * @param len where the returned RDiff starts (within this one)
-   * @return a RDiff that does all but the first {@code len} edits of this one
+   * @return a RDiff that does all but the first {@code len} operations of this one
    */
   public RDiff afterSplit(int len) {
     throw new Error("Don't split " + this);
@@ -185,6 +185,11 @@ public abstract class RDiff {
     }
 
     @Override
+    public boolean canSplit() {
+      return true;
+    }
+
+    @Override
     public RDiff beforeSplit(int len) {
       assert 0 < len;
       assert len < text.length();
@@ -204,6 +209,7 @@ public abstract class RDiff {
     }
   }
 
+  // TODO: Is NoOp necessary?  Experimentally remove it to find out.
   /** A no-op operation, which transforms "" into "". */
   public static class NoOp extends RDiff {
 
@@ -238,7 +244,7 @@ public abstract class RDiff {
   static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
     List<RDiff> result = new ArrayList<>();
 
-    // `prev` is always a deletion operation.
+    // `prev` is always a deletion operation or null.
     Diff prev = null;
     for (Diff diff : diffs) {
       switch (diff.operation) {
@@ -277,8 +283,9 @@ public abstract class RDiff {
 
   /**
    * Breaks {@link Equal} RDiffs so that, for every RDiff in either output list, there is an RDiff
-   * in the other output list that starts in the same character location (in the original text). If
-   * this is not possible, return null.
+   * in the other output list that starts in the same character location (in the original text). In
+   * other words, each result list has the same length, and each corresponding pair of RDiffs have
+   * the same pre-length. If this is not possible, return null.
    *
    * @param edits1 edits to a text
    * @param edits2 different edits to the same text

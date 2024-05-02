@@ -1,17 +1,17 @@
-// TODO: improve the name of this class.
-
 package org.plumelib.merging;
 
 import java.io.IOException;
 
-/** This class contains static methods. */
-public class Library {
+// I could instead use (say) JGit, but it seems like overkill to include a whole library just for
+// this simple functionality.
+/** This class contains static methods related to calling git. */
+public class GitLibrary {
 
   /** If true, output diagnostics. */
   private static boolean verbose = false;
 
   /** Do not instantiate. */
-  private Library() {
+  private GitLibrary() {
     throw new Error("do not instantiate");
   }
 
@@ -30,7 +30,7 @@ public class Library {
         new ProcessBuilder(
             "git",
             "merge-file",
-            "--diff3",
+            "--zdiff3",
             "-L",
             "OURS",
             "-L",
