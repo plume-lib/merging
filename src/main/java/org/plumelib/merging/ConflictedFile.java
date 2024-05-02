@@ -195,7 +195,7 @@ public class ConflictedFile {
    *
    * @return the merge conflicts in this
    */
-  @SuppressWarnings("purity") // pure from clients' point of view
+  @SuppressWarnings("allcheckers:purity") // pure from clients' point of view
   @Pure
   public List<MergeConflict> mergeConflicts() {
     hunks();
@@ -242,7 +242,7 @@ public class ConflictedFile {
    *
    * @return true if the file contains any conflicts, false if the file contains no conflict
    */
-  @SuppressWarnings("purity") // pure from clients' point of view
+  @SuppressWarnings("allcheckers:purity") // pure from clients' point of view
   @Pure
   public boolean hasConflict() {
     if (!hasConflictInitialized) {
@@ -279,7 +279,7 @@ public class ConflictedFile {
    * @return the contents of the conflicted file
    * @see #lines()
    */
-  @SuppressWarnings("purity") // pure from clients' point of view
+  @SuppressWarnings("allcheckers:purity") // pure from clients' point of view
   @Pure
   @EnsuresNonNull("fileContents")
   public String fileContents() {
@@ -308,6 +308,7 @@ public class ConflictedFile {
    * @return the lines of the conflicted file
    * @see #fileContents()
    */
+  @SuppressWarnings("allcheckers:purity") // pure from clients' point of view
   @Pure
   @EnsuresNonNull("lines")
   public List<String> lines() {
@@ -522,7 +523,7 @@ public class ConflictedFile {
       return String.join("", right);
     }
 
-    @SuppressWarnings("purity") // pure from clients' point of view (wrt `equals()`, not `==`)
+    @SuppressWarnings("allcheckers:purity") // pure from clients' point of view (wrt `equals()`)
     @Pure
     @Override
     public List<String> toLines() {
@@ -645,7 +646,7 @@ public class ConflictedFile {
   ///
 
   /** Parse a conflicted file, filling in the {@link #hunks} or {@link #parseError} field. */
-  @SuppressWarnings("purity") // pure from clients' point of view
+  @SuppressWarnings("allcheckers:purity") // pure from clients' point of view
   @Pure
   private void parse() {
     try {
