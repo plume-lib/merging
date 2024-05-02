@@ -49,7 +49,7 @@ public class DmpLibrary {
   }
 
   /**
-   * Format a patch for debugging output.
+   * Format a diff_match_patch patch for debugging output.
    *
    * @param p a patch
    * @return the patch, formatted

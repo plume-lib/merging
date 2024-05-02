@@ -1,8 +1,6 @@
 package org.plumelib.merging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,32 +14,6 @@ import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 
 public class JavaImportsMergerTest {
-
-  @Test
-  void testIsCommentLine() {
-    assertTrue(JavaImportsMerger.isCommentLine("// x"));
-    assertTrue(JavaImportsMerger.isCommentLine("  // x"));
-    assertTrue(JavaImportsMerger.isCommentLine("  // x\n"));
-    assertTrue(JavaImportsMerger.isCommentLine("  // x\r"));
-    assertTrue(JavaImportsMerger.isCommentLine("  // x\r\n"));
-    assertTrue(JavaImportsMerger.isCommentLine("/* x */"));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */"));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */\n"));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */\r"));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */\r\n"));
-    assertTrue(JavaImportsMerger.isCommentLine("/* x */  "));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */  "));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */  \n"));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */  \r"));
-    assertTrue(JavaImportsMerger.isCommentLine("  /* x */  \r\n"));
-    assertTrue(JavaImportsMerger.isCommentLine("/* // x */  "));
-    assertTrue(JavaImportsMerger.isCommentLine("//*"));
-
-    assertFalse(JavaImportsMerger.isCommentLine("/*/  "));
-    assertFalse(JavaImportsMerger.isCommentLine("  /*/  "));
-    assertFalse(JavaImportsMerger.isCommentLine("  /* x *  "));
-    assertFalse(JavaImportsMerger.isCommentLine("  /* x /  "));
-  }
 
   void assertMergeImportConflictCommentwise(
       List<String> left, List<String> right, List<String> goal) {

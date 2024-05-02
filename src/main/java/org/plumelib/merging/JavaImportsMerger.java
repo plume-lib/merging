@@ -83,7 +83,7 @@ public class JavaImportsMerger implements Merger {
     // There are no merge conflicts except possibly within the imports.
 
     // If an import merge conflict has different comments within it, give up.
-    if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::hasDifferingComments)) {
+    if (!CollectionsPlume.allMatch(mcs, MergeConflict::sameCommentLines)) {
       return;
     }
 
@@ -165,7 +165,7 @@ public class JavaImportsMerger implements Merger {
     for (Diff3Hunk h : diff3file.contents()) {
       List<String> lines = h.section2().lines();
       List<String> importStatementsThatMightBeRemoved =
-          CollectionsPlume.filter(lines, JavaImportsMerger::isImportStatement);
+          CollectionsPlume.filter(lines, JavaLibrary::isImportStatement);
       if (importStatementsThatMightBeRemoved.isEmpty()) {
         // Merging this hunk did not remove any import statements.
         startLineOffset += h.lineChangeSize();
@@ -207,7 +207,7 @@ public class JavaImportsMerger implements Merger {
           List<String> editLines = edit.lines();
           int editLinesSize = editLines.size();
           for (i = 0; i < editLinesSize; i++) {
-            if (isImportStatement(editLines.get(i))) {
+            if (JavaLibrary.isImportStatement(editLines.get(i))) {
               break;
             }
           }
@@ -268,42 +268,13 @@ public class JavaImportsMerger implements Merger {
 
   /**
    * Given some lines of code, return true if they can all be part of an import block: every line
-   * satisfies {@link #isImportBlockLine}.
+   * satisfies {@link JavaLibrary#isImportBlockLine}.
    *
    * @param lines some lines of code
    * @return true if the argument is an import block
    */
   static boolean isImportBlock(List<String> lines) {
-    return lines.stream().allMatch(JavaImportsMerger::isImportBlockLine);
-  }
-
-  /**
-   * Returns true if the given conflict element is a merge conflict that has different comments in
-   * different variants.
-   *
-   * @param ce an element of a conflicted file
-   * @return true if the argument is a merge conflit with differing comments
-   */
-  static boolean hasDifferingComments(ConflictElement ce) {
-
-    if (!(ce instanceof MergeConflict)) {
-      return false;
-    }
-    MergeConflict mc = (MergeConflict) ce;
-
-    return !sameCommentLines(mc);
-  }
-
-  /**
-   * Returns true if the left and right contain the same comment lines.
-   *
-   * @param mc a merge conflict
-   * @return true if the left and right contain the same comment lines
-   */
-  static boolean sameCommentLines(MergeConflict mc) {
-    List<String> leftComments = commentLines(mc.left());
-    List<String> rightComments = commentLines(mc.right());
-    return leftComments.equals(rightComments);
+    return CollectionsPlume.allMatch(lines, JavaLibrary::isImportBlockLine);
   }
 
   /**
@@ -328,9 +299,8 @@ public class JavaImportsMerger implements Merger {
       return new CommonLines(rightLines);
     }
 
-    List<String> leftComments = commentLines(mc.left());
-    List<String> rightComments = commentLines(mc.right());
-    assert leftComments.equals(rightComments);
+    List<String> leftComments = JavaLibrary.commentLines(mc.left());
+    assert leftComments.equals(JavaLibrary.commentLines(mc.right()));
 
     List<String> result = new ArrayList<>();
 
@@ -394,15 +364,16 @@ public class JavaImportsMerger implements Merger {
 
     // If non-null, the empty first line.
     String firstLineEmpty =
-        (!leftLines.isEmpty() && isBlankLine(leftLines.get(0)))
+        (!leftLines.isEmpty() && JavaLibrary.isBlankLine(leftLines.get(0)))
             ? leftLines.get(0)
-            : ((!rightLines.isEmpty() && isBlankLine(rightLines.get(0)))
+            : ((!rightLines.isEmpty() && JavaLibrary.isBlankLine(rightLines.get(0)))
                 ? rightLines.get(0)
                 : null);
     String lastLineEmpty =
-        (!leftLines.isEmpty() && isBlankLine(leftLines.get(leftLines.size() - 1)))
+        (!leftLines.isEmpty() && JavaLibrary.isBlankLine(leftLines.get(leftLines.size() - 1)))
             ? leftLines.get(leftLines.size() - 1)
-            : ((!rightLines.isEmpty() && isBlankLine(rightLines.get(rightLines.size() - 1)))
+            : ((!rightLines.isEmpty()
+                    && JavaLibrary.isBlankLine(rightLines.get(rightLines.size() - 1)))
                 ? rightLines.get(rightLines.size() - 1)
                 : null);
     SortedSet<String> imports = new TreeSet<>();
@@ -412,88 +383,11 @@ public class JavaImportsMerger implements Merger {
     if (firstLineEmpty != null) {
       result.add(firstLineEmpty);
     }
-    result.addAll(CollectionsPlume.filter(imports, Predicate.not(JavaImportsMerger::isBlankLine)));
+    result.addAll(CollectionsPlume.filter(imports, Predicate.not(JavaLibrary::isBlankLine)));
     if (lastLineEmpty != null) {
       result.add(lastLineEmpty);
     }
     return result;
-  }
-
-  /** A pattern that matches a string consisting only of whitespace. */
-  private static Pattern whitespacePattern = Pattern.compile("\s*\\R*");
-
-  /**
-   * Returns true if the given string is a blank line.
-   *
-   * @param line a string
-   * @return true if the given string is a blank line
-   */
-  private static boolean isBlankLine(String line) {
-    return whitespacePattern.matcher(line).matches();
-  }
-
-  // TODO: Should this forbid leading whitespace, to avoid false positive matches?
-  /**
-   * A pattern that matches an import line in Java code. Does not match import lines with a trailing
-   * comment.
-   */
-  private static Pattern importPattern = Pattern.compile("\\s*import\\s.*;\\R?");
-
-  /**
-   * Returns true if the given line is an import statement.
-   *
-   * @param line a line of Java code
-   * @return true if the given line is an import statement
-   */
-  static boolean isImportStatement(String line) {
-    return importPattern.matcher(line).matches();
-  }
-
-  /**
-   * Given a line of code, return true if can appear in an import block: it is an <code>import
-   * </code>, blank line, or comment.
-   *
-   * @param line a line of code
-   * @return true if the line can be in an import block
-   */
-  static boolean isImportBlockLine(String line) {
-    return line.isEmpty()
-        || whitespacePattern.matcher(line).matches()
-        || isCommentLine(line)
-        || isImportStatement(line);
-  }
-
-  /**
-   * Returns all the comment lines in the input.
-   *
-   * @param lines code lines, each of which may be terminated by a line separator
-   * @return the comment lines in the input
-   */
-  static List<String> commentLines(List<String> lines) {
-    List<String> result = new ArrayList<>();
-    for (String line : lines) {
-      if (isCommentLine(line)) {
-        result.add(line);
-      }
-    }
-    return result;
-  }
-
-  /**
-   * A pattern that matches a comment line. Because of use of {@code matches()}, no regex anchoring
-   * is needed.
-   */
-  private static Pattern commentLinePattern = Pattern.compile("\\s*(//.*|/\\*.*\\*/\\s*)\\R?");
-
-  /**
-   * Returns true if the given line is a comment line.
-   *
-   * @param line a line of code, which may be terminated by a line separator
-   * @return true if the line is a comment line
-   */
-  // "protected" to permit test code to call it.
-  protected static boolean isCommentLine(String line) {
-    return commentLinePattern.matcher(line).matches();
   }
 
   ///////////////////////////////////////////////////////////////////////////
