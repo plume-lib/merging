@@ -53,7 +53,7 @@ public class MergeState {
 
   /**
    * True if the conflictedFile is dirty: it has changed and its contents need to be written back to
-   * the file.
+   * the file. If this is true, then conflictedFile is non-null.
    */
   private boolean conflictedFileChanged;
 

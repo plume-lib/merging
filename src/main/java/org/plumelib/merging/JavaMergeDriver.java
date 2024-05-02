@@ -91,7 +91,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
       int gitMergeFileExitCode;
       if (git_merge_file) {
         gitMergeFileExitCode =
-            Library.performGitMergeFile(baseFileName, currentFileName, otherFileName);
+            GitLibrary.performGitMergeFile(baseFileName, currentFileName, otherFileName);
       } else {
         // There is initially a merge conflict, which appears in currentFile.
         gitMergeFileExitCode = 1;

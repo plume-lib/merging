@@ -1,17 +1,17 @@
-// TODO: improve the name of this class.
-
 package org.plumelib.merging;
 
 import java.io.IOException;
 
-/** This class contains static methods. */
-public class Library {
+// I could instead use (say) JGit, but it seems like overkill to include a whole library just for
+// this simple functionality.
+/** This class contains static methods related to calling git. */
+public class GitLibrary {
 
   /** If true, output diagnostics. */
   private static boolean verbose = false;
 
   /** Do not instantiate. */
-  private Library() {
+  private GitLibrary() {
     throw new Error("do not instantiate");
   }
 
@@ -30,6 +30,10 @@ public class Library {
         new ProcessBuilder(
             "git",
             "merge-file",
+            // --zdiff3 is better for human examination, but --diff3 is better for automated
+            // analysis because it doesn't move text that is part of the conflict (but is the same
+            // in both left and right) out of the conflict markers.  Using --zdiff3 here causes
+            // AdjacentLinesMerger.mergedLinewise() to work less well.
             "--diff3",
             "-L",
             "OURS",

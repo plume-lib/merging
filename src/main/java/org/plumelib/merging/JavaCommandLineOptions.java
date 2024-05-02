@@ -2,7 +2,8 @@ package org.plumelib.merging;
 
 import org.plumelib.options.Option;
 
-// TODO: Rewrite this without using reflection, to ease native compilation.
+// TODO: Rewrite this without using reflection (that is, without `org.plumelib.options.Option`), to
+// ease native compilation.
 /** The command-line options for a Java merge driver or merge tool. */
 public class JavaCommandLineOptions {
 
@@ -63,11 +64,11 @@ public class JavaCommandLineOptions {
     // "--only-annotations --imports", and the user won't be warned about supplying "--imports"
     // because it doesn't change the value from the default.
     if ((only_adjacent || only_annotations || only_imports)
-        && ((adjacent && (adjacent != adjacentDefault))
-            || (annotations && (annotations != annotationsDefault))
-            || (imports && (imports != importsDefault)))) {
+        && ((adjacent != adjacentDefault)
+            || (annotations != annotationsDefault)
+            || (imports != importsDefault))) {
       exitErroneously(
-          "Do not supply --only-* and also other feature flag.  Arguments: "
+          "Do not supply --only-* and also another feature flag.  Arguments: "
               + String.join(" ", args));
     }
 

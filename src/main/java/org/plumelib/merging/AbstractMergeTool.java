@@ -56,10 +56,10 @@ public class AbstractMergeTool {
           || leftFileName == null
           || rightFileName == null
           || mergedFileName == null) {
-        System.err.printf(
-            "Some environment variable was not set: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
-            baseFileName, leftFileName, rightFileName, mergedFileName);
-        System.exit(1);
+        exitErroneously(
+            String.format(
+                "Some environment variable was not set: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
+                baseFileName, leftFileName, rightFileName, mergedFileName));
         throw new Error("This can't happen");
       }
     } else if (args.length == 4) {
@@ -68,13 +68,12 @@ public class AbstractMergeTool {
       rightFileName = args[2];
       mergedFileName = args[3];
     } else {
-      System.err.println(
+      exitErroneously(
           this.getClass().getSimpleName()
               + ": expected 0 or 4 arguments, got "
               + args.length
               + ": "
               + Arrays.toString(args));
-      System.exit(1);
       throw new Error("this can't happen");
     }
     this.baseFileName = baseFileName;
