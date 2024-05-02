@@ -30,7 +30,11 @@ public class GitLibrary {
         new ProcessBuilder(
             "git",
             "merge-file",
-            "--zdiff3",
+            // --zdiff3 is better for human examination, but --diff3 is better for automated
+            // analysis because it doesn't move text that is part of the conflict (but is the same
+            // in both left and right) out of the conflict markers.  Using --zdiff3 here causes
+            // AdjacentLinesMerger.mergedLinewise() to work less well.
+            "--diff3",
             "-L",
             "OURS",
             "-L",
