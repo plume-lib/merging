@@ -5,7 +5,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-/** This is a base class for a git merge tool. */
+/**
+ * This is a base class for a git merge tool. A git merge tool takes as input four filenames, for
+ * the current, base, other, and merged versions of the file. The merged version contains conflict
+ * markers. (Otherwise, the merge tool is not run.) The merge tool overwrites the merged file with a
+ * better merge result.
+ *
+ * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
+ * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
+ * to abort the merge.
+ */
 public class AbstractMergeTool {
 
   /** The name of the base file */

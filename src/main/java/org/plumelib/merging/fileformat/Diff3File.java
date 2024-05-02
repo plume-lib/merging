@@ -1,5 +1,7 @@
 package org.plumelib.merging.fileformat;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -553,6 +555,61 @@ public class Diff3File {
 
       return new Diff3Command(inputFile, kind, startLine, endLine);
     }
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Runs diff3 on the given files and returns the result.
+   *
+   * @param leftFileName the left file name
+   * @param baseFileName the base file name
+   * @param rightFileName the right file name
+   * @return the diff3 of the files
+   */
+  public static Diff3File from3files(
+      String leftFileName, String baseFileName, String rightFileName) {
+
+    ProcessBuilder pbDiff3 = new ProcessBuilder("diff3", leftFileName, baseFileName, rightFileName);
+    if (verbose) {
+      System.out.printf("About to call: %s%n", pbDiff3.command());
+    }
+    String diff3Output;
+    try {
+      Process pDiff3 = pbDiff3.start();
+      diff3Output = new String(pDiff3.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+      if (verbose) {
+        System.out.println("diff3Output: " + diff3Output);
+      }
+      // It is essential to call waitFor *after* reading the output from getInputStream().
+      int diff3ExitCode = pDiff3.waitFor();
+      if (diff3ExitCode != 0 && diff3ExitCode != 1) {
+        // `diff3` erred, so abort the merge
+        String message = "diff3 erred (status " + diff3ExitCode + "): " + diff3Output;
+        System.out.println(message);
+        System.err.println(message);
+        System.exit(129);
+        throw new Error("unreachable");
+      }
+    } catch (IOException | InterruptedException e) {
+      String message = e.getMessage();
+      System.out.println(message);
+      System.err.println(message);
+      System.exit(129);
+      throw new Error("unreachable");
+    }
+
+    Diff3File diff3file;
+    try {
+      diff3file = Diff3File.parseFileContents(diff3Output, leftFileName);
+    } catch (Diff3ParseException e) {
+      String message = e.getMessage();
+      System.out.println(message);
+      System.err.println(message);
+      System.exit(129);
+      throw new Error("unreachable");
+    }
+    return diff3file;
   }
 
   ///////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 package org.plumelib.merging;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.regex.Pattern;
@@ -19,6 +20,18 @@ public class JavaAnnotationsMergerTest {
 
   void assertMatches(@Regex String regex, String s) {
     assertMatches(Pattern.compile(regex), s);
+  }
+
+  void assertNotMatches(Pattern p, String s) {
+    assertFalse(p.matcher(s).matches());
+  }
+
+  String doubleQuoted(String s) {
+    return "\"" + s + "\"";
+  }
+
+  void assertNotMatches(@Regex String regex, String s) {
+    assertNotMatches(Pattern.compile(regex), s);
   }
 
   void assertAnnotationArrayContents(String s) {
@@ -120,6 +133,27 @@ public class JavaAnnotationsMergerTest {
     assertAnnotationArguments("64");
     assertAnnotationArguments("from=2");
     assertAnnotationArguments("from=2, to=36");
+
+    assertMatches(JavaAnnotationsMerger.stringRegex, doubleQuoted("easily"));
+    assertMatches(JavaAnnotationsMerger.stringRegex, doubleQuoted("eas.ily"));
+    assertMatches(JavaAnnotationsMerger.stringRegex, doubleQuoted("eas\\Xily"));
+    assertMatches(JavaAnnotationsMerger.stringRegex, doubleQuoted("eas\\\\ily"));
+    assertMatches(JavaAnnotationsMerger.stringRegex, doubleQuoted("eas\\.ily"));
+    assertNotMatches(JavaAnnotationsMerger.stringRegex, doubleQuoted("eas\\.ily\\"));
+
+    assertMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "easily");
+    assertMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a.b");
+    assertMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a.b.c");
+    assertMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a1b2c");
+    assertMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a1b2c.d3e");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a1b2c.3e");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a1b2c^d3e");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a..b");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, ".a.b");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "a.b.");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "1234");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "..");
+    assertNotMatches(JavaAnnotationsMerger.javaDottedIdentifiersRegex, "");
   }
 
   @Test
@@ -162,7 +196,10 @@ public class JavaAnnotationsMergerTest {
 
   @Test
   void testThis() {
+    assertThis("@PolyValue @Unsigned UnsignedLong this");
     assertThis("@PolyValue UnsignedLong this");
+    assertThis("@PolyValue UnsignedLong this,");
+    assertThis("@PolyValue UnsignedLong this  ,");
     assertThis("@UnknownSignedness Invokable<T, R> this");
     assertThis("EvictingQueue<@PolyNull @PolySigned E> this");
   }

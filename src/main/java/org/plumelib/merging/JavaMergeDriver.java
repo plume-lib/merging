@@ -12,25 +12,18 @@ import org.plumelib.options.Options;
 
 /**
  * This is a git merge driver for Java files. A git merge driver takes as input three filenames, for
- * the current, base, and other versions of the file; the merge driver overwrites the current file
+ * the current, base, and other versions of the file. The merge driver overwrites the current file
  * with the merge result. The filenames are temporary names that convey no information.
  *
  * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
  * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
  * to abort the merge.
- *
- * <p>This program first does {@code git merge-file}, then it tries to correct conflicts in
- * annotations and tries to improve merges in {@code import} statements.
  */
 public class JavaMergeDriver extends AbstractMergeDriver {
 
-  /** If false, don't run `git merge-file`. */
+  /** If false, don't run `git merge-file`, just work from the conflicts that exist in the file. */
   @Option("Run `git merge-file`")
   public static boolean git_merge_file = true;
-
-  // TODO: Should this be an instance variable?
-  /** Holds command-line options. */
-  public static final JavaCommandLineOptions jclo = new JavaCommandLineOptions();
 
   /**
    * Creates a JavaMergeDriver.
@@ -52,9 +45,10 @@ public class JavaMergeDriver extends AbstractMergeDriver {
   public static void main(String[] args) {
 
     String[] orig_args = args;
+    JavaCommandLineOptions jclo = new JavaCommandLineOptions();
     Options options =
         new Options(
-            "JavaMergeDriver [options] basefile leftfile rightfile mergedfile",
+            "JavaMergeDriver [options] currentfile basefile otherfile",
             jclo,
             JavaMergeDriver.class);
     args = options.parse(true, orig_args);
@@ -66,18 +60,21 @@ public class JavaMergeDriver extends AbstractMergeDriver {
 
     JavaMergeDriver jmd = new JavaMergeDriver(args);
 
-    jmd.mainHelper();
+    jmd.mainHelper(jclo);
   }
 
   // TODO: Can this be moved into a separate file and shared with merge drivers?
-  /** Does the work of JavaMergeDriver. */
-  public void mainHelper() {
+  /**
+   * Does the work of JavaMergeDriver.
+   *
+   * @param jclo command-line options
+   */
+  public void mainHelper(JavaCommandLineOptions jclo) {
 
     try {
       String leftFileSavedName = "left file saved: not yet named";
 
       // Make a copy of the file that will be overwritten, for passing to external tools.
-      // TODO: Can I do this more lazily, to avoid the expense if it will not be needed?
       try {
         File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".bak");
         leftFileSaved.deleteOnExit();
@@ -94,7 +91,9 @@ public class JavaMergeDriver extends AbstractMergeDriver {
         gitMergeFileExitCode =
             GitLibrary.performGitMergeFile(baseFileName, currentFileName, otherFileName);
       } else {
-        // There is initially a merge conflict, which appears in currentFile.
+        // There is a difference between baseFile and otherFile; otherwise the merge driver would
+        // not have been called.  We don't know whether there is a merge conflict in currentFile,
+        // but assume there is.
         gitMergeFileExitCode = 1;
       }
       if (jclo.verbose) {
@@ -119,24 +118,24 @@ public class JavaMergeDriver extends AbstractMergeDriver {
 
       if (jclo.adjacent) {
         if (jclo.verbose) {
-          System.out.printf("calling adjacent%n");
+          System.out.println("calling adjacent");
         }
-        new AdjacentLinesMerger().merge(ms);
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
       }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
         if (jclo.verbose) {
-          System.out.printf("calling annotations%n");
+          System.out.println("calling annotations");
         }
-        new JavaAnnotationsMerger().merge(ms);
+        new JavaAnnotationsMerger(jclo.verbose).merge(ms);
       }
 
       // Imports should come last, because it does nothing unless every non-import conflict
       // has already been resolved.
       if (jclo.imports) {
         if (jclo.verbose) {
-          System.out.printf("calling imports%n");
+          System.out.println("calling imports");
         }
         new JavaImportsMerger(jclo.verbose).merge(ms);
       }

@@ -9,6 +9,10 @@ import java.util.Arrays;
  * This is a base class for a git merge driver. A git merge driver takes as input three filenames,
  * for the current, base, and other versions of the file. The merge driver overwrites the current
  * file with the merge result. The filenames are temporary names that convey no information.
+ *
+ * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
+ * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
+ * to abort the merge.
  */
 public class AbstractMergeDriver {
 

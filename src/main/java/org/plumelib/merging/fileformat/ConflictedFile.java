@@ -10,6 +10,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
+import org.plumelib.merging.JavaLibrary;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.StringsPlume;
@@ -293,6 +294,13 @@ public class ConflictedFile {
      */
     @SideEffectFree
     public List<String> toLines();
+
+    /**
+     * Returns true if the left and right texts contain the same comment lines.
+     *
+     * @return true if the left and right texts contain the same comment lines
+     */
+    public boolean sameCommentLines();
   }
 
   /** A single merge conflict (part of a conflicted file). */
@@ -468,6 +476,13 @@ public class ConflictedFile {
       return String.join("", right);
     }
 
+    @Override
+    public boolean sameCommentLines() {
+      List<String> leftComments = JavaLibrary.commentLines(left());
+      List<String> rightComments = JavaLibrary.commentLines(right());
+      return leftComments.equals(rightComments);
+    }
+
     @SuppressWarnings({
       "allcheckers:purity",
       "lock"
@@ -555,6 +570,11 @@ public class ConflictedFile {
       } else {
         return new CommonLines(result);
       }
+    }
+
+    @Override
+    public boolean sameCommentLines() {
+      return true;
     }
 
     /**

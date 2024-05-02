@@ -2,8 +2,6 @@ package org.plumelib.merging;
 
 import java.io.IOException;
 
-// I could instead use (say) JGit, but it seems like overkill to include a whole library just for
-// this simple functionality.
 /** This class contains static methods related to calling git. */
 public class GitLibrary {
 
@@ -15,6 +13,8 @@ public class GitLibrary {
     throw new Error("do not instantiate");
   }
 
+  // I could instead use (say) JGit, but it seems like overkill to include a whole library just for
+  // this simple functionality.
   /**
    * Runs {@code git merge-file} and returns its status code. Note order of arguments.
    *
