@@ -296,7 +296,7 @@ public class JavaAnnotationsMerger implements Merger {
    * annotation.
    */
   protected static final @Regex String annotationArgumentsRegex =
-      zeroOrMore(annotationArgumentRegex, "\\s*,");
+      zeroOrMore(annotationArgumentRegex, "\\s*,\\s*");
 
   /** Matches one Java annotation. */
   protected static final @Regex String annotationOnlyRegex =
@@ -342,7 +342,7 @@ public class JavaAnnotationsMerger implements Merger {
 
   /** Matches a "this" formal parameter. */
   protected static final @Regex String thisRegex =
-      annotationsSpacesRegex + parameterizedTypeRegex + "\\s+" + "this" + "(?:\\s*,)";
+      annotationsSpacesRegex + parameterizedTypeRegex + "\\s+" + "this" + "(?:\\s*,)?";
 
   /** Matches a "this" formal parameter. */
   protected static Pattern thisPattern = Pattern.compile(thisRegex);
@@ -359,7 +359,6 @@ public class JavaAnnotationsMerger implements Merger {
   protected static final Pattern commentPattern = Pattern.compile("//.*(\\z|\\R)");
 
   /** Matches the start of a Java annotation OR modifier. */
-  @SuppressWarnings("regex:assignment") // string concatenation
   protected static final @Regex String annotationStartRegex =
       "^"
           + group(

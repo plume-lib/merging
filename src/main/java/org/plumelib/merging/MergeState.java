@@ -178,8 +178,7 @@ public class MergeState {
    * @param verbose if true, print diagnostic information
    */
   public void writeBack(boolean verbose) {
-    conflictedFile();
-    if (conflictedFileChanged || (conflictedFile != null && conflictedFile.hasTrivalConflict())) {
+    if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivalConflict())) {
       if (verbose) {
         System.out.printf("Writing back to %s .%n", mergedPath);
       }

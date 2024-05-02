@@ -196,7 +196,10 @@ public class JavaAnnotationsMergerTest {
 
   @Test
   void testThis() {
+    assertThis("@PolyValue @Unsigned UnsignedLong this");
     assertThis("@PolyValue UnsignedLong this");
+    assertThis("@PolyValue UnsignedLong this,");
+    assertThis("@PolyValue UnsignedLong this  ,");
     assertThis("@UnknownSignedness Invokable<T, R> this");
     assertThis("EvictingQueue<@PolyNull @PolySigned E> this");
   }
