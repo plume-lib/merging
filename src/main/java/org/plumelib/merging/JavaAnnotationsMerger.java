@@ -260,7 +260,7 @@ public class JavaAnnotationsMerger implements Merger {
           + or(
               // Has a whole-number part.
               // The possessive qualifier "++" improves efficiency.
-              group("[0-9]++(\\.[0-9]*)?"),
+              "[0-9]++(\\.[0-9]*)?",
               // Has no whole-number part.
               "\\.[0-9]+");
 
