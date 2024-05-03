@@ -1,6 +1,5 @@
 package org.plumelib.merging;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -65,11 +64,11 @@ public class AbstractMergeTool {
           || leftFileName == null
           || rightFileName == null
           || mergedFileName == null) {
-        exitErroneously(
+        JavaLibrary.exitErroneously(
             String.format(
-                "Some environment variable was not set: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
+                "unset environment variable: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
                 baseFileName, leftFileName, rightFileName, mergedFileName));
-        throw new Error("This can't happen");
+        throw new Error("unreachable");
       }
     } else if (args.length == 4) {
       baseFileName = args[0];
@@ -77,13 +76,9 @@ public class AbstractMergeTool {
       rightFileName = args[2];
       mergedFileName = args[3];
     } else {
-      exitErroneously(
-          this.getClass().getSimpleName()
-              + ": expected 0 or 4 arguments, got "
-              + args.length
-              + ": "
-              + Arrays.toString(args));
-      throw new Error("this can't happen");
+      JavaLibrary.exitErroneously(
+          "expected 0 or 4 arguments, got " + args.length + ": " + Arrays.toString(args));
+      throw new Error("unreachable");
     }
     this.baseFileName = baseFileName;
     this.leftFileName = leftFileName;
@@ -94,31 +89,19 @@ public class AbstractMergeTool {
     rightPath = Path.of(rightFileName);
     mergedPath = Path.of(mergedFileName);
     if (!Files.isReadable(basePath)) {
-      exitErroneously("file is not readable: " + baseFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + baseFileName);
     }
     if (!Files.isReadable(leftPath)) {
-      exitErroneously("file is not readable: " + leftFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + leftFileName);
     }
     if (!Files.isReadable(rightPath)) {
-      exitErroneously("file is not readable: " + rightFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + rightFileName);
     }
     if (!Files.isReadable(mergedPath)) {
-      exitErroneously("file is not readable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + mergedFileName);
     }
     if (!Files.isWritable(mergedPath)) {
-      exitErroneously("file is not writeable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not writeable: " + mergedFileName);
     }
-  }
-
-  /**
-   * Exit erroneously, for example because of an invalid invocation.
-   *
-   * @param errorMessage the error message
-   */
-  public static void exitErroneously(String errorMessage) {
-    String className = MethodHandles.lookup().lookupClass().getSimpleName();
-    System.out.println(className + ": " + errorMessage);
-    System.err.println(className + ": " + errorMessage);
-    System.exit(129);
   }
 }

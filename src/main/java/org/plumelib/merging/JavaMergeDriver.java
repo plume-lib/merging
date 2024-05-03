@@ -83,7 +83,13 @@ public class JavaMergeDriver extends AbstractMergeDriver {
         Files.copy(
             Path.of(currentFileName), leftFileSaved.toPath(), StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
-        throw new Error("Problem copying " + currentFileName + " to " + leftFileSavedName, e);
+        JavaLibrary.exitErroneously(
+            "Problem copying "
+                + currentFileName
+                + " to "
+                + leftFileSavedName
+                + ": "
+                + e.getMessage());
       }
 
       int gitMergeFileExitCode;

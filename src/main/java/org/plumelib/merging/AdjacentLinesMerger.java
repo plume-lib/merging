@@ -30,14 +30,15 @@ public class AdjacentLinesMerger extends Merger {
   @Override
   @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
-    List<ConflictElement> ces = cf.hunks();
-    if (ces == null) {
-      throw new Error("Erroneous ConflictedFile");
+    List<ConflictElement> hunks = cf.hunks();
+    if (hunks == null) {
+      JavaLibrary.exitErroneously("Unparseable file " + cf.path);
+      throw new Error("unreachable");
     }
 
     List<Replacement<String>> replacements = new ArrayList<>();
 
-    for (ConflictElement ce : ces) {
+    for (ConflictElement ce : hunks) {
       if (!(ce instanceof MergeConflict)) {
         continue;
       }
@@ -59,7 +60,7 @@ public class AdjacentLinesMerger extends Merger {
       System.out.printf("before replacement: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
-    ConflictedFile result = new ConflictedFile(newLines);
+    ConflictedFile result = new ConflictedFile(newLines, cf.path);
     return result;
   }
 
@@ -73,7 +74,8 @@ public class AdjacentLinesMerger extends Merger {
   private @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
     String baseJoined = mc.baseJoined();
     if (baseJoined == null) {
-      throw new Error("AdjacentLinesMerger needs a 3-way diff");
+      JavaLibrary.exitErroneously("need a 3-way diff");
+      throw new Error("unreachable");
     }
 
     List<Diff> leftDmpDiffs = DmpLibrary.diffByLines(baseJoined, mc.leftJoined());
@@ -110,8 +112,7 @@ public class AdjacentLinesMerger extends Merger {
         // Can this happen?
         result.add(d1.postText());
       } else {
-        String message = String.format("Bad alignment: d1=%s d2=%s", d1, d2);
-        throw new Error(message);
+        JavaLibrary.exitErroneously(String.format("Bad alignment: d1=%s d2=%s", d1, d2));
       }
     }
     return result;
@@ -126,7 +127,8 @@ public class AdjacentLinesMerger extends Merger {
    */
   private static @Nullable List<String> mergedLinewise(MergeConflict mc) {
     if (mc.base() == null) {
-      throw new Error("AdjacentLinesMerger needs a 3-way diff");
+      JavaLibrary.exitErroneously("need a 3-way diff");
+      throw new Error("unreachable");
     }
 
     if (mc.base().size() != mc.left().size() || mc.base().size() != mc.right().size()) {

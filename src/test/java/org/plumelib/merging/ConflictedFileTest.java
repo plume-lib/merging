@@ -2,6 +2,7 @@ package org.plumelib.merging;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Assertions;
@@ -18,7 +19,7 @@ public class ConflictedFileTest {
     try {
       ClassLoader cl = this.getClass().getClassLoader();
       if (cl == null) {
-        throw new Error("no class leader for " + this.getClass());
+        throw new Error("no class loader for " + this.getClass());
       }
       try (InputStream is = cl.getResourceAsStream(file)) {
         if (is == null) {
@@ -32,12 +33,13 @@ public class ConflictedFileTest {
   }
 
   private ConflictedFile parseConflictedFile(String filename) {
-    return new ConflictedFile(fileContents(filename));
+    return new ConflictedFile(fileContents(filename), Path.of(filename));
   }
 
   private void testNonConflictedFile(String filename) {
     String fileContents = fileContents(filename);
-    ConflictedFile cf = new ConflictedFile(fileContents);
+    ConflictedFile cf =
+        new ConflictedFile(fileContents, Path.of("testNonConflictedFile JUnit test"));
     Assertions.assertNull(cf.parseError());
     @SuppressWarnings("nullness:assignment")
     @NonNull List<ConflictElement> hunks = cf.hunks();
@@ -141,7 +143,8 @@ public class ConflictedFileTest {
                   + ">>>>>>> ImportsTest2B.java\n"
                   + "\n"
                   + "public class ImportsTest {\n"
-                  + "}\n");
+                  + "}\n",
+              Path.of("testConflictedFiles JUnit test"));
       @SuppressWarnings("nullness:assignment")
       @NonNull List<ConflictElement> hunks7 = cf7.hunks();
       Assertions.assertEquals(2, hunks7.size());

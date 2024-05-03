@@ -66,7 +66,7 @@ public class JavaAnnotationsMerger extends Merger {
       System.out.printf("before replacement: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
-    ConflictedFile result = new ConflictedFile(newLines);
+    ConflictedFile result = new ConflictedFile(newLines, cf.path);
     return result;
   }
 

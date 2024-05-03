@@ -1,6 +1,5 @@
 package org.plumelib.merging;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -41,10 +40,10 @@ public class AbstractMergeDriver {
    */
   public AbstractMergeDriver(String[] args) {
     if (args.length != 3) {
-      exitErroneously(
+      JavaLibrary.exitErroneously(
           String.format(
-              "%s: expected 3 arguments current, base, other; got %d: %s",
-              getClass().getSimpleName(), args.length, Arrays.toString(args)));
+              "expected 3 arguments current, base, other; got %d: %s",
+              args.length, Arrays.toString(args)));
       throw new Error("unreachable");
     }
     currentFileName = args[0];
@@ -54,28 +53,16 @@ public class AbstractMergeDriver {
     basePath = Path.of(baseFileName);
     otherPath = Path.of(otherFileName);
     if (!Files.isReadable(currentPath)) {
-      exitErroneously("file is not readable: " + currentFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + currentFileName);
     }
     if (!Files.isWritable(currentPath)) {
-      exitErroneously("file is not writable: " + currentFileName);
+      JavaLibrary.exitErroneously("file is not writable: " + currentFileName);
     }
     if (!Files.isReadable(basePath)) {
-      exitErroneously("file is not readable: " + baseFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + baseFileName);
     }
     if (!Files.isReadable(otherPath)) {
-      exitErroneously("file is not readable: " + otherFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + otherFileName);
     }
-  }
-
-  /**
-   * Exit erroneously, for example because of an invalid invocation.
-   *
-   * @param errorMessage the error message
-   */
-  public static void exitErroneously(String errorMessage) {
-    String className = MethodHandles.lookup().lookupClass().getSimpleName();
-    System.out.println(className + ": " + errorMessage);
-    System.err.println(className + ": " + errorMessage);
-    System.exit(129);
   }
 }

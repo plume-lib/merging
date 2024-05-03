@@ -52,6 +52,9 @@ public class ConflictedFile {
   // /** If true, output diagnostic information for debugging. */
   // private static final boolean verbose = false;
 
+  /** The path to the conflicted file. Used for diagnostic messages only. */
+  public final Path path;
+
   // At least one of fileContents, lines, and hunks is non-null.
 
   /** The file contents, as a single string. Includes conflict markers. */
@@ -84,7 +87,7 @@ public class ConflictedFile {
    * @param path the path of the conflicted file
    */
   public ConflictedFile(Path path) {
-    this(FilesPlume.readString(path));
+    this(FilesPlume.readString(path), path);
   }
 
   /**
@@ -94,18 +97,20 @@ public class ConflictedFile {
    * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    */
   public ConflictedFile(Path path, boolean hasConflict) {
-    this(FilesPlume.readString(path), hasConflict);
+    this(FilesPlume.readString(path), hasConflict, path);
   }
 
   /**
    * Create a new ConflictedFile.
    *
    * @param fileContents the conflicted file, as a single string
+   * @param path the path to the conflicted file
    */
-  public ConflictedFile(String fileContents) {
+  public ConflictedFile(String fileContents, Path path) {
     this.fileContents = fileContents;
     this.lines = null;
     this.hunks = null;
+    this.path = path;
   }
 
   /**
@@ -113,23 +118,27 @@ public class ConflictedFile {
    *
    * @param fileContents the conflicted file, as a single string
    * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
+   * @param path the path to the conflicted file
    */
-  public ConflictedFile(String fileContents, boolean hasConflict) {
+  public ConflictedFile(String fileContents, boolean hasConflict, Path path) {
     this.fileContents = fileContents;
     this.lines = null;
     this.hunks = null;
     this.hasConflictInitialized = true;
     this.hasConflict = hasConflict;
+    this.path = path;
   }
 
   /**
    * Create a new ConflictedFile.
    *
    * @param lines the lines of the conflicted file
+   * @param path the path to the conflicted file
    */
-  public ConflictedFile(List<String> lines) {
+  public ConflictedFile(List<String> lines, Path path) {
     this.lines = lines;
     this.hunks = null;
+    this.path = path;
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -160,7 +169,8 @@ public class ConflictedFile {
   public List<MergeConflict> mergeConflicts() {
     hunks();
     if (hunks == null) {
-      throw new Error("parsing failed: " + parseError());
+      JavaLibrary.exitErroneously("parsing failed for " + path + ": " + parseError());
+      throw new Error("unreachable");
     }
     List<MergeConflict> result = new ArrayList<>((hunks.size() + 1) / 2);
     for (ConflictElement ce : hunks) {
@@ -213,7 +223,8 @@ public class ConflictedFile {
       } else if (lines != null) {
         hasConflict = CollectionsPlume.anyMatch(lines, l -> l.startsWith("<<<<<<"));
       } else {
-        throw new Error("Too many null fields in state");
+        JavaLibrary.exitErroneously("Too many null fields in state");
+        throw new Error("unreachable");
       }
       hasConflictInitialized = true;
     }
@@ -267,7 +278,8 @@ public class ConflictedFile {
           lines.addAll(ce.toLines());
         }
       } else {
-        throw new Error("Too many null fields in state");
+        JavaLibrary.exitErroneously("Too many null fields in state");
+        throw new Error("unreachable");
       }
     }
     return lines;
