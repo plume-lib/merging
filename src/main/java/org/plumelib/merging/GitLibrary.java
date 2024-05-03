@@ -52,10 +52,9 @@ public class GitLibrary {
       Process p = pb.start();
       gitMergeFileExitCode = p.waitFor();
     } catch (IOException | InterruptedException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
+      JavaLibrary.exitErroneously(
+          String.format(
+              "problem in: git merge-file %s %s %s", baseFileName, leftFileName, rightFileName));
       throw new Error("unreachable"); // to tell javac that execution does not continue
     }
 

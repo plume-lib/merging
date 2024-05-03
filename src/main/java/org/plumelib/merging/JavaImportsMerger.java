@@ -2,6 +2,7 @@ package org.plumelib.merging;
 
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.RemoveUnusedImports;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.merging.fileformat.Diff3File;
 import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
 import org.plumelib.merging.fileformat.Diff3File.Diff3HunkSection;
+import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
@@ -95,9 +97,15 @@ public class JavaImportsMerger extends Merger {
     // that import.
 
     // Run diff3 to obtain all the differences, even the ones that `git merge-file` merged.
-    Diff3File diff3file =
-        Diff3File.from3files(
-            mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
+    Diff3File diff3file;
+    try {
+      diff3file =
+          Diff3File.from3files(
+              mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
+    } catch (Diff3ParseException e) {
+      JavaLibrary.exitErroneously(e.getMessage());
+      throw new Error("unreachable");
+    }
 
     // Iterate through the diffs, adding lines to the file.
     List<String> mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
@@ -125,7 +133,8 @@ public class JavaImportsMerger extends Merger {
       gjfFileContents = mergedFileContents;
     }
 
-    return new ConflictedFile(gjfFileContents, false);
+    return new ConflictedFile(
+        gjfFileContents, false, Path.of("google-java-format on merged version of " + cf.path));
   }
 
   /**
@@ -214,7 +223,7 @@ public class JavaImportsMerger extends Merger {
           startLine = edit.command().startLine() + i;
           break;
         default:
-          throw new Error();
+          throw new Error("Unhandled kind: " + edit.command().kind());
       }
       startLine += startLineOffset;
       if (verbose) {
@@ -263,7 +272,7 @@ public class JavaImportsMerger extends Merger {
       int leftCommentIndex = CollectionsPlume.indexOf(leftLines, comment, leftIndex);
       int rightCommentIndex = CollectionsPlume.indexOf(rightLines, comment, rightIndex);
       if (leftCommentIndex == -1 || rightCommentIndex == -1) {
-        throw new Error("didn't find comment: " + comment);
+        JavaLibrary.exitErroneously("didn't find comment: " + comment);
       }
       result.addAll(
           mergeImportsAndSpaces(

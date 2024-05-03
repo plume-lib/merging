@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
@@ -566,9 +567,10 @@ public class Diff3File {
    * @param baseFileName the base file name
    * @param rightFileName the right file name
    * @return the diff3 of the files
+   * @throws Diff3ParseException if there is trouble parsing the diff3 output
    */
-  public static Diff3File from3files(
-      String leftFileName, String baseFileName, String rightFileName) {
+  public static Diff3File from3files(String leftFileName, String baseFileName, String rightFileName)
+      throws Diff3ParseException {
 
     ProcessBuilder pbDiff3 = new ProcessBuilder("diff3", leftFileName, baseFileName, rightFileName);
     if (verbose) {
@@ -585,30 +587,20 @@ public class Diff3File {
       int diff3ExitCode = pDiff3.waitFor();
       if (diff3ExitCode != 0 && diff3ExitCode != 1) {
         // `diff3` erred, so abort the merge
-        String message = "diff3 erred (status " + diff3ExitCode + "): " + diff3Output;
-        System.out.println(message);
-        System.err.println(message);
-        System.exit(129);
-        throw new Error("unreachable");
+        throw new Error("diff3 erred (status " + diff3ExitCode + "): " + diff3Output);
       }
     } catch (IOException | InterruptedException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable");
+      String eMessage = e.getMessage();
+      throw new Diff3ParseException(
+          String.format(
+              "error%s while running: diff3 %s %s %s",
+              (eMessage == null ? "" : (": " + eMessage + " ")),
+              leftFileName,
+              baseFileName,
+              rightFileName));
     }
 
-    Diff3File diff3file;
-    try {
-      diff3file = Diff3File.parseFileContents(diff3Output, leftFileName);
-    } catch (Diff3ParseException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
-      throw new Error("unreachable");
-    }
+    Diff3File diff3file = Diff3File.parseFileContents(diff3Output, leftFileName);
     return diff3file;
   }
 
@@ -637,6 +629,13 @@ public class Diff3File {
      */
     public Diff3ParseException(String message, @Nullable Throwable cause) {
       super(message, cause);
+    }
+
+    @Override
+    public String getMessage(@GuardSatisfied Diff3ParseException this) {
+      @SuppressWarnings("nullness:assignment") // message is never null
+      @NonNull String msg = super.getMessage();
+      return msg;
     }
   }
 }

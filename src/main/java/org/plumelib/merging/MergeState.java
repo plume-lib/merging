@@ -1,6 +1,5 @@
 package org.plumelib.merging;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -85,19 +84,19 @@ public class MergeState {
     this.mergedPath = Path.of(mergedFileName);
     this.hasConflictInitially = hasConflictInitially;
     if (!Files.isReadable(basePath)) {
-      exitErroneously("file is not readable: " + baseFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + baseFileName);
     }
     if (!Files.isReadable(leftPath)) {
-      exitErroneously("file is not readable: " + leftFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + leftFileName);
     }
     if (!Files.isReadable(rightPath)) {
-      exitErroneously("file is not readable: " + rightFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + rightFileName);
     }
     if (!Files.isReadable(mergedPath)) {
-      exitErroneously("file is not readable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + mergedFileName);
     }
     if (!Files.isWritable(mergedPath)) {
-      exitErroneously("file is not writable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not writable: " + mergedFileName);
     }
   }
 
@@ -202,17 +201,5 @@ public class MergeState {
   @RequiresNonNull("conflictedFile")
   private void writeBack(Path path) {
     FilesPlume.writeString(path, conflictedFile().fileContents());
-  }
-
-  /**
-   * Exit erroneously, for example because of an invalid invocation.
-   *
-   * @param errorMessage the error message
-   */
-  public static void exitErroneously(String errorMessage) {
-    String className = MethodHandles.lookup().lookupClass().getSimpleName();
-    System.out.println(className + ": " + errorMessage);
-    System.err.println(className + ": " + errorMessage);
-    System.exit(129);
   }
 }

@@ -56,7 +56,7 @@ public class JavaCommandLineOptions {
   public void check(String[] args) {
 
     if ((only_adjacent ? 1 : 0) + (only_annotations ? 1 : 0) + (only_imports ? 1 : 0) > 1) {
-      exitErroneously(
+      JavaLibrary.exitErroneously(
           "Do not supply more than one --only-* flag.  Arguments: " + String.join(" ", args));
     }
 
@@ -67,7 +67,7 @@ public class JavaCommandLineOptions {
         && ((adjacent != adjacentDefault)
             || (annotations != annotationsDefault)
             || (imports != importsDefault))) {
-      exitErroneously(
+      JavaLibrary.exitErroneously(
           "Do not supply --only-* and also another feature flag.  Arguments: "
               + String.join(" ", args));
     }
@@ -85,16 +85,5 @@ public class JavaCommandLineOptions {
       annotations = false;
       imports = true;
     }
-  }
-
-  /**
-   * Print an error message and exit.
-   *
-   * @param message the error message
-   */
-  private void exitErroneously(String message) {
-    System.out.println(message);
-    System.err.println(message);
-    System.exit(129);
   }
 }
