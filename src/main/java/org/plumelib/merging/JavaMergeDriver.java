@@ -6,31 +6,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 
 /**
  * This is a git merge driver for Java files. A git merge driver takes as input three filenames, for
- * the current, base, and other versions of the file; the merge driver overwrites the current file
+ * the current, base, and other versions of the file. The merge driver overwrites the current file
  * with the merge result. The filenames are temporary names that convey no information.
  *
  * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
  * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
  * to abort the merge.
- *
- * <p>This program first does {@code git merge-file}, then it tries to correct conflicts in
- * annotations and tries to improve merges in {@code import} statements.
  */
-@SuppressWarnings({"lock"}) // todo
 public class JavaMergeDriver extends AbstractMergeDriver {
 
-  /** If false, don't run `git merge-file`. */
+  /** If false, don't run `git merge-file`, just work from the conflicts that exist in the file. */
   @Option("Run `git merge-file`")
   public static boolean git_merge_file = true;
-
-  // TODO: Should this be an instance variable?
-  /** Holds command-line options. */
-  public static final JavaCommandLineOptions jclo = new JavaCommandLineOptions();
 
   /**
    * Creates a JavaMergeDriver.
@@ -40,9 +33,6 @@ public class JavaMergeDriver extends AbstractMergeDriver {
   private JavaMergeDriver(String[] args) {
     super(args);
   }
-
-  /** The time at the beginning of {@code main()}. */
-  public static long start;
 
   /**
    * A git merge driver to merge a Java file.
@@ -55,9 +45,10 @@ public class JavaMergeDriver extends AbstractMergeDriver {
   public static void main(String[] args) {
 
     String[] orig_args = args;
+    JavaCommandLineOptions jclo = new JavaCommandLineOptions();
     Options options =
         new Options(
-            "JavaMergeTool [options] basefile leftfile rightfile mergedfile",
+            "JavaMergeDriver [options] currentfile basefile otherfile",
             jclo,
             JavaMergeDriver.class);
     args = options.parse(true, orig_args);
@@ -69,35 +60,52 @@ public class JavaMergeDriver extends AbstractMergeDriver {
 
     JavaMergeDriver jmd = new JavaMergeDriver(args);
 
-    jmd.mainHelper();
+    jmd.mainHelper(jclo);
   }
 
-  /** Does the work of JavaMergeDriver. */
-  public void mainHelper() {
+  // TODO: Can this be moved into a separate file and shared with merge drivers?
+  /**
+   * Does the work of JavaMergeDriver.
+   *
+   * @param jclo command-line options
+   */
+  public void mainHelper(JavaCommandLineOptions jclo) {
 
     try {
       String leftFileSavedName = "left file saved: not yet named";
 
       // Make a copy of the file that will be overwritten, for passing to external tools.
-      // TODO: Can I do this more lazily, to avoid the expense if it will not be needed?
       try {
-        File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".java");
+        File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".bak");
         leftFileSaved.deleteOnExit();
         leftFileSavedName = leftFileSaved.toString();
         // REPLACE_EXISTING is needed because createTempFile creates an empty file.
         Files.copy(
             Path.of(currentFileName), leftFileSaved.toPath(), StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
-        throw new Error("Problem copying " + currentFileName + " to " + leftFileSavedName, e);
+        JavaLibrary.exitErroneously(
+            "Problem copying "
+                + currentFileName
+                + " to "
+                + leftFileSavedName
+                + ": "
+                + e.getMessage());
       }
 
       int gitMergeFileExitCode;
       if (git_merge_file) {
         gitMergeFileExitCode =
-            Library.performGitMergeFile(baseFileName, currentFileName, otherFileName);
+            GitLibrary.performGitMergeFile(baseFileName, currentFileName, otherFileName);
       } else {
-        // There is initially a merge conflict, which appears in currentFile.
+        // There is a difference between baseFile and otherFile; otherwise the merge driver would
+        // not have been called.  We don't know whether there is a merge conflict in currentFile,
+        // but assume there is.
         gitMergeFileExitCode = 1;
+      }
+      if (jclo.verbose) {
+        System.out.printf(
+            "status %d for: git merge-file %s %s %s%n",
+            gitMergeFileExitCode, currentFileName, baseFileName, otherFileName);
       }
 
       // Look for trivial merge conflicts
@@ -112,20 +120,39 @@ public class JavaMergeDriver extends AbstractMergeDriver {
               currentFileName,
               gitMergeFileExitCode != 0);
 
-      // TODO: common (but short) code with JavaMergeDriver and JavaMergeTool.
+      // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
+
+      if (jclo.adjacent) {
+        if (jclo.verbose) {
+          System.out.println("calling adjacent");
+        }
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
+      }
 
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
-        new JavaAnnotationsMerger().merge(ms);
+        if (jclo.verbose) {
+          System.out.println("calling annotations");
+        }
+        new JavaAnnotationsMerger(jclo.verbose).merge(ms);
       }
 
+      // Imports should come last, because it does nothing unless every non-import conflict
+      // has already been resolved.
       if (jclo.imports) {
-        new JavaImportsMerger().merge(ms);
+        if (jclo.verbose) {
+          System.out.println("calling imports");
+        }
+        new JavaImportsMerger(jclo.verbose).merge(ms);
       }
 
-      ms.writeBack();
+      ms.writeBack(jclo.verbose);
 
-      System.exit(ms.hasConflict() ? 1 : 0);
+      int exitStatus = ms.hasConflict() ? 1 : 0;
+      if (jclo.verbose) {
+        System.out.printf("Exiting with status %d.%n", exitStatus);
+      }
+      System.exit(exitStatus);
     } catch (Throwable t) {
       t.printStackTrace(System.out);
       t.printStackTrace(System.err);

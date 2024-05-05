@@ -1,20 +1,20 @@
-// TODO: improve the name of this class.
-
 package org.plumelib.merging;
 
 import java.io.IOException;
 
-/** This class contains static methods. */
-public class Library {
+/** This class contains static methods related to calling git. */
+public class GitLibrary {
 
   /** If true, output diagnostics. */
   private static boolean verbose = false;
 
   /** Do not instantiate. */
-  private Library() {
+  private GitLibrary() {
     throw new Error("do not instantiate");
   }
 
+  // I could instead use (say) JGit, but it seems like overkill to include a whole library just for
+  // this simple functionality.
   /**
    * Runs {@code git merge-file} and returns its status code. Note order of arguments.
    *
@@ -30,6 +30,10 @@ public class Library {
         new ProcessBuilder(
             "git",
             "merge-file",
+            // --zdiff3 is better for human examination, but --diff3 is better for automated
+            // analysis because it doesn't move text that is part of the conflict (but is the same
+            // in both left and right) out of the conflict markers.  Using --zdiff3 here causes
+            // AdjacentLinesMerger.mergedLinewise() to work less well.
             "--diff3",
             "-L",
             "OURS",
@@ -48,10 +52,9 @@ public class Library {
       Process p = pb.start();
       gitMergeFileExitCode = p.waitFor();
     } catch (IOException | InterruptedException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      System.exit(129);
+      JavaLibrary.exitErroneously(
+          String.format(
+              "problem in: git merge-file %s %s %s", baseFileName, leftFileName, rightFileName));
       throw new Error("unreachable"); // to tell javac that execution does not continue
     }
 

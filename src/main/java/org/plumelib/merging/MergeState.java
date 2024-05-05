@@ -1,15 +1,15 @@
 package org.plumelib.merging;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.RequiresNonNull;
+import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.util.FilesPlume;
 
 /** Data about a merge. */
-@SuppressWarnings("nullness") // TEMPORARY
 public class MergeState {
 
   /** The base file name. */
@@ -18,7 +18,7 @@ public class MergeState {
   /** The left file name. Also known as "current" or "ours". */
   public final String leftFileName;
 
-  /** The right file name. Also known as "theirs". */
+  /** The right file name. Also known as "other" or "theirs". */
   public final String rightFileName;
 
   /** The merged file name. */
@@ -53,7 +53,7 @@ public class MergeState {
 
   /**
    * True if the conflictedFile is dirty: it has changed and its contents need to be written back to
-   * the file.
+   * the file. If this is true, then conflictedFile is non-null.
    */
   private boolean conflictedFileChanged;
 
@@ -61,8 +61,8 @@ public class MergeState {
    * Creates a MergeState.
    *
    * @param baseFileName the base file name
-   * @param leftFileName the left, or left, file name; is overwritten by a merge driver
-   * @param rightFileName the other file name
+   * @param leftFileName the left (aka current or ours), file name; is overwritten by a merge driver
+   * @param rightFileName the right (aka other or theirs) file name
    * @param mergedFileName the merged file name; is overwritten by a merge tool; is null for a merge
    *     driver
    * @param hasConflictInitially true if the merged file contains a conflict
@@ -78,25 +78,25 @@ public class MergeState {
     this.leftFileName = leftFileName;
     this.rightFileName = rightFileName;
     this.mergedFileName = mergedFileName;
-    basePath = Path.of(baseFileName);
-    leftPath = Path.of(leftFileName);
-    rightPath = Path.of(rightFileName);
-    mergedPath = Path.of(mergedFileName);
+    this.basePath = Path.of(baseFileName);
+    this.leftPath = Path.of(leftFileName);
+    this.rightPath = Path.of(rightFileName);
+    this.mergedPath = Path.of(mergedFileName);
     this.hasConflictInitially = hasConflictInitially;
     if (!Files.isReadable(basePath)) {
-      exitErroneously("file is not readable: " + baseFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + baseFileName);
     }
     if (!Files.isReadable(leftPath)) {
-      exitErroneously("file is not readable: " + leftFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + leftFileName);
     }
     if (!Files.isReadable(rightPath)) {
-      exitErroneously("file is not readable: " + rightFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + rightFileName);
     }
     if (!Files.isReadable(mergedPath)) {
-      exitErroneously("file is not readable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + mergedFileName);
     }
     if (!Files.isWritable(mergedPath)) {
-      exitErroneously("file is not writable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not writable: " + mergedFileName);
     }
   }
 
@@ -156,8 +156,6 @@ public class MergeState {
    */
   public ConflictedFile conflictedFile() {
     if (conflictedFile == null) {
-      // TODO: make it possible to pass in both fileContents and lines, to save work in
-      // ConflictedFile.  Anyway, MergeState should not be doing any splitting work here.
       conflictedFile = new ConflictedFile(mergedPath, hasConflictInitially);
     }
     return conflictedFile;
@@ -173,9 +171,16 @@ public class MergeState {
     conflictedFileChanged = true;
   }
 
-  /** Writes the conflicted file back to the file system, if needed. */
-  public void writeBack() {
-    if (conflictedFileChanged || conflictedFile.hasTrivalConflict()) {
+  /**
+   * Writes the conflicted file back to the file system, if needed.
+   *
+   * @param verbose if true, print diagnostic information
+   */
+  public void writeBack(boolean verbose) {
+    if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivalConflict())) {
+      if (verbose) {
+        System.out.printf("Writing back to %s .%n", mergedPath);
+      }
       writeBack(mergedPath);
       // By default, if a mergetool returns a non-zero status, git discards any edits done by the
       // mergetool, reverting to the state before the mergetool was run from a backup file. To work
@@ -193,21 +198,8 @@ public class MergeState {
    *
    * @param path the path to which to write the conflicted file
    */
+  @RequiresNonNull("conflictedFile")
   private void writeBack(Path path) {
-    // TODO: It may be more efficient not to make one big string, but that inefficiency is
-    // probably so small that it does not matter.
-    FilesPlume.writeString(path, conflictedFile.fileContents());
-  }
-
-  /**
-   * Exit erroneously, for example because of an invalid invocation.
-   *
-   * @param errorMessage the error message
-   */
-  public static void exitErroneously(String errorMessage) {
-    String className = MethodHandles.lookup().lookupClass().getSimpleName();
-    System.out.println(className + ": " + errorMessage);
-    System.err.println(className + ": " + errorMessage);
-    System.exit(129);
+    FilesPlume.writeString(path, conflictedFile().fileContents());
   }
 }

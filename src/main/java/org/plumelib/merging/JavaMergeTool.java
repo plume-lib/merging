@@ -12,16 +12,8 @@ import org.plumelib.options.Options;
  * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
  * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
  * to abort the merge.
- *
- * <p>This program tries to correct conflicts in annotations and tries to improve merges in {@code
- * import} statements.
  */
-@SuppressWarnings({"lock"}) // todo
 public class JavaMergeTool extends AbstractMergeTool {
-
-  // TODO: Should this be an instance variable?
-  /** Holds command-line options. */
-  public static final JavaCommandLineOptions jclo = new JavaCommandLineOptions();
 
   /**
    * Creates a JavaMergeTool.
@@ -42,6 +34,7 @@ public class JavaMergeTool extends AbstractMergeTool {
    */
   public static void main(String[] args) {
 
+    JavaCommandLineOptions jclo = new JavaCommandLineOptions();
     String[] orig_args = args;
     Options options =
         new Options("JavaMergeTool [options] basefile leftfile rightfile mergedfile", jclo);
@@ -55,32 +48,50 @@ public class JavaMergeTool extends AbstractMergeTool {
 
     JavaMergeTool jmt = new JavaMergeTool(args);
 
-    jmt.mainHelper();
+    jmt.mainHelper(jclo);
   }
 
-  // TODO: Can this be moved into a separate file and shared with merge tools?
-  /** Does the work of JavaMergeTool. */
-  public void mainHelper() {
+  /**
+   * Does the work of JavaMergeTool.
+   *
+   * @param jclo the command-line options
+   */
+  public void mainHelper(JavaCommandLineOptions jclo) {
 
-    if (!mergedFileName.endsWith(".java")) {
-      System.exit(1);
+    try {
+
+      // Don't do this until there is a separate MergeTool for non-Java files.
+      // if (!adjacent && !mergedFileName.endsWith(".java")) {
+      //   System.exit(1);
+      // }
+
+      MergeState ms =
+          new MergeState(baseFileName, leftFileName, rightFileName, mergedFileName, true);
+
+      // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
+
+      if (jclo.adjacent) {
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
+      }
+
+      // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
+      if (jclo.annotations) {
+        new JavaAnnotationsMerger(jclo.verbose).merge(ms);
+      }
+
+      // Imports must come last, because it does nothing unless every non-import conflict
+      // has already been resolved.
+      if (jclo.imports) {
+        new JavaImportsMerger(jclo.verbose).merge(ms);
+      }
+
+      ms.writeBack(jclo.verbose);
+
+      System.exit(ms.hasConflict() ? 1 : 0);
+    } catch (Throwable t) {
+      t.printStackTrace(System.out);
+      t.printStackTrace(System.err);
+      System.exit(129);
     }
-
-    MergeState ms = new MergeState(baseFileName, leftFileName, rightFileName, mergedFileName, true);
-
-    // TODO: common (but short) code with JavaMergeDriver and JavaMergeTool.
-
-    // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
-    if (jclo.annotations) {
-      new JavaAnnotationsMerger().merge(ms);
-    }
-
-    if (jclo.imports) {
-      new JavaImportsMerger().merge(ms);
-    }
-
-    ms.writeBack();
-
-    System.exit(ms.hasConflict() ? 1 : 0);
   }
 }

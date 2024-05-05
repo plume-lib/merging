@@ -1,11 +1,19 @@
 package org.plumelib.merging;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-/** This is a base class for a git merge tool. */
+/**
+ * This is a base class for a git merge tool. A git merge tool takes as input four filenames, for
+ * the current, base, other, and merged versions of the file. The merged version contains conflict
+ * markers. (Otherwise, the merge tool is not run.) The merge tool overwrites the merged file with a
+ * better merge result.
+ *
+ * <p>An exit status of 0 means the merge was successful and there are no remaining conflicts. An
+ * exit status of 1-128 means there are remaining conflicts. An exit status of 129 or greater means
+ * to abort the merge.
+ */
 public class AbstractMergeTool {
 
   /** The name of the base file */
@@ -56,11 +64,11 @@ public class AbstractMergeTool {
           || leftFileName == null
           || rightFileName == null
           || mergedFileName == null) {
-        System.err.printf(
-            "Some environment variable was not set: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
-            baseFileName, leftFileName, rightFileName, mergedFileName);
-        System.exit(1);
-        throw new Error("This can't happen");
+        JavaLibrary.exitErroneously(
+            String.format(
+                "unset environment variable: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
+                baseFileName, leftFileName, rightFileName, mergedFileName));
+        throw new Error("unreachable");
       }
     } else if (args.length == 4) {
       baseFileName = args[0];
@@ -68,14 +76,9 @@ public class AbstractMergeTool {
       rightFileName = args[2];
       mergedFileName = args[3];
     } else {
-      System.err.println(
-          this.getClass().getSimpleName()
-              + ": expected 0 or 4 arguments, got "
-              + args.length
-              + ": "
-              + Arrays.toString(args));
-      System.exit(1);
-      throw new Error("this can't happen");
+      JavaLibrary.exitErroneously(
+          "expected 0 or 4 arguments, got " + args.length + ": " + Arrays.toString(args));
+      throw new Error("unreachable");
     }
     this.baseFileName = baseFileName;
     this.leftFileName = leftFileName;
@@ -86,31 +89,19 @@ public class AbstractMergeTool {
     rightPath = Path.of(rightFileName);
     mergedPath = Path.of(mergedFileName);
     if (!Files.isReadable(basePath)) {
-      exitErroneously("file is not readable: " + baseFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + baseFileName);
     }
     if (!Files.isReadable(leftPath)) {
-      exitErroneously("file is not readable: " + leftFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + leftFileName);
     }
     if (!Files.isReadable(rightPath)) {
-      exitErroneously("file is not readable: " + rightFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + rightFileName);
     }
     if (!Files.isReadable(mergedPath)) {
-      exitErroneously("file is not readable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not readable: " + mergedFileName);
     }
     if (!Files.isWritable(mergedPath)) {
-      exitErroneously("file is not writeable: " + mergedFileName);
+      JavaLibrary.exitErroneously("file is not writeable: " + mergedFileName);
     }
-  }
-
-  /**
-   * Exit erroneously, for example because of an invalid invocation.
-   *
-   * @param errorMessage the error message
-   */
-  public static void exitErroneously(String errorMessage) {
-    String className = MethodHandles.lookup().lookupClass().getSimpleName();
-    System.out.println(className + ": " + errorMessage);
-    System.err.println(className + ": " + errorMessage);
-    System.exit(129);
   }
 }

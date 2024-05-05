@@ -1,29 +1,27 @@
-package org.plumelib.merging;
+package org.plumelib.merging.fileformat;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.checkerframework.checker.lock.qual.GuardSatisfied;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
 
-// I could write this using LineNumberReader instead of reading the entire file at once.  That would
+// TODO: Parsing could use LineNumberReader instead of reading the entire file at once.  That would
 // be just slightly more efficient, probably, and I wouldn't have to return pairs that include line
 // numbers.
 
 /**
- * Represents a file that was output by diff3.
- *
- * <p>It is a sequence of Diff3Hunk objects.
+ * Represents a file that was output by diff3. It is a sequence of Diff3Hunk objects.
  *
  * <p>For documentation of the file format, see
  * https://www.gnu.org/software/diffutils/manual/diffutils.html#Comparing-Three-Files.
  */
-@SuppressWarnings("lock") // todo
 public class Diff3File {
 
   /** If true, output diagnostic information for debugging. */
@@ -42,7 +40,7 @@ public class Diff3File {
   }
 
   /**
-   * Returns the contents of the diff3 file.
+   * Returns the contents of the diff3 file. Clients should not side-effect this.
    *
    * @return the contents of the diff3 file
    */
@@ -60,7 +58,7 @@ public class Diff3File {
     try {
       return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
     } catch (Throwable e) {
-      throw new Error(e);
+      throw new Error("Problem parsing " + filename, e);
     }
   }
 
@@ -86,16 +84,14 @@ public class Diff3File {
       if (!line.startsWith("====")) {
         throw new Error("Expected \"====\" at line " + (i + 1) + ", found: " + line);
       }
-      IPair<Integer, Diff3Hunk> hunkIPair = Diff3Hunk.parse(lines, i);
-      i = hunkIPair.first;
-      result.add(hunkIPair.second);
+      i = Diff3Hunk.parse(lines, i, result);
     }
 
     return new Diff3File(result);
   }
 
   @Override
-  public String toString() {
+  public String toString(@GuardSatisfied Diff3File this) {
     return contents.toString();
   }
 
@@ -107,7 +103,7 @@ public class Diff3File {
    * @param section2 the second text section
    * @param section3 the third text section
    */
-  record Diff3Hunk(
+  public static record Diff3Hunk(
       Diff3HunkKind kind,
       Diff3HunkSection section1,
       Diff3HunkSection section2,
@@ -152,14 +148,16 @@ public class Diff3File {
     }
 
     /**
-     * Reads a Diff3Hunk from the given lines, starting at index {@code start}.
+     * Reads a Diff3Hunk from the given lines, starting at index {@code start}. Adds the hunk to
+     * {@code sink}.
      *
      * @param lines the lines to read from
      * @param start the first line to read
-     * @return a pair of (first_line_following_hunk, hunk)
+     * @param sink where to put the newly-read Diff3Hunk
+     * @return the first line following the hunk
      * @throws Diff3ParseException if the input is malformed
      */
-    public static IPair<Integer, Diff3Hunk> parse(List<String> lines, int start)
+    public static int parse(List<String> lines, int start, List<Diff3Hunk> sink)
         throws Diff3ParseException {
       if (verbose) {
         System.out.printf("Starting to parse hunk starting at line " + start + ".%n");
@@ -173,18 +171,7 @@ public class Diff3File {
       } catch (Diff3ParseException e) {
         throw new Diff3ParseException("At line " + (start + 1) + ": " + e.getMessage());
       }
-      IPair<Integer, ThreeSections> pair3 = ThreeSections.parse(lines, start + 1, kind);
-      ThreeSections threeSections = pair3.second;
-
-      Diff3Hunk result =
-          new Diff3Hunk(
-              kind, threeSections.section1(), threeSections.section2(), threeSections.section3());
-
-      if (verbose) {
-        System.out.printf("Parsed hunk ending at line " + pair3.first + ": " + result);
-      }
-
-      return IPair.of(pair3.first, result);
+      return ThreeSections.parse(lines, start + 1, kind, sink);
     }
 
     /**
@@ -194,7 +181,7 @@ public class Diff3File {
      * @param section2 the second section
      * @param section3 the third section
      */
-    static record ThreeSections(
+    public static record ThreeSections(
         Diff3HunkSection section1, Diff3HunkSection section2, Diff3HunkSection section3) {
 
       /**
@@ -203,13 +190,15 @@ public class Diff3File {
        * @param lines lines of text from which to parse
        * @param startLine where to start parsing within the text
        * @param kind the kind of diff3 hunk whose sections are being parsed
+       * @param sink where to store the parsed Diff3Hunk
        * @return three sections
        * @throws Diff3ParseException if the input is malformed
        */
-      private static IPair<Integer, ThreeSections> parse(
-          List<String> lines, int startLine, Diff3HunkKind kind) throws Diff3ParseException {
+      private static int parse(
+          List<String> lines, int startLine, Diff3HunkKind kind, List<Diff3Hunk> sink)
+          throws Diff3ParseException {
         if (verbose) {
-          System.out.printf("Starting to parse 3 sections at line %s%n", startLine + 1);
+          System.out.printf("Starting to parse 3 sections at line %s.%n", startLine + 1);
           System.out.flush();
         }
 
@@ -232,7 +221,8 @@ public class Diff3File {
               "Finished parsing 3 sections, ending before line " + i + ": " + filled);
           System.out.flush();
         }
-        return IPair.of(i, filled);
+        sink.add(new Diff3Hunk(kind, filled.section1(), filled.section2(), filled.section3()));
+        return i;
       }
 
       /**
@@ -378,10 +368,10 @@ public class Diff3File {
       switch (kind()) {
         case ONE_DIFFERS:
           return lengthDifference;
-        case THREE_DIFFERS:
-          return -lengthDifference;
         case TWO_DIFFERS:
           return 0;
+        case THREE_DIFFERS:
+          return -lengthDifference;
         case THREE_WAY:
           return lengthDifference;
         default:
@@ -391,7 +381,7 @@ public class Diff3File {
   }
 
   /** The kind of a diff3 hunk. */
-  static enum Diff3HunkKind {
+  public static enum Diff3HunkKind {
     /** Section 1 text differs, sections 2 and 3 have the same text. */
     ONE_DIFFERS,
     /** Section 2 text differs, sections 1 and 3 have the same text. */
@@ -431,7 +421,7 @@ public class Diff3File {
    * @param command the command
    * @param lines the text
    */
-  static record Diff3HunkSection(Diff3Command command, List<String> lines) {
+  public static record Diff3HunkSection(Diff3Command command, List<String> lines) {
 
     /**
      * Parses a Diff3HunkSection.
@@ -474,7 +464,7 @@ public class Diff3File {
   }
 
   /** The kind of a diff3 command: append or change. */
-  static enum Diff3CommandKind {
+  public static enum Diff3CommandKind {
     /** Append (insert) text. */
     APPEND,
     /** Change text. */
@@ -489,17 +479,18 @@ public class Diff3File {
    * @param startLine the first line at which to edit
    * @param endLine the last line at which to edit
    */
-  static record Diff3Command(int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
+  public static record Diff3Command(
+      int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
 
     /**
-     * Creates a Diff3Command.
+     * Creates a Diff3Command record.
      *
      * @param inputFile 1, 2, or 3
      * @param kind append or change
      * @param startLine the first line at which to edit
      * @param endLine the last line at which to edit
      */
-    Diff3Command {
+    public Diff3Command {
       assert inputFile >= 1 && inputFile <= 3;
       assert startLine >= 0;
       assert endLine >= startLine;
@@ -526,18 +517,14 @@ public class Diff3File {
       }
       int lengthMinusOne = line.length() - 1;
 
-      Diff3CommandKind kind;
-      switch (line.charAt(lengthMinusOne)) {
-        case 'a':
-          kind = Diff3CommandKind.APPEND;
-          break;
-        case 'c':
-          kind = Diff3CommandKind.CHANGE;
-          break;
-        default:
-          throw new Diff3ParseException(
-              "Malformed command line, should end with \"a\" or \"c\": " + line);
-      }
+      Diff3CommandKind kind =
+          switch (line.charAt(lengthMinusOne)) {
+            case 'a' -> Diff3CommandKind.APPEND;
+            case 'c' -> Diff3CommandKind.CHANGE;
+            default ->
+                throw new Diff3ParseException(
+                    "Malformed command line, should end with \"a\" or \"c\": " + line);
+          };
 
       int startLine;
       int endLine;
@@ -573,29 +560,54 @@ public class Diff3File {
 
   ///////////////////////////////////////////////////////////////////////////
 
-  // TODO: Use the version from plume-util once a version after 1.9.0 is released.
-  /** A pattern that matches all common line separators: lf, cr, cr-lf. */
-  private static Pattern allLineSeparators = Pattern.compile("\n|\r\n?");
-
-  // TODO: Use the version from plume-util once a version after 1.9.0 is released.
   /**
-   * Returns the first line separator in the given string, or "\n" if the string contains none.
+   * Runs diff3 on the given files and returns the result.
    *
-   * @param s a string
-   * @return the first line separator in the given string
+   * @param leftFileName the left file name
+   * @param baseFileName the base file name
+   * @param rightFileName the right file name
+   * @return the diff3 of the files
+   * @throws Diff3ParseException if there is trouble parsing the diff3 output
    */
-  @SuppressWarnings("regex:return") // all matches of allLineSeparators are regexes
-  public static @Regex String firstLineSeparator(String s) {
-    Matcher m = allLineSeparators.matcher(s);
-    if (m.find()) {
-      return m.group();
-    } else {
-      return "\n";
+  public static Diff3File from3files(String leftFileName, String baseFileName, String rightFileName)
+      throws Diff3ParseException {
+
+    ProcessBuilder pbDiff3 = new ProcessBuilder("diff3", leftFileName, baseFileName, rightFileName);
+    if (verbose) {
+      System.out.printf("About to call: %s%n", pbDiff3.command());
     }
+    String diff3Output;
+    try {
+      Process pDiff3 = pbDiff3.start();
+      diff3Output = new String(pDiff3.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+      if (verbose) {
+        System.out.println("diff3Output: " + diff3Output);
+      }
+      // It is essential to call waitFor *after* reading the output from getInputStream().
+      int diff3ExitCode = pDiff3.waitFor();
+      if (diff3ExitCode != 0 && diff3ExitCode != 1) {
+        // `diff3` erred, so abort the merge
+        throw new Error("diff3 erred (status " + diff3ExitCode + "): " + diff3Output);
+      }
+    } catch (IOException | InterruptedException e) {
+      String eMessage = e.getMessage();
+      throw new Diff3ParseException(
+          String.format(
+              "error%s while running: diff3 %s %s %s",
+              (eMessage == null ? "" : (": " + eMessage + " ")),
+              leftFileName,
+              baseFileName,
+              rightFileName));
+    }
+
+    Diff3File diff3file = Diff3File.parseFileContents(diff3Output, leftFileName);
+    return diff3file;
   }
 
+  ///////////////////////////////////////////////////////////////////////////
+
   /** An error when parsing the output of diff3. This is a checked exception. */
-  static class Diff3ParseException extends Exception {
+  public static class Diff3ParseException extends Exception {
 
     /** Unique identifier for serialization. If you add or remove fields, change this number. */
     static final long serialVersionUID = 20240331;
@@ -617,6 +629,13 @@ public class Diff3File {
      */
     public Diff3ParseException(String message, @Nullable Throwable cause) {
       super(message, cause);
+    }
+
+    @Override
+    public String getMessage(@GuardSatisfied Diff3ParseException this) {
+      @SuppressWarnings("nullness:assignment") // message is never null
+      @NonNull String msg = super.getMessage();
+      return msg;
     }
   }
 }

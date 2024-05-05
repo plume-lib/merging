@@ -1,150 +1,180 @@
 package org.plumelib.merging;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.plumelib.util.CollectionsPlume.mapList;
-
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.RemoveUnusedImports;
-import com.sun.source.tree.ImportTree;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
-import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import name.fraser.neil.plaintext.diff_match_patch.Diff;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.javacparse.JavacParse;
-import org.plumelib.merging.ConflictedFile.CommonLines;
-import org.plumelib.merging.ConflictedFile.ConflictElement;
-import org.plumelib.merging.ConflictedFile.MergeConflict;
-import org.plumelib.merging.Diff3File.Diff3Hunk;
-import org.plumelib.merging.Diff3File.Diff3HunkSection;
-import org.plumelib.merging.Diff3File.Diff3ParseException;
+import org.checkerframework.checker.regex.qual.Regex;
+import org.plumelib.merging.fileformat.ConflictedFile;
+import org.plumelib.merging.fileformat.ConflictedFile.CommonLines;
+import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
+import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
+import org.plumelib.merging.fileformat.Diff3File;
+import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
+import org.plumelib.merging.fileformat.Diff3File.Diff3HunkSection;
+import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
+import org.plumelib.util.IPair;
+import org.plumelib.util.StringsPlume;
 
 /**
- * This class tries to resolve conflicts in {@code import} statements and to re-insert any {@code
- * import} statements that were removed but are needed for compilation to succeed.
+ * This class resolves conflicts in {@code import} statements and re-inserts any {@code import}
+ * statements that were removed by a merge but are needed for compilation to succeed.
  */
-@SuppressWarnings({"lock", "nullness"}) // todo
-public class JavaImportsMerger implements Merger {
-
-  /** If true, print diagnostics for debugging. */
-  private static final boolean verbose = false;
-
-  /** Creates a JavaImportsMerger. */
-  public JavaImportsMerger() {}
+public class JavaImportsMerger extends Merger {
 
   /**
-   * Merges the Java imports of the input.
+   * Creates a JavaImportsMerger.
    *
-   * @param mergeState the merge state, which is side-effected
+   * @param verbose if true, output diagnostic information
    */
+  public JavaImportsMerger(boolean verbose) {
+    super(verbose, true);
+  }
+
   @Override
-  public void merge(MergeState mergeState) {
-
-    ConflictedFile cf = mergeState.conflictedFile();
-    if (verbose) {
-      System.out.printf("JavaImportsMerger: conflicted file = %s%n", cf);
-    }
-    // Don't check mergeState.hasConflict() because this merger should run
-    // regardless of whether the merge so far is clean.
-
-    String parseError = cf.parseError();
-    if (parseError != null) {
-      String message = "JavaImportsMerger: parse error in merged file: " + parseError;
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
+  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<MergeConflict> mcs = cf.mergeConflicts();
 
-    // There are merge conflicts.
-    // Proceed only if all the merge conflicts are within the imports.
+    // Proceed only if all the merge conflicts (if any) are within the imports.
     if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::isOutsideImports)) {
-      return;
+      return null;
     }
 
     // There are no merge conflicts except possibly within the imports.
 
-    // TODO: If this is too restrictive, expand it.
     // If an import merge conflict has different comments within it, give up.
-    if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::hasDifferingComments)) {
-      return;
+    if (!CollectionsPlume.allMatch(mcs, MergeConflict::sameCommentLines)) {
+      return null;
     }
+
+    // The imports merger will introduce every `import` statement that was in either of the two
+    // parents.  However, if an import was moved -- that is, one parent removed `import a.b.c.Foo`
+    // and added `import d.e.Foo` -- then don't re-introduce the removed one.
+
+    // This doesn't use `cf.conflictedFile()` because we are also interested in changes made by
+    // clean merges.
+    List<String> forbiddenImports = new ArrayList<>();
+    String baseContents = String.join("", mergeState.baseFileLines());
+    String leftContents = String.join("", mergeState.leftFileLines());
+    String rightContents = String.join("", mergeState.rightFileLines());
+    forbiddenImports.addAll(renamedImports(baseContents, leftContents));
+    forbiddenImports.addAll(renamedImports(baseContents, rightContents));
 
     // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
+    assert cf.hunks() != null : "@AssumeAssertion(nullness): precondition of resolveConflicts";
     for (ConflictElement ce : cf.hunks()) {
       CommonLines cl;
       if (ce instanceof CommonLines) {
         cl = (CommonLines) ce;
       } else if (ce instanceof MergeConflict) {
-        cl = mergeImportConflictCommentwise((MergeConflict) ce);
+        cl = mergeImportsCommentwise((MergeConflict) ce);
         if (verbose) {
           System.out.printf("merged commentwise = %s%n", cl);
         }
       } else {
-        throw new Error();
+        throw new Error("what ConflictElement? " + ce.getClass() + " " + ce);
       }
       cls.add(cl);
     }
 
-    // If git produced a clean merge that removed an import from one of the two sides, reintroduce
+    // If git produced a merge that removed an import from one of the two sides, reintroduce
     // that import.
-    // Run diff3 to obtain all the differences.
-    ProcessBuilder pbDiff3 =
-        new ProcessBuilder(
-            "diff3", mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
-    if (verbose) {
-      System.out.printf("About to call: %s%n", pbDiff3.command());
-    }
-    String diff3Output;
-    try {
-      Process pDiff3 = pbDiff3.start();
-      diff3Output = new String(pDiff3.getInputStream().readAllBytes(), UTF_8);
-      if (verbose) {
-        System.out.println("diff3Output: " + diff3Output);
-      }
-      // It is essential to call waitFor *after* reading the output (from getInputStream()).
-      int diff3ExitCode = pDiff3.waitFor();
-      if (diff3ExitCode != 0 && diff3ExitCode != 1) {
-        // `diff3` erred, so abort the merge
-        String message = "diff3 erred: " + diff3Output;
-        System.out.println(message);
-        System.err.println(message);
-        return;
-      }
-    } catch (IOException | InterruptedException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
 
+    // Run diff3 to obtain all the differences, even the ones that `git merge-file` merged.
     Diff3File diff3file;
     try {
-      diff3file = Diff3File.parseFileContents(diff3Output, mergeState.leftFileName);
+      diff3file =
+          Diff3File.from3files(
+              mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
     } catch (Diff3ParseException e) {
-      String message = e.getMessage();
-      System.out.println(message);
-      System.err.println(message);
-      return;
+      JavaLibrary.exitErroneously(e.getMessage());
+      throw new Error("unreachable");
     }
 
+    // Iterate through the diffs, adding lines to the file.
+    List<String> mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+
+    mergedFileContentsLines =
+        CollectionsPlume.filter(
+            mergedFileContentsLines,
+            (String line) -> {
+              final String imported = getImportedType(line);
+              return imported == null || !forbiddenImports.contains(imported);
+            });
+
+    String mergedFileContents = String.join("", mergedFileContentsLines);
+    if (verbose) {
+      System.out.println("mergedFileContents=" + mergedFileContents);
+    }
+
+    String gjfFileContents;
+    try {
+      gjfFileContents = RemoveUnusedImports.removeUnusedImports(mergedFileContents);
+    } catch (FormatterException e) {
+      if (verbose) {
+        System.out.printf("gjf threw FormatterException: %s%n", e.getMessage());
+      }
+      gjfFileContents = mergedFileContents;
+    }
+
+    return new ConflictedFile(
+        gjfFileContents, false, Path.of("google-java-format on merged version of " + cf.path));
+  }
+
+  /**
+   * Returns true if the given merge conflict is not an import block.
+   *
+   * @param mc a merge conflict
+   * @return true if the argument has with non-<code>import</code> lines
+   */
+  static boolean isOutsideImports(MergeConflict mc) {
+    List<String> base = mc.base();
+    return !(isImportBlock(mc.left())
+        && isImportBlock(mc.right())
+        && (base == null || isImportBlock(base)));
+  }
+
+  /**
+   * Given some lines of code, return true if they can all be part of an import block: every line
+   * satisfies {@link JavaLibrary#isImportBlockLine}.
+   *
+   * @param lines some lines of code
+   * @return true if the argument is an import block
+   */
+  static boolean isImportBlock(List<String> lines) {
+    return CollectionsPlume.allMatch(lines, JavaLibrary::isImportBlockLine);
+  }
+
+  /**
+   * For each diff in imports, insert the differing imports into the file.
+   *
+   * @param fileLines the lines of the file
+   * @param diff3file the diffs
+   * @return the lines of the file, after inserting more import statements
+   */
+  List<String> applyImportDiffs(List<String> fileLines, Diff3File diff3file) {
+
     int startLineOffset = 0;
-    List<String> mergedFileContentsLines = CommonLines.toLines(cls);
-    // TODO: I should probably track how the insertion of import statements has changed where other
-    // import statemets should be inserted.
     for (Diff3Hunk h : diff3file.contents()) {
       List<String> lines = h.section2().lines();
       List<String> importStatementsThatMightBeRemoved =
-          CollectionsPlume.filter(lines, JavaImportsMerger::isImportStatement);
+          CollectionsPlume.filter(lines, JavaLibrary::isImportStatement);
       if (importStatementsThatMightBeRemoved.isEmpty()) {
         // Merging this hunk did not remove any import statements.
         startLineOffset += h.lineChangeSize();
@@ -186,244 +216,39 @@ public class JavaImportsMerger implements Merger {
           List<String> editLines = edit.lines();
           int editLinesSize = editLines.size();
           for (i = 0; i < editLinesSize; i++) {
-            if (isImportStatement(editLines.get(i))) {
+            if (JavaLibrary.isImportStatement(editLines.get(i))) {
               break;
             }
           }
           startLine = edit.command().startLine() + i;
           break;
         default:
-          throw new Error();
+          throw new Error("Unhandled kind: " + edit.command().kind());
       }
       startLine += startLineOffset;
       if (verbose) {
-        System.out.printf("Before inserting at %d: %s%n", startLine, mergedFileContentsLines);
+        System.out.printf("Before inserting at %d: %s%n", startLine, fileLines);
       }
-      mergedFileContentsLines.addAll(startLine, importStatementsThatMightBeRemoved);
+      fileLines.addAll(startLine, importStatementsThatMightBeRemoved);
       if (verbose) {
-        System.out.printf("After inserting: %s%n", mergedFileContentsLines);
+        System.out.printf("After inserting: %s%n", fileLines);
       }
       startLineOffset += h.lineChangeSize();
     }
 
-    String mergedFileContents = String.join("", mergedFileContentsLines);
-    if (verbose) {
-      System.out.println("mergedFileContents=" + mergedFileContents);
-    }
-
-    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(mergedFileContents);
-    if (mergedCU == null) {
-      // Our merge is nonsyntactic, so don't write it out.
-      // The problem might be an earlier stage in the merge pipeline.
-      String message =
-          String.format("Cannot parse: %n%s%nEnd of cannot parse.%n", mergedFileContents);
-      System.out.println(message);
-      System.err.println(message);
-      return;
-    }
-
-    List<? extends ImportTree> mergedImports = mergedCU.getImports();
-    if (verbose) {
-      System.out.printf("mergedImports=%s%n", mergedImports);
-    }
-
-    // TODO: handle static imports
-
-    String gjfFileContents;
-    try {
-      gjfFileContents = RemoveUnusedImports.removeUnusedImports(mergedFileContents);
-    } catch (FormatterException e) {
-      if (verbose) {
-        System.out.printf("gjf threw FormatterException: %s%n", e.getMessage());
-      }
-      gjfFileContents = mergedFileContents;
-    }
-    if (gjfFileContents.equals(mergedFileContents)) {
-      // gjf made no changes.
-      if (verbose) {
-        System.out.printf("gjf removed no imports%n");
-      }
-      mergeState.setConflictedFile(new ConflictedFile(mergedFileContents, false));
-      return;
-    }
-
-    JCCompilationUnit gjfCU = JavacParse.parseJavaCode(gjfFileContents);
-    if (gjfCU == null) {
-      throw new Error();
-    }
-
-    List<Import> gjfImports = mapList(Import::new, gjfCU.getImports());
-
-    List<Import> removedImports = new ArrayList<>();
-    for (ImportTree it : mergedImports) {
-      // TODO: different predicate?
-      Import i = new Import(it);
-      if (!gjfImports.contains(i)) {
-        removedImports.add(i);
-      }
-    }
-
-    if (verbose) {
-      System.out.printf("removedImports=%s%n", removedImports);
-    }
-
-    if (!removedImports.isEmpty()) {
-      Pattern removedImportPattern = Import.removedImportPattern(removedImports);
-
-      List<ConflictElement> ces = cf.hunks();
-      assert ces.size() == cls.size();
-      int size = ces.size();
-      for (int i = 0; i < size; i++) {
-        if (ces.get(i) instanceof MergeConflict) {
-          // TODO: Side-effecting the list is probably a bad idea.  I can return a new one.
-          cls.set(i, cls.get(i).removeMatchingLines(removedImportPattern));
-        }
-      }
-    }
-
-    // TODO: I need to turn some conflicts into CommonLines, if they are resolvable.
-
-    List<String> prunedFileLines = CommonLines.toLines(cls);
-    mergeState.setConflictedFile(new ConflictedFile(prunedFileLines, false));
+    return fileLines;
   }
 
   /**
-   * Represents an import statement.
-   *
-   * <p>One reason for this class is that ImportTree uses reference equality. Another reason is that
-   * it is expensive to repeatedly call {@code toString} on the Tree resulting from {@code
-   * ImportTree.identifier()}.
-   *
-   * @param isStatic true if the import is a static import
-   * @param identifier the identifier being imported
-   */
-  @SuppressWarnings("lock") // todo
-  static record Import(boolean isStatic, String identifier) {
-    /**
-     * Constructs an Import from an ImportTree.
-     *
-     * @param it an ImportTree
-     */
-    public Import(ImportTree it) {
-      this(it.isStatic(), it.getQualifiedIdentifier().toString());
-    }
-
-    @Override
-    public boolean equals(Import this, @Nullable Object o) {
-      if (!(o instanceof Import)) {
-        return false;
-      }
-      Import other = (Import) o;
-      return isStatic == other.isStatic() && identifier.equals(other.identifier());
-    }
-
-    @Override
-    public int hashCode(Import this) {
-      return Objects.hash(isStatic, identifier);
-    }
-
-    @Override
-    public String toString() {
-      if (isStatic) {
-        return "import static " + identifier;
-      } else {
-        return "import " + identifier;
-      }
-    }
-
-    /**
-     * Returns a pattern matching all the removed imports.
-     *
-     * @param removedImports the removed imports
-     * @return a pattern matching all the removed imports
-     */
-    @SuppressWarnings("regex:argument") // regex constructed via string concatenation
-    public static Pattern removedImportPattern(List<Import> removedImports) {
-      StringJoiner removedImportRegex = new StringJoiner("|", "\\s*import\\s+(", ")\\s*;\\R?");
-      for (Import i : removedImports) {
-        removedImportRegex.add(i.regexAfterImport());
-      }
-      return Pattern.compile(removedImportRegex.toString());
-    }
-
-    /**
-     * Return a regex that matches the text after "import " for this.
-     *
-     * @return a regex that matches the text after "import "
-     */
-    public String regexAfterImport() {
-      String identifierRegex = Pattern.quote(identifier);
-      if (isStatic) {
-        return "static\\s+" + identifierRegex;
-      } else {
-        return identifierRegex;
-      }
-    }
-  }
-
-  /**
-   * Returns true if the given merge conflict is not an import block.
-   *
-   * @param mc a merge conflict
-   * @return true if the argument has with non-<code>import</code> lines
-   */
-  static boolean isOutsideImports(MergeConflict mc) {
-    List<String> base = mc.base();
-    return !(isImportBlock(mc.left())
-        && isImportBlock(mc.right())
-        && (base == null || isImportBlock(base)));
-  }
-
-  /**
-   * Given some lines of code, return true if they can all be part of an import block: every line
-   * satisfies {@link #isImportBlockLine}.
-   *
-   * @param lines some lines of code
-   * @return true if the argument is an import block
-   */
-  static boolean isImportBlock(List<String> lines) {
-    return lines.stream().allMatch(JavaImportsMerger::isImportBlockLine);
-  }
-
-  /**
-   * Returns true if the given conflict element is a merge conflict that has different comments in
-   * different variants.
-   *
-   * @param ce an element of a conflicted file
-   * @return true if the argument is a merge conflit with differing comments
-   */
-  static boolean hasDifferingComments(ConflictElement ce) {
-
-    if (!(ce instanceof MergeConflict)) {
-      return false;
-    }
-    MergeConflict mc = (MergeConflict) ce;
-
-    return !sameCommentLines(mc);
-  }
-
-  /**
-   * Returns true if the left and right contain the same comment lines.
-   *
-   * @param mc a merge conflict
-   * @return true if the left and right contain the same comment lines
-   */
-  static boolean sameCommentLines(MergeConflict mc) {
-    List<String> leftComments = commentLines(mc.left());
-    List<String> rightComments = commentLines(mc.right());
-    return leftComments.equals(rightComments);
-  }
-
-  /**
-   * Given a merge conflict that is an import block, merge it, retaining comments but not caring for
-   * whitespace.
+   * Given a merge conflict that is an import block, merge it, retaining comments but not caring
+   * about whitespace.
    *
    * @param mc a merge conflict that is an import block. The left and right variants contain the
    *     same comment lines in the same order.
    * @return the result of merging the conflict
    */
   // "protected" so test code can call it.
-  protected static CommonLines mergeImportConflictCommentwise(MergeConflict mc) {
+  protected static CommonLines mergeImportsCommentwise(MergeConflict mc) {
     List<String> leftLines = mc.left();
     List<String> rightLines = mc.right();
     int leftLen = leftLines.size();
@@ -436,19 +261,18 @@ public class JavaImportsMerger implements Merger {
       return new CommonLines(rightLines);
     }
 
-    List<String> leftComments = commentLines(mc.left());
-    List<String> rightComments = commentLines(mc.right());
-    assert leftComments.equals(rightComments);
+    List<String> leftComments = JavaLibrary.commentLines(mc.left());
+    assert leftComments.equals(JavaLibrary.commentLines(mc.right()));
 
     List<String> result = new ArrayList<>();
 
     int leftIndex = 0; // the index after the most recently found comment
     int rightIndex = 0; // the index after the most recently found comment
     for (String comment : leftComments) {
-      int leftCommentIndex = indexOf(leftLines, comment, leftIndex);
-      int rightCommentIndex = indexOf(rightLines, comment, rightIndex);
+      int leftCommentIndex = CollectionsPlume.indexOf(leftLines, comment, leftIndex);
+      int rightCommentIndex = CollectionsPlume.indexOf(rightLines, comment, rightIndex);
       if (leftCommentIndex == -1 || rightCommentIndex == -1) {
-        throw new Error();
+        JavaLibrary.exitErroneously("didn't find comment: " + comment);
       }
       result.addAll(
           mergeImportsAndSpaces(
@@ -480,37 +304,35 @@ public class JavaImportsMerger implements Merger {
   private static List<String> mergeImportsAndSpaces(
       List<String> leftLines, List<String> rightLines) {
 
-    // `leftLines` and `rightLines` are portions of a merge conflict, so they could be equal.
-    if (leftLines.equals(rightLines)) {
-      return leftLines;
-    }
-    if (leftLines.isEmpty()) {
-      return rightLines;
-    }
-    if (rightLines.isEmpty()) {
-      return leftLines;
-    }
+    // `leftLines` and `rightLines` are *portions* of a merge conflict, so they could be equal.
     int leftLen = leftLines.size();
-    int rightLen = leftLines.size();
-    if (leftLen > rightLen
-        && CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
-      return leftLines;
-    } else if (rightLen > leftLen
-        && CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
-      return rightLines;
+    int rightLen = rightLines.size();
+    if (leftLen == rightLen) {
+      if (leftLines.equals(rightLines)) {
+        return leftLines;
+      }
+    } else if (leftLen > rightLen) {
+      if (rightLen == 0
+          || CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
+        return leftLines;
+      }
+    } else if (rightLen > leftLen) {
+      if (leftLen == 0 || CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
+        return rightLines;
+      }
     }
 
+    assert !leftLines.isEmpty() : "leftLines=" + leftLines + ", rightLines=" + rightLines;
+    assert !rightLines.isEmpty() : "leftLines=" + leftLines + ", rightLines=" + rightLines;
     // If non-null, the empty first line.
     String firstLineEmpty =
-        (!leftLines.isEmpty() && isBlankLine(leftLines.get(0)))
+        JavaLibrary.isBlankLine(leftLines.get(0))
             ? leftLines.get(0)
-            : ((!rightLines.isEmpty() && isBlankLine(rightLines.get(0)))
-                ? rightLines.get(0)
-                : null);
+            : (JavaLibrary.isBlankLine(rightLines.get(0)) ? rightLines.get(0) : null);
     String lastLineEmpty =
-        (!leftLines.isEmpty() && isBlankLine(leftLines.get(leftLines.size() - 1)))
+        JavaLibrary.isBlankLine(leftLines.get(leftLines.size() - 1))
             ? leftLines.get(leftLines.size() - 1)
-            : ((!rightLines.isEmpty() && isBlankLine(rightLines.get(rightLines.size() - 1)))
+            : (JavaLibrary.isBlankLine(rightLines.get(rightLines.size() - 1))
                 ? rightLines.get(rightLines.size() - 1)
                 : null);
     SortedSet<String> imports = new TreeSet<>();
@@ -520,116 +342,123 @@ public class JavaImportsMerger implements Merger {
     if (firstLineEmpty != null) {
       result.add(firstLineEmpty);
     }
-    result.addAll(CollectionsPlume.filter(imports, Predicate.not(JavaImportsMerger::isBlankLine)));
+    result.addAll(CollectionsPlume.filter(imports, Predicate.not(JavaLibrary::isBlankLine)));
     if (lastLineEmpty != null) {
       result.add(lastLineEmpty);
     }
     return result;
   }
 
-  /** A pattern that matches a string consisting only of whitespace. */
-  private static Pattern whitespacePattern = Pattern.compile("\s*\\R*");
-
-  /**
-   * Returns true if the given string is a blank line.
-   *
-   * @param line a string
-   * @return true if the given string is a blank line
-   */
-  private static boolean isBlankLine(String line) {
-    return whitespacePattern.matcher(line).matches();
-  }
-
-  // TODO: Should this forbid leading whitespace, to avoid false positive matches?
-  /**
-   * A pattern that matches an import line in Java code. Does not match import lines with a trailing
-   * comment.
-   */
-  private static Pattern importPattern = Pattern.compile("\s*import .*;\\R?");
-
-  /**
-   * Returns true if the given line is an import statement.
-   *
-   * @param line a line of Java code
-   * @return true if the given line is an import statement
-   */
-  static boolean isImportStatement(String line) {
-    return importPattern.matcher(line).matches();
-  }
-
-  /**
-   * Given a line of code, return true if can appear in an import block: it is an <code>import
-   * </code>, blank line, or comment.
-   *
-   * @param line a line of code
-   * @return true if the line can be in an import block
-   */
-  static boolean isImportBlockLine(String line) {
-    return line.isEmpty()
-        || whitespacePattern.matcher(line).matches()
-        || isCommentLine(line)
-        || isImportStatement(line);
-  }
-
-  /**
-   * Returns all the comment lines in the input.
-   *
-   * @param lines code lines, each of which may be terminated by a line separator
-   * @return the comment lines in the input
-   */
-  static List<String> commentLines(List<String> lines) {
-    List<String> result = new ArrayList<>();
-    for (String line : lines) {
-      if (isCommentLine(line)) {
-        result.add(line);
-      }
-    }
-    return result;
-  }
-
-  /**
-   * A pattern that matches a comment line. Because of use of {@code matches()}, no regex anchoring
-   * is needed.
-   */
-  private static Pattern commentLinePattern = Pattern.compile("\\s*(//.*|/\\*.*\\*/\\s*)\\R?");
-
-  /**
-   * Returns true if the given line is a comment line.
-   *
-   * @param line a line of code, which may be terminated by a line separator
-   * @return true if the line is a comment line
-   */
-  // "protected" to permit test code to call it.
-  protected static boolean isCommentLine(String line) {
-    return commentLinePattern.matcher(line).matches();
-  }
-
-  /**
-   * Returns the imports of the given Java code.
-   *
-   * @param javaCode the contents of a Java file: a compilation unit
-   * @return the imports of the given Java code
-   */
-  @SuppressWarnings({"UnusedMethod", "UnusedVariable"}) // TODO: remove
-  private List<? extends ImportTree> getImports(String javaCode) {
-    // TODO
-    throw new Error("to implement");
-  }
-
   ///////////////////////////////////////////////////////////////////////////
 
-  // TODO: use this from CollectionsPlume once plume-util is released.
   /**
-   * Returns the first index of the given value in the list, starting at the given index. Uses
-   * {@code Object.equals} for comparison.
+   * Returns a pair of (deleted imports, inserted imports).
    *
-   * @param list a list
-   * @param start the starting index
-   * @param value the value to search for
-   * @return the index of the value in the list, at or after the given index
+   * @param javaCode1 the first Java program
+   * @param javaCode2 the second Java program
+   * @return the deleted and changed imports, each as a list of dotted identifiers
    */
-  public static int indexOf(List<?> list, Object value, int start) {
-    int idx = list.subList(start, list.size()).indexOf(value);
-    return idx == -1 ? -1 : idx + start;
+  static IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
+    // This implementation is hacky in that it works textually instead of parsing the Java code.
+    // So, it will not handle bizarrely formatted code.
+    LinkedList<Diff> diffs = DmpLibrary.diffByLines(javaCode1, javaCode2);
+    List<String> inserted = new ArrayList<>();
+    List<String> deleted = new ArrayList<>();
+    for (Diff diff : diffs) {
+      switch (diff.operation) {
+        case INSERT -> {
+          for (String insertedLine : StringsPlume.splitLines(diff.text)) {
+            String imported = getImportedType(insertedLine);
+            if (imported != null) {
+              inserted.add(imported);
+            }
+          }
+        }
+        case DELETE -> {
+          for (String deletedLine : StringsPlume.splitLines(diff.text)) {
+            String imported = getImportedType(deletedLine);
+            if (imported != null) {
+              deleted.add(imported);
+            }
+          }
+        }
+        case EQUAL -> {
+          // Nothing to do
+        }
+      }
+    }
+    return IPair.of(deleted, inserted);
+  }
+
+  /**
+   * Returns a list of deleted imports that were also inserted with a different prefix. For example,
+   * if "import a.b.c.Foo" was deleted and "import d.e.Foo" was added, then the result contains
+   * "a.b.c.Foo". These should not be re-inserted.
+   *
+   * @param javaCode1 the first Java program
+   * @param javaCode2 the second Java program
+   * @return the renamed imports, as a list of dotted identifiers (for their old names)
+   */
+  static List<String> renamedImports(String javaCode1, String javaCode2) {
+    IPair<List<String>, List<String>> changedImports = changedImports(javaCode1, javaCode2);
+    List<String> deleted = changedImports.first;
+    List<String> inserted = changedImports.second;
+    if (deleted.isEmpty() || inserted.isEmpty()) {
+      return Collections.emptyList();
+    }
+    Set<String> insertedIdentifiers =
+        new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
+    List<String> result = new ArrayList<>();
+    for (String dotted : deleted) {
+      String deletedIdentifier = lastIdentifier(dotted);
+      if (insertedIdentifiers.contains(deletedIdentifier)) {
+        result.add(dotted);
+      }
+    }
+    return Collections.unmodifiableList(result);
+  }
+
+  /**
+   * Returns the text after the last period in the input.
+   *
+   * @param dottedIdentifiers dotted identifiers
+   * @return the last of the dotted identifiers
+   */
+  private static String lastIdentifier(String dottedIdentifiers) {
+    int dotPos = dottedIdentifiers.lastIndexOf(".");
+    if (dotPos == -1) {
+      return dottedIdentifiers;
+    } else {
+      return dottedIdentifiers.substring(dotPos + 1);
+    }
+  }
+
+  /** Matches an import line in a Java program. */
+  private static @Regex(1) Pattern importLine =
+      Pattern.compile(
+          "^\\s*+import\\s++(?:static\\s++)?+("
+              + JavaAnnotationsMerger.javaDottedIdentifiersRegex
+              + ")\\s*+;\\s*+\\R?$");
+
+  /** Matches horizontal whitespace. */
+  private static Pattern horizontalSpace = Pattern.compile("\\s+");
+
+  /**
+   * If the given line is an import statement, then return what is being imported, as a dotted
+   * identifier.
+   *
+   * @param line a line of code
+   * @return what is being imported, or null if the line isn't an import statement
+   */
+  static @Nullable String getImportedType(String line) {
+    @Regex(1) Matcher m = importLine.matcher(line);
+    if (m.matches()) {
+      @SuppressWarnings("nullness:assignment") // this ought to type-check
+      @NonNull String withSpaces = m.group(1);
+      String withoutSpaces = horizontalSpace.matcher(withSpaces).replaceAll("");
+      return withoutSpaces;
+    } else {
+      return null;
+    }
   }
 }
