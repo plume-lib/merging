@@ -33,6 +33,11 @@ These command-line arguments are supported by the merge driver
  * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
  * `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
 
+Unfortunately, git does not permit the user to specify command-line
+arguments to be passed to a merge driver or merge tool.  See below for how
+to define different merge drivers and merge tools that pass different
+command-line arguments.
+
 
 ## How to use
 
@@ -55,13 +60,17 @@ and log back in again to have the change take effect.
 ### How to use as a merge driver
 
 After performing the following steps, git will automatically use this merge
-driver for every merge of Java files.
+driver for every merge of Java files.  You can also define your own merge
+drivers that pass different sets of arguments, beyond the `merge-java` and
+`merge-adjacent` merge drivers defined below.
 
 1. Run these commands:
 ```
 git config --global merge.conflictstyle diff3
 git config --global merge.merge-java.name "Merge Java files"
 git config --global merge.merge-java.driver 'java-merge-driver.sh %A %O %B'
+git config --global merge.merge-adjacent.name "Merge changes on adjacent lines"
+git config --global merge.merge-adjacent.driver 'java-merge-driver.sh --only-adjacent %A %O %B'
 ```
 
 To take effect only for one repository, replace `--global` by `--local` and run
@@ -71,6 +80,12 @@ the commands within the repository.
 
 ```
 *.java merge=merge-java
+```
+
+or
+
+```
+* merge=merge-adjacent
 ```
 
 To enable this for a single repository, add this to the repository's `.gitattributes` file.
@@ -87,10 +102,14 @@ gitattributes file.  The user-level gitattributes file is by default
 
 First, edit your `~/.gitconfig` file as shown below.
 
-Run the following after a git merge that leaves conflicts:
+Run one of the following commands after a git merge that leaves conflicts:
 
 ```
 yes | git mergetool --tool=merge-java
+```
+or
+```
+yes | git mergetool --tool=merge-adjacent
 ```
 
 The reason for `yes |` is that `git mergetool` stops and asks after each file
@@ -107,10 +126,13 @@ There is just one step for setup.
 
 ```
 git config --global merge.conflictstyle diff3
-git config --global merge.tool merge-java
 git config --global mergetool.prompt false
+git config --global merge.tool merge-java
 git config --global mergetool.merge-java.cmd 'java-merge-tool.sh ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
 git config --global mergetool.merge-java.trustExitCode true
+git config --global merge.tool merge-adjacent
+git config --global mergetool.merge-adjacent.cmd 'java-merge-tool.sh --only-adjacent ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
+git config --global mergetool.merge-adjacent.trustExitCode true
 ```
 
 To take effect only for one repository, replace `--global` by `--local` and run
@@ -123,11 +145,12 @@ A **merge driver** is automatically called during `git merge` whenever no two of
 {base,edit1,edit2} are the same.  It writes a merged file, which may or may not
 contain conflict markers.
 
-A **merge tool** is called manually by the programmer.  For each file that
-contains conflict markers, the merge tool runs and observes the base, edit1,
-edit2, and the conflicted merge (which the merge tool can overwrite with a new
-merge result).  If the merge driver produced a clean merge for a given file,
-then the merge tool is not run on the file.
+A **merge tool** is called manually by the programmer after a merge that
+left conflict markers.  For each file that contains conflict markers, the
+merge tool runs and observes the base, edit1, edit2, and the conflicted
+merge (which the merge tool can overwrite with a new merge result).  If the
+merge driver produced a clean merge for a given file, then the merge tool
+is not run on the file.
 
 After running `git merge` (and perhaps manually resolving some of the
 conflicts), you might run a merge tool to resolve further conflicts.
