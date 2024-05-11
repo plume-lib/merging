@@ -5,10 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
 
@@ -145,6 +147,21 @@ public class Diff3File {
           || ((kind == Diff3HunkKind.TWO_DIFFERS) && section1.lines().equals(section3.lines()))
           || ((kind == Diff3HunkKind.THREE_DIFFERS) && section1.lines().equals(section2.lines()))
           || kind == Diff3HunkKind.THREE_WAY;
+    }
+
+    @SuppressWarnings({
+      "lock", // needs annotations on Record
+      "allcheckers:purity.not.sideeffectfree.call" // add() called on local variable
+    })
+    @Override
+    public String toString(@GuardSatisfied Diff3Hunk this) {
+      StringJoiner result = new StringJoiner(System.lineSeparator());
+      result.add(String.format("Diff3Hunk[kind=%s,", kind));
+      result.add("  section1=" + section1);
+      result.add("  section2=" + section2);
+      result.add("  section3=" + section3);
+      result.add("]");
+      return result.toString();
     }
 
     /**
@@ -460,6 +477,17 @@ public class Diff3File {
       }
       // i is the first line after the hunk section.
       return IPair.of(i, new Diff3HunkSection(command, sectionLines));
+    }
+
+    @SuppressWarnings({
+      "lock", // needs annotations on Record
+      "allcheckers:purity.not.sideeffectfree.call" // mapList() is pure when its argument is
+    })
+    @Override
+    public String toString(@GuardSatisfied Diff3HunkSection this) {
+      return String.format(
+          "Diff3HunkSection[command=%s, lines=%s]",
+          command, CollectionsPlume.mapList(s -> s + System.lineSeparator(), lines));
     }
   }
 
