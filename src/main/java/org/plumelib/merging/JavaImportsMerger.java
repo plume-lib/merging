@@ -27,6 +27,7 @@ import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
 import org.plumelib.merging.fileformat.Diff3File.Diff3HunkSection;
 import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
+import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
 
@@ -108,7 +109,19 @@ public class JavaImportsMerger extends Merger {
     }
 
     // Iterate through the diffs, adding lines to the file.
-    List<String> mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+    List<String> mergedFileContentsLines;
+    try {
+      mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+    } catch (Throwable t) {
+      System.out.printf(
+          "Problem with conflicted file (hasTrivalConflict=%s):%n", cf.hasTrivalConflict());
+      System.out.println("On disk:");
+      System.out.println(FilesPlume.readString(cf.path));
+      System.out.println("In data structure:");
+      System.out.println(cf.fileContents());
+      System.out.println(cf);
+      throw t;
+    }
 
     mergedFileContentsLines =
         CollectionsPlume.filter(
@@ -226,14 +239,27 @@ public class JavaImportsMerger extends Merger {
           throw new Error("Unhandled kind: " + edit.command().kind());
       }
       startLine += startLineOffset;
+      if (startLine < 0 || startLine >= fileLines.size()) {
+        System.out.printf("problem in applyImportDiffs.%n");
+        System.out.printf("diff3file = %s%n", diff3file);
+        System.out.printf("startLine = %s%n", startLine);
+        System.out.printf("startLineOffset = %s%n", startLineOffset);
+        System.out.printf("hunk = %s%n", h);
+        System.out.printf("edit = %s%n", edit);
+        System.out.printf("fileLines = %s%n", fileLines);
+      }
       if (verbose) {
-        System.out.printf("Before inserting at %d: %s%n", startLine, fileLines);
+        System.out.printf(
+            "Before inserting at %d (startLineOffset=%d): %s%n",
+            startLine, startLineOffset, fileLines);
       }
       fileLines.addAll(startLine, importStatementsThatMightBeRemoved);
-      if (verbose) {
-        System.out.printf("After inserting: %s%n", fileLines);
-      }
       startLineOffset += h.lineChangeSize();
+      if (verbose) {
+        System.out.printf(
+            "After inserting at %d (lineChangeSize=%d, startLineOffset=%d): %s%n",
+            startLine, h.lineChangeSize(), startLineOffset, fileLines);
+      }
     }
 
     return fileLines;
