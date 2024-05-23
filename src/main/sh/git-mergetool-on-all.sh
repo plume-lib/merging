@@ -1,5 +1,5 @@
 #!/bin/bash
-# bash because of process substitution.
+# This script uses bash, not sh, because of process substitution.
 
 # Run this script when a merge is in progress, or when HEAD is a merge.
 # This script runs `git mergetool` on every file that is different in all of base, left, and right
