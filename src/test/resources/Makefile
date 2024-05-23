@@ -4,14 +4,14 @@ test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff Adjacent
 
 test-annotations: AnnotationsTest1.diff
 
-test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff
+test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff ImportsTest9.diff
 
 
 Adjacent%.diff:
 	@(cd ../../.. && ./gradlew -q assemble)
 
 	cp -f $(basename $@)A.java $(basename $@).git-merge
-	git merge-file \
+	git merge-file --diff3 \
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
@@ -57,7 +57,7 @@ Imports%.diff:
 	@(cd ../../.. && ./gradlew -q assemble)
 
 	cp -f $(basename $@)A.java $(basename $@).git-merge
-	git merge-file \
+	git merge-file --diff3 \
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
