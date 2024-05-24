@@ -38,13 +38,13 @@ import org.plumelib.util.StringsPlume;
  * <p>diff3 style:
  *
  * <pre>{@code
- * <<<<<<< ours
+ * <<<<<<< OURS
  * puts 'hola world'
- * ||||||| base
+ * ||||||| BASE
  * puts 'hello world'
  * =======
  * puts 'hello mundo'
- * >>>>>>> theirs
+ * >>>>>>> THEIRS
  * }</pre>
  */
 public class ConflictedFile {
