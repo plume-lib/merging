@@ -12,6 +12,12 @@
 
 SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
 
+ROOTDIR="${SCRIPTDIR}/../../.."
+JARFILE="${ROOTDIR}/build/libs/merge-tools-all.jar"
+if [ ! -f "$JARFILE" ] ; then
+    (cd "$ROOTDIR" && ./gradlew shadowJar)
+fi
+
 # TIMEFORMAT="%3R seconds"
 # time \
 java \
