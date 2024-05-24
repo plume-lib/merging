@@ -104,9 +104,7 @@ public class MergeState {
 
   @Override
   @SuppressWarnings({
-    "allcheckers:purity.not.sideeffectfree.call", // side effect to local state
-    "lock:method.guarantee.violated", // TODO
-    "lock:method.invocation" // TODO
+    "allcheckers:purity.not.sideeffectfree.call" // side effect to local state
   })
   public String toString(@GuardSatisfied MergeState this) {
     StringJoiner sj = new StringJoiner(System.lineSeparator());
