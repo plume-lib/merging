@@ -8,6 +8,7 @@ import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
+import org.checkerframework.dataflow.qual.Pure;
 import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.util.FilesPlume;
 
@@ -105,8 +106,7 @@ public class MergeState {
   @Override
   @SuppressWarnings({
     "allcheckers:purity.not.sideeffectfree.call", // side effect to local state
-    "lock:method.guarantee.violated", // TODO
-    "lock:method.invocation" // TODO
+    "lock:method.guarantee.violated"
   })
   public String toString(@GuardSatisfied MergeState this) {
     StringJoiner sj = new StringJoiner(System.lineSeparator());
@@ -178,7 +178,12 @@ public class MergeState {
    *
    * @return the merged file, parsed into a ConflictedFile
    */
-  public ConflictedFile conflictedFile() {
+  @SuppressWarnings({
+    "allcheckers:purity.not.deterministic.not.sideeffectfree.assign.field", // assign to cache
+    "allcheckers:purity.not.deterministic.object.creation" // create object to put in cache
+  })
+  @Pure
+  public ConflictedFile conflictedFile(@GuardSatisfied MergeState this) {
     if (conflictedFile == null) {
       conflictedFile = new ConflictedFile(mergedPath, hasConflictInitially);
     }
