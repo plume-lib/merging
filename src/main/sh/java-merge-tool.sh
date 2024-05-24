@@ -8,6 +8,12 @@
 
 SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
 
+ROOTDIR="${SCRIPTDIR}/../../.."
+JARFILE="${ROOTDIR}/build/libs/merge-tools-all.jar"
+if [ ! -f "$JARFILE" ] ; then
+    (cd "$ROOTDIR" && ./gradlew shadowJar)
+fi
+
 java \
   --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \

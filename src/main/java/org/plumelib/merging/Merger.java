@@ -47,10 +47,11 @@ abstract class Merger {
       return;
     }
 
-    ConflictedFile cf = mergeState.conflictedFile();
     if (verbose) {
-      System.out.printf("%s: conflicted file = %s%n", this.getClass().getSimpleName(), cf);
+      System.out.printf("%s.merge(%s)%n", this.getClass().getSimpleName(), mergeState);
     }
+
+    ConflictedFile cf = mergeState.conflictedFile();
 
     @SuppressWarnings("nullness:assignment") // cf.parseError() == null => cf.hunks() != null
     @NonNull List<ConflictElement> hunks = cf.hunks();
