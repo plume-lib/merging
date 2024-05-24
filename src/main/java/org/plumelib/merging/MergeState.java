@@ -3,6 +3,8 @@ package org.plumelib.merging;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.StringJoiner;
+import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
@@ -98,6 +100,28 @@ public class MergeState {
     if (!Files.isWritable(mergedPath)) {
       JavaLibrary.exitErroneously("file is not writable: " + mergedFileName);
     }
+  }
+
+  @Override
+  @SuppressWarnings({
+    "allcheckers:purity.not.sideeffectfree.call",
+    "lock:method.guarantee.violated",
+    "lock:method.invocation"
+  }) // side effect to local state
+  public String toString(@GuardSatisfied MergeState this) {
+    StringJoiner sj = new StringJoiner(System.lineSeparator());
+    sj.add("MergeState{");
+    sj.add("  baseFileName=" + baseFileName);
+    sj.add("  leftFileName=" + leftFileName);
+    sj.add("  rightFileName=" + rightFileName);
+    sj.add("  mergedFileName=" + mergedFileName);
+    sj.add("  basePath=" + basePath);
+    sj.add("  leftPath=" + leftPath);
+    sj.add("  rightPath=" + rightPath);
+    sj.add("  mergedPath=" + mergedPath);
+    sj.add("  conflictedFile=" + conflictedFile());
+    sj.add("}");
+    return sj.toString();
   }
 
   /**
