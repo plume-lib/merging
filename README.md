@@ -160,17 +160,17 @@ re-merge tool.
 ## Git merge terminology
 
 A **merge driver** is automatically called during `git merge` whenever no
-two of {base,edit1,edit2} are the same.  It writes a merged file, which may
-or may not contain conflict markers.  The merge drivers in this repository
-first call `git merge-file`, then resolve some conflicts left by `git
-merge-file`.
+two of {base,parent1,parent2} are the same.  It writes a merged file, which
+may or may not contain conflict markers.  The merge drivers in this
+repository first call `git merge-file`, then resolve some conflicts left by
+`git merge-file`.
 
 A **merge tool** is called manually by the programmer (via `git mergetool`)
 after a merge that left conflict markers.  After running `git merge` (and
 perhaps manually resolving some of the conflicts), you might run a merge
 tool to resolve further conflicts.  For each file that contains conflict
-markers, the merge tool runs and observes the base, edit1, edit2, and the
-conflicted merge (which the merge tool can overwrite with a new merge
+markers, the merge tool runs and observes the base, parent1, parent2, and
+the conflicted merge (which the merge tool can overwrite with a new merge
 result).  If the merge driver produced a clean merge for a given file, then
 the merge tool is not run on the file.
 
