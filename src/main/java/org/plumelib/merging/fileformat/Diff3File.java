@@ -600,6 +600,8 @@ public class Diff3File {
   public static Diff3File from3files(String leftFileName, String baseFileName, String rightFileName)
       throws Diff3ParseException {
 
+    // Don't use `diff3 --merge`, because we want to know all the differences, even those that
+    // merged cleanly.
     ProcessBuilder pbDiff3 = new ProcessBuilder("diff3", leftFileName, baseFileName, rightFileName);
     if (verbose) {
       System.out.printf("About to call: %s%n", pbDiff3.command());
