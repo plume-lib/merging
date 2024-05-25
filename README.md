@@ -1,8 +1,8 @@
 # merge-tools
 
-This project contains git merge drivers and git merge tools.  (See the end of
-this document for definitions of "merge driver" and "merge tool".)  The merge
-drivers first call `git merge-file`, then resolve some conflicts left by git.
+This project contains git merge drivers and git merge tools.  (See
+[below](#git-merge-terminology) for definitions of "merge driver" and
+"merge tool".)
 
 Currently some of the mergers only work on Java files, and some are more general.
 
@@ -40,6 +40,9 @@ command-line arguments.
 
 
 ## How to use
+
+You can use the mergers in this repository in three ways: as merge drivers,
+as merge tools, or as re-merge tools.
 
 
 ### Common setup
@@ -139,11 +142,28 @@ To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.
 
 
+### How to use as a re-merge tool
+
+Edit your `~/.gitconfig` file as for a merge tool.
+
+To perform a merge, run:
+
+```
+git merge ARGS
+git-mergetool-on-all.sh
+```
+
+You can create a shell alias or a git alias to simplify invoking the
+re-merge tool.
+
+
 ## Git merge terminology
 
-A **merge driver** is automatically called during `git merge` whenever no two of
-{base,edit1,edit2} are the same.  It writes a merged file, which may or may not
-contain conflict markers.
+A **merge driver** is automatically called during `git merge` whenever no
+two of {base,edit1,edit2} are the same.  It writes a merged file, which may
+or may not contain conflict markers.  The merge drivers in this repository
+first call `git merge-file`, then resolve some conflicts left by `git
+merge-file`.
 
 A **merge tool** is called manually by the programmer after a merge that
 left conflict markers.  For each file that contains conflict markers, the
@@ -154,6 +174,17 @@ is not run on the file.
 
 After running `git merge` (and perhaps manually resolving some of the
 conflicts), you might run a merge tool to resolve further conflicts.
+
+A **re-merge tool** is a merge tool that is run on every file, even ones
+for which the merge driver produced a clean merge.  The command
+`git-mergetool-on-all.sh` runs a re-merge tool.
+
+A re-merge tool is desirable because `git merge-file` sometimes produces
+merge conflicts where `git merge` does not (even with rerere and other `git
+merge` functionality disabled!).  Therefore, the merge drivers in this
+repository (which first call `git merge-file`, then they improve the
+results) may produce suboptimal results.  A re-merge tool lets you use `git
+merge`, then still use a merger to improve the results.
 
 
 ## License
