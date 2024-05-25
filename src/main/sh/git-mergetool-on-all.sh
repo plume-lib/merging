@@ -6,7 +6,7 @@
 # -- even if the file has been cleanly merged and contains no merge conflict markers.
 
 # Show commands as they are executed.
-# set -x
+set -x
 
 toplevel=$(git rev-parse --show-toplevel)
 merge_head_file="$toplevel/.git/MERGE_HEAD"
@@ -31,7 +31,7 @@ else
     exit 1
 fi
 
-BASE_REV="$(git merge-base "$LEFT" "$RIGHT")"
+BASE_REV="$(git merge-base "$LEFT_REV" "$RIGHT_REV")"
 
 # echo "BASE_REV ${BASE_REV} LEFT_REV ${LEFT_REV} RIGHT_REV ${RIGHT_REV}"
 
