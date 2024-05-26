@@ -86,10 +86,6 @@ public class ConflictedFile {
    *
    * @param path the path of the conflicted file
    */
-  @SuppressWarnings({
-    "allcheckers:purity.not.sideeffectfree.call",
-    "lock:method.guarantee.violated"
-  }) // needs plume-util 1.10.0+
   @SideEffectFree
   public ConflictedFile(Path path) {
     this(FilesPlume.readString(path), path);
@@ -101,10 +97,6 @@ public class ConflictedFile {
    * @param path the path of the conflicted file
    * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    */
-  @SuppressWarnings({
-    "allcheckers:purity.not.sideeffectfree.call",
-    "lock:method.guarantee.violated"
-  }) // needs plume-util 1.10.0+
   @SideEffectFree
   public ConflictedFile(Path path, boolean hasConflict) {
     this(FilesPlume.readString(path), hasConflict, path);

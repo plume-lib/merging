@@ -13,25 +13,29 @@ were modified in both versions, but if there are many, the merge will be slow.
 
 ## Features
 
-* [Java imports](README-java-imports.md):  This handles conflicts in `import`
-statements, keeping all the necessary imports.  It also prevents a merge from
-removing a needed `import` statement, even if the merge would be clean.  It does
-nothing if the file's conflicts contain anything other than import statements.
+* [Adjacent lines](README-adjacent-lines.md): This resolves conflicts when the two edits
+only affect different lines.  By default, git considers edits to different,
+adjacent lines to be a conflict.
 
 * [Java annotations](README-java-annotations.md):  This resolves conflicts in
 favor of retaining a Java annotation, when the only textual difference is in
 annotations.
 
-* [Adjacent lines](README-adjacent-lines.md): This resolves conflicts when the two edits
-only affect different lines.  By default, git considers edits to different,
-adjacent lines to be a conflict.
+* [Java imports](README-java-imports.md):  This handles conflicts in `import`
+statements, keeping all the necessary imports.  It also prevents a merge from
+removing a needed `import` statement, even if the merge would be clean.  It does
+nothing if the file's conflicts contain anything other than import statements.
+
+* [Version numbers](README-version-numbers.md):  This resolves conflicts in
+favor of the larger version number.
 
 You can enable and disable each feature individually, or enable just one feature.
 These command-line arguments are supported by the merge driver
 `java-merge-driver.sh` and the merge tool `java-merge-tool.sh`.
- * `--imports`, `--no-imports`, `--only-imports` [default: enabled]
- * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
  * `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
+ * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
+ * `--imports`, `--no-imports`, `--only-imports` [default: enabled]
+ * `--version-numbers`, `--no-version-numbers`, `--only-version-numbers` [default: enabled]
 
 Unfortunately, git does not permit the user to specify command-line
 arguments to be passed to a merge driver or merge tool.  See below for how

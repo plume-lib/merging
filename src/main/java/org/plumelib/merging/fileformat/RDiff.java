@@ -3,11 +3,15 @@ package org.plumelib.merging.fileformat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import name.fraser.neil.plaintext.diff_match_patch.Operation;
+import org.checkerframework.checker.interning.qual.Interned;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
 
@@ -20,8 +24,75 @@ import org.plumelib.util.StringsPlume;
 @SuppressWarnings({"index:argument", "lowerbound:argument"})
 public abstract class RDiff {
 
+  // TODO: Why is this public?
   /** Creates a new RDiff. */
-  public RDiff() {}
+  private RDiff() {}
+
+  /**
+   * Returns an RDiff that replaces {@code before} by {@code after}. The result might be an Equal,
+   * NoOp, or Replace operation.
+   *
+   * @param before the text to be replaced
+   * @param after the replacement text
+   * @return an RDiff that replaces {@code before} by {@code after}
+   */
+  public static RDiff of(String before, String after) {
+    if (before.equals(after)) {
+      if (before.equals("")) {
+        return NoOp.it;
+      } else {
+        return new Equal(before);
+      }
+    } else {
+      return new Replace(before, after);
+    }
+  }
+
+  /**
+   * Converts a list of diff_match_patch.Diff to a list of RDiff.
+   *
+   * @param diffs a list of diff_match_patch.Diff
+   * @return an equivalent list of RDiff
+   */
+  public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
+    List<RDiff> result = new ArrayList<>();
+
+    // `prev` is always a deletion operation or null.
+    Diff prev = null;
+    for (Diff diff : diffs) {
+      switch (diff.operation) {
+        case DELETE -> {
+          if (prev != null) {
+            prev = new Diff(Operation.DELETE, prev.text + diff.text);
+          } else {
+            prev = diff;
+          }
+        }
+        case INSERT -> {
+          if (prev != null) {
+            result.add(RDiff.of(prev.text, diff.text));
+            prev = null;
+          } else {
+            result.add(new Insert(diff.text));
+          }
+        }
+        case EQUAL -> {
+          if (prev != null) {
+            result.add(RDiff.of(prev.text, ""));
+            prev = null;
+          }
+          result.add(new Equal(diff.text));
+        }
+      }
+    }
+
+    if (prev != null) {
+      result.add(RDiff.of(prev.text, ""));
+      prev = null;
+    }
+
+    return result;
+  }
 
   /**
    * Returns the text that the operation processes.
@@ -38,9 +109,106 @@ public abstract class RDiff {
   public abstract String postText();
 
   /**
-   * Returns true if this RDiff supports splitting.
+   * Returns true if this is a NoOp.
    *
-   * @return true if this RDiff supports splitting
+   * @return true if this is a NoOp
+   */
+  public boolean isNoOp() {
+    return false;
+  }
+
+  /**
+   * Returns a RDiff that has the effect of this followed by {@code other}.
+   *
+   * @param other the rdiff to append to this one
+   * @return a RDiff that has the effect of this followed by {@code other}
+   */
+  public RDiff merge(RDiff other) {
+    return of(this.preText() + other.preText(), this.postText() + other.postText());
+  }
+
+  /**
+   * Return a pair of RDiffs that are together equivalent to this one. The first one's before and
+   * after texts match the given pattern, or are the empty string.
+   *
+   * @param p a pattern that matches text that should be in the first part. It may be anchored,
+   *     beginning wih "^".
+   * @return a pair of RDiffs that are together equivalent to this one
+   */
+  public IPair<RDiff, RDiff> prefixSplit(Pattern p) {
+    Matcher m;
+
+    String before = preText();
+    String before1;
+    String before2;
+    m = p.matcher(before);
+    if (m.lookingAt()) {
+      before1 = m.group();
+      before2 = before.substring(0, before1.length());
+    } else {
+      before1 = "";
+      before2 = before;
+    }
+
+    String after = postText();
+    String after1;
+    String after2;
+    m = p.matcher(after);
+    if (m.lookingAt()) {
+      after1 = m.group();
+      after2 = after.substring(0, after1.length());
+    } else {
+      after1 = "";
+      after2 = after;
+    }
+
+    return IPair.of(RDiff.of(before1, after1), RDiff.of(before2, after2));
+  }
+
+  /**
+   * Return a pair of RDiffs that are together equivalent to this one. The second one's before and
+   * after texts match the given pattern, or are the empty string.
+   *
+   * @param p a pattern that matches characters that should be in the second part. It must be of the
+   *     form "^.*?(PATTERN)$", where the PATTERN substring matches text that should be in the
+   *     second part.
+   * @return a pair of RDiffs that are together equivalent to this one
+   */
+  @SuppressWarnings("nullness:dereference.of.nullable") // p is @Regex(1) => group(1) is non-null
+  public IPair<RDiff, RDiff> suffixSplit(@Regex(1) Pattern p) {
+    Matcher m;
+
+    String before = preText();
+    String before1;
+    String before2;
+    m = p.matcher(before);
+    if (m.matches()) {
+      before1 = m.group(1);
+      before2 = before.substring(0, before.length() - before1.length());
+    } else {
+      before1 = before;
+      before2 = "";
+    }
+
+    String after = postText();
+    String after1;
+    String after2;
+    m = p.matcher(after);
+    if (m.matches()) {
+      after1 = m.group(1);
+      after2 = after.substring(0, after.length() - after1.length());
+    } else {
+      after1 = after;
+      after2 = "";
+    }
+
+    return IPair.of(RDiff.of(before1, after1), RDiff.of(before2, after2));
+  }
+
+  /**
+   * Returns true if this RDiff supports splitting at arbitrary locations.
+   *
+   * @return true if this RDiff supports splitting at arbitrary locations
    */
   public boolean canSplit() {
     return false;
@@ -91,25 +259,6 @@ public abstract class RDiff {
       this.after = after;
     }
 
-    /**
-     * Creates a Replace operation. May return an Equal operation instead.
-     *
-     * @param before the text being replaced
-     * @param after the replacement text
-     * @return an operation for the replacement
-     */
-    public static RDiff of(String before, String after) {
-      if (before.equals(after)) {
-        if (before.equals("")) {
-          return NoOp.it;
-        } else {
-          return new Equal(before);
-        }
-      } else {
-        return new Replace(before, after);
-      }
-    }
-
     @Override
     public String preText() {
       return before;
@@ -130,6 +279,7 @@ public abstract class RDiff {
     }
   }
 
+  // TODO: Is this needed, or can it be represented by a "replace" with "" as its pre-text?
   /** An insertion operation. */
   public static class Insert extends RDiff {
     /** The text being inserted. */
@@ -140,7 +290,7 @@ public abstract class RDiff {
      *
      * @param text the text being inserted
      */
-    public Insert(String text) {
+    private Insert(String text) {
       this.text = text;
     }
 
@@ -170,7 +320,7 @@ public abstract class RDiff {
      *
      * @param text the text that is unchanged
      */
-    public Equal(String text) {
+    private Equal(String text) {
       this.text = text;
     }
 
@@ -211,9 +361,10 @@ public abstract class RDiff {
 
   // TODO: Is NoOp necessary?  Experimentally remove it to find out.
   /** A no-op operation, which transforms "" into "". */
-  public static class NoOp extends RDiff {
+  public static @Interned class NoOp extends RDiff {
 
     /** The no-op operation. */
+    @SuppressWarnings("interning:interned.object.creation") // create the singleton object
     public static final NoOp it = new NoOp();
 
     /** Creates a no-op operation. */
@@ -230,62 +381,21 @@ public abstract class RDiff {
     }
 
     @Override
+    public boolean isNoOp() {
+      return true;
+    }
+
+    @Override
     public String toString(@GuardSatisfied NoOp this) {
       return "NoOp{}";
     }
   }
 
   /**
-   * Converts a list of diff_match_patch.Diff to a list of RDiff.
-   *
-   * @param diffs a list of diff_match_patch.Diff
-   * @return an equivalent list of RDiff
-   */
-  public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
-    List<RDiff> result = new ArrayList<>();
-
-    // `prev` is always a deletion operation or null.
-    Diff prev = null;
-    for (Diff diff : diffs) {
-      switch (diff.operation) {
-        case DELETE -> {
-          if (prev != null) {
-            prev = new Diff(Operation.DELETE, prev.text + diff.text);
-          } else {
-            prev = diff;
-          }
-        }
-        case INSERT -> {
-          if (prev != null) {
-            result.add(Replace.of(prev.text, diff.text));
-            prev = null;
-          } else {
-            result.add(new Insert(diff.text));
-          }
-        }
-        case EQUAL -> {
-          if (prev != null) {
-            result.add(Replace.of(prev.text, ""));
-            prev = null;
-          }
-          result.add(new Equal(diff.text));
-        }
-      }
-    }
-
-    if (prev != null) {
-      result.add(Replace.of(prev.text, ""));
-      prev = null;
-    }
-
-    return result;
-  }
-
-  /**
-   * Breaks {@link Equal} RDiffs so that, for every RDiff in either output list, there is an RDiff
-   * in the other output list that starts in the same character location (in the original text). In
-   * other words, each result list has the same length, and each corresponding pair of RDiffs have
-   * the same pre-length. If this is not possible, return null.
+   * Breaks {@link Equal} RDiffs into smaller ones so that, for every RDiff in either output list,
+   * there is an RDiff in the other output list that starts in the same character location (in the
+   * original text). In other words, each result list has the same length, and each corresponding
+   * pair of RDiffs have the same pre-length. If this is not possible, return null.
    *
    * @param edits1 edits to a text
    * @param edits2 different edits to the same text
@@ -293,6 +403,7 @@ public abstract class RDiff {
    */
   public static @Nullable IPair<List<RDiff>, List<RDiff>> align(
       List<RDiff> edits1, List<RDiff> edits2) {
+    System.out.printf("align:%n  edits1 = %s%n  edits2 = %s%n", edits1, edits2);
     Iterator<RDiff> itor1 = edits1.iterator();
     Iterator<RDiff> itor2 = edits2.iterator();
     RDiff edit1 = itor1.hasNext() ? itor1.next() : null;
@@ -322,14 +433,10 @@ public abstract class RDiff {
       int preLen2 = edit2.preText().length();
 
       if (preLen1 == preLen2) {
-        if (edit1 instanceof Equal || edit2 instanceof Equal) {
-          result1.add(edit1);
-          edit1 = itor1.hasNext() ? itor1.next() : null;
-          result2.add(edit2);
-          edit2 = itor2.hasNext() ? itor2.next() : null;
-        } else {
-          return null;
-        }
+        result1.add(edit1);
+        edit1 = itor1.hasNext() ? itor1.next() : null;
+        result2.add(edit2);
+        edit2 = itor2.hasNext() ? itor2.next() : null;
       } else if (preLen1 == 0) {
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
@@ -340,6 +447,7 @@ public abstract class RDiff {
         edit2 = itor2.hasNext() ? itor2.next() : null;
       } else if (preLen1 < preLen2) {
         if (!edit2.canSplit()) {
+          System.out.printf("Cannot split edit2: %s%n", edit2);
           return null;
         }
         result1.add(edit1);
@@ -348,6 +456,7 @@ public abstract class RDiff {
         edit2 = edit2.afterSplit(preLen1);
       } else if (preLen1 > preLen2) {
         if (!edit1.canSplit()) {
+          System.out.printf("Cannot split edit1: %s%n", edit1);
           return null;
         }
         result1.add(edit1.beforeSplit(preLen2));

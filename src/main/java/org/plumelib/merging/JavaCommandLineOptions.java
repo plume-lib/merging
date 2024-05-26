@@ -43,6 +43,17 @@ public class JavaCommandLineOptions {
   @Option("Only merge imports")
   public boolean only_imports = false;
 
+  /** If true, merge version numbers. */
+  @Option("Merge version numbers")
+  public boolean version_numbers = true;
+
+  /** Default value for --version numbers. */
+  public boolean version_numbersDefault = true;
+
+  /** If true, only merge version numbers. */
+  @Option("Only merge version numbers")
+  public boolean only_version_numbers = false;
+
   /** If true, print diagnostics for debugging. */
   @Option("Print diagnostics")
   public boolean verbose = false;
@@ -55,7 +66,11 @@ public class JavaCommandLineOptions {
    */
   public void check(String[] args) {
 
-    if ((only_adjacent ? 1 : 0) + (only_annotations ? 1 : 0) + (only_imports ? 1 : 0) > 1) {
+    if ((only_adjacent ? 1 : 0)
+            + (only_annotations ? 1 : 0)
+            + (only_imports ? 1 : 0)
+            + (only_version_numbers ? 1 : 0)
+        > 1) {
       JavaLibrary.exitErroneously(
           "Do not supply more than one --only-* flag.  Arguments: " + String.join(" ", args));
     }
@@ -63,10 +78,11 @@ public class JavaCommandLineOptions {
     // A weakness of this test is that a user could supply a redundant flag, as in
     // "--only-annotations --imports", and the user won't be warned about supplying "--imports"
     // because it doesn't change the value from the default.
-    if ((only_adjacent || only_annotations || only_imports)
+    if ((only_adjacent || only_annotations || only_imports || only_version_numbers)
         && ((adjacent != adjacentDefault)
             || (annotations != annotationsDefault)
-            || (imports != importsDefault))) {
+            || (imports != importsDefault)
+            || (version_numbers != version_numbersDefault))) {
       JavaLibrary.exitErroneously(
           "Do not supply --only-* and also another feature flag.  Arguments: "
               + String.join(" ", args));
@@ -76,14 +92,22 @@ public class JavaCommandLineOptions {
       adjacent = true;
       annotations = false;
       imports = false;
+      version_numbers = false;
     } else if (only_annotations) {
       adjacent = false;
       annotations = true;
       imports = false;
+      version_numbers = false;
     } else if (only_imports) {
       adjacent = false;
       annotations = false;
       imports = true;
+      version_numbers = false;
+    } else if (only_version_numbers) {
+      adjacent = false;
+      annotations = false;
+      imports = false;
+      version_numbers = true;
     }
   }
 }
