@@ -22,21 +22,30 @@ g:
 a 143.456.79 z
 
 h:
-a 133.466.799 mn 113.446.779 z
+a 133.466.799 mn 124.446.779 z
 
-conflict:
+i:
 a 1.4.3 z
 
-conflict2:
+j:
 a 2.2.3 z
 
-conflict3:
+k:
 a 143.456.789 z
+
+a number goes down:
+a 123.456.799 z
 
 Not a version number:
 a 2 z
 
+Longer not a version number:
+a 929 z
+
 Also not a version number:
-a 3. z
+a 2. z
+
+Still not a version number:
+a .2 z
 
 end of file.

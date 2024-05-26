@@ -435,14 +435,10 @@ public abstract class RDiff {
       int preLen2 = edit2.preText().length();
 
       if (preLen1 == preLen2) {
-        if (edit1 instanceof Equal || edit2 instanceof Equal) {
-          result1.add(edit1);
-          edit1 = itor1.hasNext() ? itor1.next() : null;
-          result2.add(edit2);
-          edit2 = itor2.hasNext() ? itor2.next() : null;
-        } else {
-          return null;
-        }
+        result1.add(edit1);
+        edit1 = itor1.hasNext() ? itor1.next() : null;
+        result2.add(edit2);
+        edit2 = itor2.hasNext() ? itor2.next() : null;
       } else if (preLen1 == 0) {
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;

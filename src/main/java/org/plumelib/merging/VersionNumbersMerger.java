@@ -173,11 +173,12 @@ public class VersionNumbersMerger extends Merger {
   }
 
   /** Matches part of a version number at the beginning of a string. */
-  private static final Pattern versionNumberPrefixPattern = Pattern.compile("^([.0-9]+).*$");
+  private static final Pattern versionNumberPrefixPattern =
+      Pattern.compile("^([.0-9]+).*$", Pattern.DOTALL);
 
   /** Matches part of a version number at the end of a string. */
   private static final @Regex(1) Pattern versionNumberSuffixPattern =
-      Pattern.compile("^.*?([.0-9]+)$");
+      Pattern.compile("^.*?([.0-9]+)$", Pattern.DOTALL);
 
   /**
    * If the given RDiffs may abut within a version number, split into up to 3 RDiffs, such that the

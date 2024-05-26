@@ -24,19 +24,28 @@ a 123.456.789 z
 h:
 a 123.456.789 mn 123.456.789 z
 
-conflict:
+i:
 a 1.2.3 z
 
-conflict2:
+j:
 a 1.2.3 z
 
-conflict3:
+k:
+a 123.456.789 z
+
+a number goes down:
 a 123.456.789 z
 
 Not a version number:
 a 1 z
 
+Longer not a version number:
+a 99 z
+
 Also not a version number:
 a 1. z
+
+Still not a version number:
+a .1 z
 
 end of file.
