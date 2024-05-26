@@ -111,7 +111,7 @@ public class AdjacentLinesMerger extends Merger {
         // Can this happen?
         result.add(d1.postText());
       } else {
-        JavaLibrary.exitErroneously(String.format("Bad alignment: d1=%s d2=%s", d1, d2));
+        return null;
       }
     }
     return result;

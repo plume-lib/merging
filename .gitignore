@@ -7,6 +7,8 @@ AnnotationsTest*Output.java
 AnnotationsTest*.diff
 ImportsTest*Output.java
 ImportsTest*.diff
+VersionNumbersTest*Output.java
+VersionNumbersTest*.diff
 *.git-merge
 
 *.class

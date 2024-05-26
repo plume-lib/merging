@@ -78,6 +78,13 @@ public class JavaMergeTool extends AbstractMergeTool {
         new JavaAnnotationsMerger(jclo.verbose).merge(ms);
       }
 
+      if (jclo.version_numbers) {
+        if (jclo.verbose) {
+          System.out.println("calling version numbers");
+        }
+        new VersionNumbersMerger(jclo.verbose).merge(ms);
+      }
+
       // Sub-line merges go above here, whole-line merges go below here.
 
       if (jclo.adjacent) {

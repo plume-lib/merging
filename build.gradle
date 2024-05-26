@@ -26,7 +26,7 @@ dependencies {
   implementation 'com.google.googlejavaformat:google-java-format:1.21.0'
   implementation 'com.google.guava:guava:32.1.1-jre'
   implementation 'org.plumelib:javac-parse:0.1.0'
-  implementation 'org.plumelib:plume-util:1.9.3'
+  implementation 'org.plumelib:plume-util:1.10.0-SNAPSHOT'
   implementation 'org.plumelib:options:2.0.3'
 
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
