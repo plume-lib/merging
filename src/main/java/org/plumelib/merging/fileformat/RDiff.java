@@ -24,7 +24,6 @@ import org.plumelib.util.StringsPlume;
 @SuppressWarnings({"index:argument", "lowerbound:argument"})
 public abstract class RDiff {
 
-  // TODO: Why is this public?
   /** Creates a new RDiff. */
   private RDiff() {}
 
