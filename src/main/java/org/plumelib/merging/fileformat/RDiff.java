@@ -6,6 +6,7 @@ import java.util.List;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import name.fraser.neil.plaintext.diff_match_patch.Operation;
+import org.checkerframework.checker.interning.qual.Interned;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.plumelib.util.IPair;
@@ -21,7 +22,26 @@ import org.plumelib.util.StringsPlume;
 public abstract class RDiff {
 
   /** Creates a new RDiff. */
-  public RDiff() {}
+  private RDiff() {}
+
+  /**
+   * Creates a RDiff operation.
+   *
+   * @param before the text being replaced
+   * @param after the replacement text
+   * @return an operation for the replacement
+   */
+  public static RDiff of(String before, String after) {
+    if (before.equals(after)) {
+      if (before.equals("")) {
+        return NoOp.it;
+      } else {
+        return new Equal(before);
+      }
+    } else {
+      return new Replace(before, after);
+    }
+  }
 
   /**
    * Returns the text that the operation processes.
@@ -36,6 +56,15 @@ public abstract class RDiff {
    * @return the text that the operation produces
    */
   public abstract String postText();
+
+  /**
+   * Returns true if this is a NoOp.
+   *
+   * @return true if this is a NoOp
+   */
+  public boolean isNoOp() {
+    return false;
+  }
 
   /**
    * Returns true if this RDiff supports splitting.
@@ -91,25 +120,6 @@ public abstract class RDiff {
       this.after = after;
     }
 
-    /**
-     * Creates a Replace operation. May return an Equal operation instead.
-     *
-     * @param before the text being replaced
-     * @param after the replacement text
-     * @return an operation for the replacement
-     */
-    public static RDiff of(String before, String after) {
-      if (before.equals(after)) {
-        if (before.equals("")) {
-          return NoOp.it;
-        } else {
-          return new Equal(before);
-        }
-      } else {
-        return new Replace(before, after);
-      }
-    }
-
     @Override
     public String preText() {
       return before;
@@ -130,6 +140,7 @@ public abstract class RDiff {
     }
   }
 
+  // TODO: Is this needed, or can it be represented by a "replace" with "" as its pre-text?
   /** An insertion operation. */
   public static class Insert extends RDiff {
     /** The text being inserted. */
@@ -140,7 +151,7 @@ public abstract class RDiff {
      *
      * @param text the text being inserted
      */
-    public Insert(String text) {
+    private Insert(String text) {
       this.text = text;
     }
 
@@ -170,7 +181,7 @@ public abstract class RDiff {
      *
      * @param text the text that is unchanged
      */
-    public Equal(String text) {
+    private Equal(String text) {
       this.text = text;
     }
 
@@ -211,9 +222,10 @@ public abstract class RDiff {
 
   // TODO: Is NoOp necessary?  Experimentally remove it to find out.
   /** A no-op operation, which transforms "" into "". */
-  public static class NoOp extends RDiff {
+  public static @Interned class NoOp extends RDiff {
 
     /** The no-op operation. */
+    @SuppressWarnings("interning:interned.object.creation") // create the singleton object
     public static final NoOp it = new NoOp();
 
     /** Creates a no-op operation. */
@@ -227,6 +239,11 @@ public abstract class RDiff {
     @Override
     public String postText() {
       return "";
+    }
+
+    @Override
+    public boolean isNoOp() {
+      return true;
     }
 
     @Override
