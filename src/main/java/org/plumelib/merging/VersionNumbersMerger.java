@@ -82,13 +82,7 @@ public class VersionNumbersMerger extends Merger {
     String leftText = StringsPlume.join("", mc.left());
     String rightText = StringsPlume.join("", mc.right());
     List<Diff> leftDiffs = dmp.diff_main(baseText, leftText);
-    if (verbose) {
-      System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", baseText, leftText);
-    }
     List<Diff> rightDiffs = dmp.diff_main(baseText, rightText);
-    if (verbose) {
-      System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", baseText, rightText);
-    }
     List<RDiff> leftRDiffs = rdiffsForVersionNumbers(leftDiffs);
     List<RDiff> rightRDiffs = rdiffsForVersionNumbers(rightDiffs);
     IPair<List<RDiff>, List<RDiff>> aligned = RDiff.align(leftRDiffs, rightRDiffs);
@@ -138,7 +132,7 @@ public class VersionNumbersMerger extends Merger {
    * @param diffs the differences
    * @return the rewritten diffs
    */
-  private static List<RDiff> rdiffsForVersionNumbers(List<Diff> diffs) {
+  private List<RDiff> rdiffsForVersionNumbers(List<Diff> diffs) {
     List<RDiff> rdiffs = RDiff.diffsToRDiffs(diffs);
     List<RDiff> result = new ArrayList<>(rdiffs.size());
     RDiff nextRDiff = null;
@@ -181,7 +175,7 @@ public class VersionNumbersMerger extends Merger {
    * @param r2 a RDiff
    * @return the merge of {@code r1} and {@code r2}, or null
    */
-  private static List<RDiff> versionNumberMerge(RDiff r1, RDiff r2) {
+  private List<RDiff> versionNumberMerge(RDiff r1, RDiff r2) {
 
     IPair<RDiff, RDiff> pair1 = r1.suffixSplit(versionNumberSuffixPattern);
     RDiff r1NonVersionNumber = pair1.first;
