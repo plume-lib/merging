@@ -45,6 +45,52 @@ public abstract class RDiff {
   }
 
   /**
+   * Converts a list of diff_match_patch.Diff to a list of RDiff.
+   *
+   * @param diffs a list of diff_match_patch.Diff
+   * @return an equivalent list of RDiff
+   */
+  public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
+    List<RDiff> result = new ArrayList<>();
+
+    // `prev` is always a deletion operation or null.
+    Diff prev = null;
+    for (Diff diff : diffs) {
+      switch (diff.operation) {
+        case DELETE -> {
+          if (prev != null) {
+            prev = new Diff(Operation.DELETE, prev.text + diff.text);
+          } else {
+            prev = diff;
+          }
+        }
+        case INSERT -> {
+          if (prev != null) {
+            result.add(RDiff.of(prev.text, diff.text));
+            prev = null;
+          } else {
+            result.add(new Insert(diff.text));
+          }
+        }
+        case EQUAL -> {
+          if (prev != null) {
+            result.add(RDiff.of(prev.text, ""));
+            prev = null;
+          }
+          result.add(new Equal(diff.text));
+        }
+      }
+    }
+
+    if (prev != null) {
+      result.add(RDiff.of(prev.text, ""));
+      prev = null;
+    }
+
+    return result;
+  }
+
+  /**
    * Returns the text that the operation processes.
    *
    * @return the text that the operation processes
@@ -251,52 +297,6 @@ public abstract class RDiff {
     public String toString(@GuardSatisfied NoOp this) {
       return "NoOp{}";
     }
-  }
-
-  /**
-   * Converts a list of diff_match_patch.Diff to a list of RDiff.
-   *
-   * @param diffs a list of diff_match_patch.Diff
-   * @return an equivalent list of RDiff
-   */
-  public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
-    List<RDiff> result = new ArrayList<>();
-
-    // `prev` is always a deletion operation or null.
-    Diff prev = null;
-    for (Diff diff : diffs) {
-      switch (diff.operation) {
-        case DELETE -> {
-          if (prev != null) {
-            prev = new Diff(Operation.DELETE, prev.text + diff.text);
-          } else {
-            prev = diff;
-          }
-        }
-        case INSERT -> {
-          if (prev != null) {
-            result.add(Replace.of(prev.text, diff.text));
-            prev = null;
-          } else {
-            result.add(new Insert(diff.text));
-          }
-        }
-        case EQUAL -> {
-          if (prev != null) {
-            result.add(Replace.of(prev.text, ""));
-            prev = null;
-          }
-          result.add(new Equal(diff.text));
-        }
-      }
-    }
-
-    if (prev != null) {
-      result.add(Replace.of(prev.text, ""));
-      prev = null;
-    }
-
-    return result;
   }
 
   /**
