@@ -91,17 +91,12 @@ public class VersionNumbersMerger extends Merger {
     }
     List<RDiff> leftRDiffs = rdiffsForVersionNumbers(leftDiffs);
     List<RDiff> rightRDiffs = rdiffsForVersionNumbers(rightDiffs);
-    System.out.printf("leftRDiffs = %s%n", leftRDiffs);
-    System.out.printf("rightRDiffs = %s%n", rightRDiffs);
     IPair<List<RDiff>, List<RDiff>> aligned = RDiff.align(leftRDiffs, rightRDiffs);
-    System.out.printf("aligned = %s%n", aligned);
     if (aligned == null) {
       return null;
     }
     List<RDiff> leftAligned = aligned.first;
     List<RDiff> rightAligned = aligned.second;
-    System.out.printf("left diffs: %s%n", leftAligned);
-    System.out.printf("right diffs: %s%n", rightAligned);
 
     StringBuilder result = new StringBuilder();
     for (Iterator<RDiff> i1 = leftAligned.iterator(), i2 = rightAligned.iterator();
@@ -152,8 +147,6 @@ public class VersionNumbersMerger extends Merger {
         nextRDiff = rdiff;
       } else {
         List<RDiff> versionNumberMerged = versionNumberMerge(nextRDiff, rdiff);
-        System.out.printf(
-            "versionNumberMerge(%s, %s) => %s%n", nextRDiff, rdiff, versionNumberMerged);
         if (versionNumberMerged != null) {
           int size = versionNumberMerged.size() - 1;
           for (int i = 0; i < size; i++) {
@@ -196,10 +189,12 @@ public class VersionNumbersMerger extends Merger {
     IPair<RDiff, RDiff> pair2 = r2.prefixSplit(versionNumberPrefixPattern);
     RDiff r2VersionNumber = pair2.first;
     RDiff r2NonVersionNumber = pair2.second;
-    System.out.printf("versionNumberMerge(%s, %s)%n", r1, r2);
-    System.out.printf(
-        "  intermediate: %s %s %s %s%n",
-        r1NonVersionNumber, r1VersionNumber, r2VersionNumber, r2NonVersionNumber);
+    if (verbose) {
+      System.out.printf("versionNumberMerge(%s, %s)%n", r1, r2);
+      System.out.printf(
+          "  intermediate: %s %s %s %s%n",
+          r1NonVersionNumber, r1VersionNumber, r2VersionNumber, r2NonVersionNumber);
+    }
 
     List<RDiff> result = new ArrayList<>(3);
     if (!r1NonVersionNumber.isNoOp()) {

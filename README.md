@@ -13,9 +13,9 @@ were modified in both versions, but if there are many, the merge will be slow.
 
 ## Features
 
-* [Adjacent lines](README-adjacent-lines.md): This resolves conflicts when the two edits
-only affect different lines.  By default, git considers edits to different,
-adjacent lines to be a conflict.
+* [Adjacent lines](README-adjacent-lines.md): This resolves conflicts when
+the two edits affect different lines that are adjacent.  By default, git
+considers edits to different, adjacent lines to be a conflict.
 
 * [Java annotations](README-java-annotations.md):  This resolves conflicts in
 favor of retaining a Java annotation, when the only textual difference is in

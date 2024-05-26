@@ -186,7 +186,6 @@ public abstract class RDiff {
       before2 = m.group(1);
       before1 = before.substring(0, before.length() - before2.length());
       assert before.length() == before1.length() + before2.length();
-      System.out.printf("suffixSplit: before=%s before1=%s before2=%s%n", before, before1, before2);
     } else {
       before1 = before;
       before2 = "";
@@ -405,7 +404,6 @@ public abstract class RDiff {
    */
   public static @Nullable IPair<List<RDiff>, List<RDiff>> align(
       List<RDiff> edits1, List<RDiff> edits2) {
-    System.out.printf("align:%n  edits1 = %s%n  edits2 = %s%n", edits1, edits2);
     Iterator<RDiff> itor1 = edits1.iterator();
     Iterator<RDiff> itor2 = edits2.iterator();
     RDiff edit1 = itor1.hasNext() ? itor1.next() : null;
@@ -449,7 +447,6 @@ public abstract class RDiff {
         edit2 = itor2.hasNext() ? itor2.next() : null;
       } else if (preLen1 < preLen2) {
         if (!edit2.canSplit()) {
-          System.out.printf("Cannot split edit2: %s%n", edit2);
           return null;
         }
         result1.add(edit1);
@@ -458,7 +455,6 @@ public abstract class RDiff {
         edit2 = edit2.afterSplit(preLen1);
       } else if (preLen1 > preLen2) {
         if (!edit1.canSplit()) {
-          System.out.printf("Cannot split edit1: %s%n", edit1);
           return null;
         }
         result1.add(edit1.beforeSplit(preLen2));
