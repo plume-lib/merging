@@ -25,7 +25,7 @@ public class JavaMergeTool extends AbstractMergeTool {
   }
 
   /**
-   * A git merge tool to merge a Java file.
+   * A git merge tool.
    *
    * <p>Exit status greater than 128 means to abort the merge.
    *
@@ -34,8 +34,8 @@ public class JavaMergeTool extends AbstractMergeTool {
    */
   public static void main(String[] args) {
 
-    JavaCommandLineOptions jclo = new JavaCommandLineOptions();
     String[] orig_args = args;
+    JavaCommandLineOptions jclo = new JavaCommandLineOptions();
     Options options =
         new Options("JavaMergeTool [options] basefile leftfile rightfile mergedfile", jclo);
     options.enableDebugLogging(true);
@@ -70,24 +70,39 @@ public class JavaMergeTool extends AbstractMergeTool {
 
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
 
-      if (jclo.adjacent) {
-        new AdjacentLinesMerger(jclo.verbose).merge(ms);
-      }
-
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
+        if (jclo.verbose) {
+          System.out.println("calling annotations");
+        }
         new JavaAnnotationsMerger(jclo.verbose).merge(ms);
+      }
+
+      // Sub-line merges go above here, whole-line merges go below here.
+
+      if (jclo.adjacent) {
+        if (jclo.verbose) {
+          System.out.println("calling adjacent");
+        }
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
       }
 
       // Imports must come last, because it does nothing unless every non-import conflict
       // has already been resolved.
       if (jclo.imports) {
+        if (jclo.verbose) {
+          System.out.println("calling imports");
+        }
         new JavaImportsMerger(jclo.verbose).merge(ms);
       }
 
       ms.writeBack(jclo.verbose);
 
-      System.exit(ms.hasConflict() ? 1 : 0);
+      int exitStatus = ms.hasConflict() ? 1 : 0;
+      if (jclo.verbose) {
+        System.out.printf("Exiting with status %d.%n", exitStatus);
+      }
+      System.exit(exitStatus);
     } catch (Throwable t) {
       t.printStackTrace(System.out);
       t.printStackTrace(System.err);
