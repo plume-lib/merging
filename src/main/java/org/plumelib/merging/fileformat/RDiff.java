@@ -25,11 +25,12 @@ public abstract class RDiff {
   private RDiff() {}
 
   /**
-   * Creates a RDiff operation.
+   * Returns an RDiff that replaces {@code before} by {@code after}. The result might be an Equal,
+   * NoOp, or Replace operation.
    *
-   * @param before the text being replaced
+   * @param before the text to be replaced
    * @param after the replacement text
-   * @return an operation for the replacement
+   * @return an RDiff that replaces {@code before} by {@code after}
    */
   public static RDiff of(String before, String after) {
     if (before.equals(after)) {
