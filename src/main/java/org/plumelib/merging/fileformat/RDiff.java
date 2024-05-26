@@ -130,20 +130,21 @@ public abstract class RDiff {
    * Return a pair of RDiffs that are together equivalent to this one. The first one's before and
    * after texts match the given pattern, or are the empty string.
    *
-   * @param p a pattern that matches text that should be in the first part. It may be anchored,
-   *     beginning wih "^".
+   * @param p a pattern that matches text that should be in the first part. It must be of the form
+   *     "^(PATTERN).*$, where the PATTERN subpattern matches text that should be in the first part.
    * @return a pair of RDiffs that are together equivalent to this one
    */
-  public IPair<RDiff, RDiff> prefixSplit(Pattern p) {
+  @SuppressWarnings("nullness:dereference.of.nullable") // p is @Regex(1) => group(1) is non-null
+  public IPair<RDiff, RDiff> prefixSplit(@Regex(1) Pattern p) {
     Matcher m;
 
     String before = preText();
     String before1;
     String before2;
     m = p.matcher(before);
-    if (m.lookingAt()) {
-      before1 = m.group();
-      before2 = before.substring(0, before1.length());
+    if (m.matches()) {
+      before1 = m.group(1);
+      before2 = before.substring(before1.length());
     } else {
       before1 = "";
       before2 = before;
@@ -153,9 +154,9 @@ public abstract class RDiff {
     String after1;
     String after2;
     m = p.matcher(after);
-    if (m.lookingAt()) {
-      after1 = m.group();
-      after2 = after.substring(0, after1.length());
+    if (m.matches()) {
+      after1 = m.group(1);
+      after2 = after.substring(after1.length());
     } else {
       after1 = "";
       after2 = after;
@@ -169,7 +170,7 @@ public abstract class RDiff {
    * after texts match the given pattern, or are the empty string.
    *
    * @param p a pattern that matches characters that should be in the second part. It must be of the
-   *     form "^.*?(PATTERN)$", where the PATTERN substring matches text that should be in the
+   *     form "^.*?(PATTERN)$", where the PATTERN subpattern matches text that should be in the
    *     second part.
    * @return a pair of RDiffs that are together equivalent to this one
    */
@@ -182,8 +183,10 @@ public abstract class RDiff {
     String before2;
     m = p.matcher(before);
     if (m.matches()) {
-      before1 = m.group(1);
-      before2 = before.substring(0, before.length() - before1.length());
+      before2 = m.group(1);
+      before1 = before.substring(0, before.length() - before2.length());
+      assert before.length() == before1.length() + before2.length();
+      System.out.printf("suffixSplit: before=%s before1=%s before2=%s%n", before, before1, before2);
     } else {
       before1 = before;
       before2 = "";
@@ -194,8 +197,8 @@ public abstract class RDiff {
     String after2;
     m = p.matcher(after);
     if (m.matches()) {
-      after1 = m.group(1);
-      after2 = after.substring(0, after.length() - after1.length());
+      after2 = m.group(1);
+      after1 = after.substring(0, after.length() - after2.length());
     } else {
       after1 = after;
       after2 = "";
@@ -432,10 +435,14 @@ public abstract class RDiff {
       int preLen2 = edit2.preText().length();
 
       if (preLen1 == preLen2) {
-        result1.add(edit1);
-        edit1 = itor1.hasNext() ? itor1.next() : null;
-        result2.add(edit2);
-        edit2 = itor2.hasNext() ? itor2.next() : null;
+        if (edit1 instanceof Equal || edit2 instanceof Equal) {
+          result1.add(edit1);
+          edit1 = itor1.hasNext() ? itor1.next() : null;
+          result2.add(edit2);
+          edit2 = itor2.hasNext() ? itor2.next() : null;
+        } else {
+          return null;
+        }
       } else if (preLen1 == 0) {
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;

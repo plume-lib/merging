@@ -173,11 +173,11 @@ public class VersionNumbersMerger extends Merger {
   }
 
   /** Matches part of a version number at the beginning of a string. */
-  private static final Pattern versionNumberPrefixPattern = Pattern.compile("^[.0-9]*");
+  private static final Pattern versionNumberPrefixPattern = Pattern.compile("^([.0-9]+).*$");
 
   /** Matches part of a version number at the end of a string. */
   private static final @Regex(1) Pattern versionNumberSuffixPattern =
-      Pattern.compile("^.*?([.0-9]*)$");
+      Pattern.compile("^.*?([.0-9]+)$");
 
   /**
    * If the given RDiffs may abut within a version number, split into up to 3 RDiffs, such that the
@@ -195,6 +195,10 @@ public class VersionNumbersMerger extends Merger {
     IPair<RDiff, RDiff> pair2 = r2.prefixSplit(versionNumberPrefixPattern);
     RDiff r2VersionNumber = pair2.first;
     RDiff r2NonVersionNumber = pair2.second;
+    System.out.printf("versionNumberMerge(%s, %s)%n", r1, r2);
+    System.out.printf(
+        "  intermediate: %s %s %s %s%n",
+        r1NonVersionNumber, r1VersionNumber, r2VersionNumber, r2NonVersionNumber);
 
     List<RDiff> result = new ArrayList<>(3);
     if (!r1NonVersionNumber.isNoOp()) {
