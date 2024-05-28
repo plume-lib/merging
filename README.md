@@ -181,14 +181,13 @@ the merge tool is not run on the file.
 A **re-merge tool** is a merge tool that is run on every file, even ones
 for which the merge driver produced a clean merge.  The command
 `git-mergetool-on-all.sh` runs a re-merge tool.
-
 A re-merge tool is only necessary for mergers that may re-introduce lines
 that were removed in a clean merge.  The [Java
 imports](README-java-imports.md) merger is the only example currently.  For
 most mergers (other than the Java imports merger), using them as a merge
 tool is adequate.
 
-You may wish to use a mergers in this repository as a merge tool or a
+You may wish to use a merger in this repository as a merge tool or a
 re-merge tool, rather than as a merge driver.  The reason is that `git
 merge-file` sometimes produces merge conflicts where `git merge` does not
 (even with rerere and other `git merge` functionality disabled!).
