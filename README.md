@@ -183,10 +183,10 @@ for which the merge driver produced a clean merge.  The command
 `git-mergetool-on-all.sh` runs a re-merge tool.
 
 A re-merge tool is only necessary for mergers that may re-introduce lines
-that were removed in a clean merge.  (The [Java
-imports](README-java-imports.md) merger is an example.)  Most mergers only
-resolve conflict markers in the file, and using them as as merge tool is
-adequate.
+that were removed in a clean merge.  The [Java
+imports](README-java-imports.md) merger is the only example currently.  For
+most mergers (other than the Java imports merger), using them as a merge
+tool is adequate.
 
 You may wish to use a mergers in this repository as a merge tool or a
 re-merge tool, rather than as a merge driver.  The reason is that `git
