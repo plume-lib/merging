@@ -3,6 +3,7 @@
 # This is a git merge tool for Java files. A git merge tool takes as input four
 # filenames, for the base, local, remote, and merged versions of the file; the
 # merge driver overwrites the merged file with a better merge result.
+# Command-line flags can be passed before the filenames.
 
 # echo "java-merge-tool.sh:" "$@"
 

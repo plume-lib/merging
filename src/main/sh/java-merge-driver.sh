@@ -3,6 +3,7 @@
 # This is a git merge driver for Java files. A git merge driver takes as input
 # three filenames, for the current, base, and other versions of the file; the
 # merge driver overwrites the current file with the merge result.
+# Command-line flags can be passed before the filenames.
 #
 # This program first does `git merge-file`, then it tries to re-insert any
 # `import` statements that were removed but are needed for compilation to
