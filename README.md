@@ -153,7 +153,7 @@ Edit your `~/.gitconfig` file as for a merge tool.
 To perform a merge, run:
 
 ```
-git merge ARGS
+git merge [ARGS]
 git-mergetool-on-all.sh
 ```
 
