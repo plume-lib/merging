@@ -3,13 +3,15 @@
 # This is a git merge driver for Java files. A git merge driver takes as input
 # three filenames, for the current, base, and other versions of the file; the
 # merge driver overwrites the current file with the merge result.
-# Command-line flags can be passed before the filenames.
-#
-# This program first does `git merge-file`, then it tries to re-insert any
-# `import` statements that were removed but are needed for compilation to
-# succeed.
+# Command-line flags such as `--verbose` can be passed before the filenames.
 
-# echo "java-merge-driver.sh:" "$@"
+if [ "$1" = "--verbose" ] ; then
+  VERBOSE=1
+fi
+
+if [ -n "$VERBOSE" ] ; then
+  echo "$0:" "$@"
+fi
 
 SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
 
@@ -31,3 +33,11 @@ java \
   -cp "${SCRIPTDIR}/../../../build/libs/merge-tools-all.jar" \
   org.plumelib.merging.JavaMergeDriver \
   "$@"
+
+result=$?
+
+if [ -n "$VERBOSE" ] ; then
+  echo "Result $result for java-merge-driver.sh:" "$@"
+fi
+
+exit $result

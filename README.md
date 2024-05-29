@@ -109,20 +109,29 @@ gitattributes file.  The user-level gitattributes file is by default
 
 First, edit your `~/.gitconfig` file as shown below.
 
-Run one of the following commands after a git merge that leaves conflicts:
+Run one of the following command after a git merge that leaves conflicts.
+(You can omit the `--tool=...` command-line argument if you have only set
+up one merge tool.)
 
 ```
-yes | git mergetool --tool=merge-java
+git mergetool --tool=merge-java
 ```
 or
 ```
-yes | git mergetool --tool=merge-adjacent
+git mergetool --tool=merge-adjacent
 ```
 
-The reason for `yes |` is that `git mergetool` stops and asks after each file
-that wasn't perfectly merged.  This question is not helpful, the `-y` and
-`--no-prompt` command-line arguments do not suppress it, and it's tedious to
-keep typing "y".
+A fundamental limitation is that `git mergetool` requires user interaction in
+two scenarios (even with the `-y` and `--no-prompt` command-line
+arguments!):
+ * Whenever a file was not perfectly merged, you need to type `y` to continue.
+   You should choose "y" because the merge tool might have made some
+   improvements, and it might make improvements to files it has not yet seen.
+ * Whenever there is a merge-delete conflict, you need to choose among
+   "Use (m)odified or (d)eleted file, or (a)bort?".
+
+Instead of `git mergetool`, you can run `git-mergetool.sh`, which
+eliminates the need for user interaction.
 
 
 #### Setup for use as a merge tool
@@ -154,11 +163,13 @@ To perform a merge, run:
 
 ```
 git merge [ARGS]
-git-mergetool-on-all.sh
+git-mergetool.sh --all
 ```
 
-You can create a shell alias or a git alias to simplify invoking the
-re-merge tool.
+`git-mergetool.sh` also supports the `--tool=<tool>` command-line option.
+
+You can create a shell alias or a git alias that first runs `git merge`,
+then runs `git-mergetool.sh --all`.
 
 
 ## Git merge terminology
