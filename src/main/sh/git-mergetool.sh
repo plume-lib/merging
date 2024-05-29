@@ -1,5 +1,4 @@
 #!/bin/bash
-# This script uses bash, not sh, because of process substitution and arrays.
 
 # This script is like `git mergetool`, with two differences:
 #  * It requires no user interaction (unless the merge tool does).
