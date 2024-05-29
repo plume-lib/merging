@@ -11,14 +11,6 @@
 #    script can be run either when a merge is in progress, or when
 #    HEAD is a merge.)
 
-DEBUG=0
-DEBUG=1
-
-if [ "$DEBUG" = 1 ] ; then
-  # Show commands as they are executed.
-  set -x
-fi
-
 show_help () {
   echo "git-mergetool.sh [-a | --all] [--tool=<tool>] [<file>...]"
 }
@@ -36,6 +28,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     -a|--all)
       all=YES
+      shift
+      ;;
+    --verbose)
+      verbose=YES
       shift
       ;;
     -t|--tool)
@@ -56,6 +52,11 @@ while [ "$#" -gt 0 ]; do
        ;;
   esac
 done
+
+if [ -n "$verbose" ] ; then
+  # Show commands as they are executed.
+  set -x
+fi
 
 toplevel=$(git rev-parse --show-toplevel)
 merge_head_file="$toplevel/.git/MERGE_HEAD"
@@ -82,7 +83,7 @@ fi
 
 BASE_REV="$(git merge-base "$LEFT_REV" "$RIGHT_REV")"
 
-if [ "$DEBUG" = 1 ] ; then
+if [ -n "$verbose" ] ; then
   echo "BASE_REV ${BASE_REV} LEFT_REV ${LEFT_REV} RIGHT_REV ${RIGHT_REV}"
 fi
 
@@ -126,12 +127,12 @@ for file in "${files[@]}" ; do
   git show "$RIGHT_REV:$file" > "$rightfile"
 
   command="export BASE='$basefile'; export LOCAL='$leftfile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
-  if [ "$DEBUG" = 1 ] ; then
+  if [ "$verbose" = 1 ] ; then
     echo "$command"
   fi
   eval "$command"
 
-  if [ "$DEBUG" = 0 ] ; then
+  if [ -z "$verbose" ] ; then
     rm -f "$basefile" "$leftfile" "$rightfile"
   fi
 done
