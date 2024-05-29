@@ -462,6 +462,11 @@ public class Diff3File {
       try {
         command = Diff3Command.parse(commandLine);
       } catch (Diff3ParseException e) {
+        System.out.println("Lines being parsed:");
+        for (String line : lines) {
+          System.out.println(line);
+        }
+        System.out.println("End of lines being parsed.");
         throw new Diff3ParseException("At line " + (startLine + 1) + ": " + e.getMessage());
       }
       List<String> sectionLines = new ArrayList<>();
@@ -473,6 +478,9 @@ public class Diff3File {
           break;
         }
         sectionLines.add(line.substring(2));
+        i++;
+      }
+      if (i < numLines && lines.get(i).equals("\\ No newline at end of file")) {
         i++;
       }
       // i is the first line after the hunk section.
