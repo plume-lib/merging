@@ -2,12 +2,11 @@
 
 # This script is like `git mergetool`, with two differences:
 #  * It requires no user interaction (unless the merge tool does).
-#  * When passed the `--all` or `-a` command-line argument, this
-#    script runs a git mergetool on every file that is different in
-#    all of base, left, and right.  It does so even if the file has
-#    been cleanly merged and contains no merge conflict markers, and
-#    even if the merge completed and was committed.  (That is, the
-#    script can be run either when a merge is in progress, or when
+#  * When passed the `--all` or `-a` command-line argument, this script runs a
+#    git mergetool on every file that is different in all of base, left, and
+#    right.  It does so even if the file has been cleanly merged and contains no
+#    merge conflict markers, and even if the merge completed and was committed.
+#    (That is, the script can be run either when a merge is in progress, or when
 #    HEAD is a merge.)
 
 show_help () {
@@ -116,6 +115,7 @@ if [ -z "${tool}" ] ; then
   fi
 fi
 mergetool_command="$(git config --get mergetool."$tool".cmd)"
+mergetool_trustExitCode="$(git config --get mergetool."$tool".trustExitCode)"
 
 for file in "${files[@]}" ; do
   basefile="$(mktemp -p /tmp "base-XXXXXX-$(basename "$file")")"
@@ -130,6 +130,20 @@ for file in "${files[@]}" ; do
     echo "$command"
   fi
   eval "$command"
+
+  # `git add` the file if the merge was successful.
+  command_status=$?
+  if [ "$mergetool_trustExitCode" == true ] ; then
+    if [ "$command_status" ] ; then
+      git add "$file"
+    fi
+  else
+    if git \
+         -c core.whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,-indent-with-non-tab,-tab-in-indent,-cr-at-eol \
+         diff --check --quiet ; then
+      git add "$file"
+    fi
+  fi
 
   if [ -z "$verbose" ] ; then
     rm -f "$basefile" "$leftfile" "$rightfile"
