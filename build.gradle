@@ -258,5 +258,5 @@ check.dependsOn requireJavadoc
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
   description 'Run etags to create an Emacs TAGS table'
-  commandLine 'bash', '-c', "find src/ -name '*.java' | sort | xargs etags"
+  commandLine 'bash', '-c', "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags"
 }
