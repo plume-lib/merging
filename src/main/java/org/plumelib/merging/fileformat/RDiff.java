@@ -451,7 +451,7 @@ public abstract class RDiff {
         }
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
-        result2.add(edit2.afterSplit(preLen1));
+        result2.add(edit2.beforeSplit(preLen1));
         edit2 = edit2.afterSplit(preLen1);
       } else if (preLen1 > preLen2) {
         if (!edit1.canSplit()) {

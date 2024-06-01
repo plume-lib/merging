@@ -59,7 +59,7 @@ public class VersionNumbersMerger extends Merger {
     }
 
     if (verbose) {
-      System.out.printf("before replacement: replacements = %s%n", replacements);
+      System.out.printf("VersionNumbersMerger: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
     ConflictedFile result = new ConflictedFile(newLines, cf.path);
@@ -98,29 +98,31 @@ public class VersionNumbersMerger extends Merger {
       RDiff d1 = i1.next();
       RDiff d2 = i2.next();
 
-      if (d1 instanceof RDiff.Equal || d1.isNoOp()) {
-        result.append(d2.postText());
-      } else if (d2 instanceof RDiff.Equal || d2.isNoOp()) {
-        result.append(d1.postText());
-      } else {
-        String pre = d1.preText();
-        assert d1.preText().equals(d2.preText());
-        String post1 = d1.postText();
-        String post2 = d2.postText();
+      // if (verbose) {
+      //   System.out.printf("result = %s%n", result);
+      //   System.out.printf("d1 = %s%n", d1);
+      //   System.out.printf("d2 = %s%n", d2);
+      // }
 
-        if (StringsPlume.isVersionNumber(pre)
-            && StringsPlume.isVersionNumber(post1)
-            && StringsPlume.isVersionNumber(post2)
-            && StringsPlume.isVersionNumberLE(pre, post1)
-            && StringsPlume.isVersionNumberLE(pre, post2)) {
-          if (StringsPlume.isVersionNumberLE(post1, post2)) {
-            result.append(post2);
-          } else {
-            result.append(post1);
-          }
+      String pre = d1.preText();
+      assert d1.preText().equals(d2.preText());
+      String post1 = d1.postText();
+      String post2 = d2.postText();
+
+      if (post1.equals(post2)) {
+        result.append(post1);
+      } else if (StringsPlume.isVersionNumber(pre)
+          && StringsPlume.isVersionNumber(post1)
+          && StringsPlume.isVersionNumber(post2)
+          && StringsPlume.isVersionNumberLE(pre, post1)
+          && StringsPlume.isVersionNumberLE(pre, post2)) {
+        if (StringsPlume.isVersionNumberLE(post1, post2)) {
+          result.append(post2);
         } else {
-          return null;
+          result.append(post1);
         }
+      } else {
+        return null;
       }
     }
     return result.toString();

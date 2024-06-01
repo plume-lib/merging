@@ -56,7 +56,7 @@ public class AdjacentLinesMerger extends Merger {
     }
 
     if (verbose) {
-      System.out.printf("before replacement: replacements = %s%n", replacements);
+      System.out.printf("AdjacentLinesMerger: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
     ConflictedFile result = new ConflictedFile(newLines, cf.path);

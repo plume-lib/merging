@@ -82,7 +82,7 @@ fi
 BASE_REV="$(git merge-base "$LEFT_REV" "$RIGHT_REV")"
 
 if [ -n "$verbose" ] ; then
-  echo "BASE_REV ${BASE_REV} LEFT_REV ${LEFT_REV} RIGHT_REV ${RIGHT_REV}"
+  echo "$0: BASE_REV ${BASE_REV} LEFT_REV ${LEFT_REV} RIGHT_REV ${RIGHT_REV}"
 fi
 
 if [ ${#files[@]} -eq 0 ] ; then
@@ -99,9 +99,15 @@ if [ ${#files[@]} -eq 0 ] ; then
 fi
 
 if [ ${#files[@]} -eq 0 ] ; then
+  if [ -n "$verbose" ] ; then
+    echo "$0: no files; exiting"
+  fi
   exit 0
 fi
 
+if [ -n "$verbose" ] ; then
+  echo "$0: files = ${files[*]}"
+fi
 
 # Unfortunately, mergetool_command lacks the quoting that appears in the git configuration file.
 # This might lead to trouble with filenames that contain spaces.
@@ -126,15 +132,15 @@ for file in "${files[@]}" ; do
   git show "$RIGHT_REV:$file" > "$rightfile"
 
   command="export BASE='$basefile'; export LOCAL='$leftfile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
-  if [ "$verbose" = 1 ] ; then
-    echo "$command"
+  if [ -n "$verbose" ] ; then
+    echo "$0: command = $command"
   fi
   eval "$command"
 
   # `git add` the file if the merge was successful.
   command_status=$?
   if [ "$mergetool_trustExitCode" == true ] ; then
-    if [ "$command_status" ] ; then
+    if [ "$command_status" -eq 0 ] ; then
       git add "$file"
     fi
   else
