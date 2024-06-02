@@ -27,6 +27,7 @@ import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
 import org.plumelib.merging.fileformat.Diff3File.Diff3HunkSection;
 import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
 import org.plumelib.util.CollectionsPlume;
+import org.plumelib.util.FilesPlume;
 import org.plumelib.util.IPair;
 import org.plumelib.util.StringsPlume;
 
@@ -108,7 +109,19 @@ public class JavaImportsMerger extends Merger {
     }
 
     // Iterate through the diffs, adding lines to the file.
-    List<String> mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+    List<String> mergedFileContentsLines;
+    try {
+      mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+    } catch (Throwable t) {
+      System.out.printf(
+          "Problem with conflicted file (hasTrivalConflict=%s):%n", cf.hasTrivalConflict());
+      System.out.println("On disk:");
+      System.out.println(FilesPlume.readString(cf.path));
+      System.out.println("In data structure:");
+      System.out.println(cf.fileContents());
+      System.out.println(cf);
+      throw t;
+    }
 
     mergedFileContentsLines =
         CollectionsPlume.filter(
@@ -170,21 +183,56 @@ public class JavaImportsMerger extends Merger {
    */
   List<String> applyImportDiffs(List<String> fileLines, Diff3File diff3file) {
 
+    int firstImportLineInFile = -1;
+    int lastImportLineInFile = -1;
+    Set<String> importLinesInFile = new HashSet<>();
+    for (int i = 0; i < fileLines.size(); i++) {
+      String line = fileLines.get(i);
+      if (JavaLibrary.isImportStatement(line)) {
+        importLinesInFile.add(line);
+        if (firstImportLineInFile == -1) {
+          firstImportLineInFile = i;
+        }
+        lastImportLineInFile = i;
+      }
+    }
+
+    if (verbose) {
+      System.out.printf("applyImportDiffs: diff3file=%s%n", diff3file);
+    }
+
     int startLineOffset = 0;
     for (Diff3Hunk h : diff3file.contents()) {
-      List<String> lines = h.section2().lines();
-      List<String> importStatementsThatMightBeRemoved =
-          CollectionsPlume.filter(lines, JavaLibrary::isImportStatement);
-      if (importStatementsThatMightBeRemoved.isEmpty()) {
+      if (verbose) {
+        System.out.printf("h=%s%n", h);
+      }
+      List<String> hunkSection2Lines = h.section2().lines();
+      List<String> importStatementsThatAreRemoved =
+          CollectionsPlume.filter(hunkSection2Lines, JavaLibrary::isImportStatement);
+      for (int i = 0; i < importStatementsThatAreRemoved.size(); i++) {
+        importStatementsThatAreRemoved.set(
+            i, importStatementsThatAreRemoved.get(i) + System.lineSeparator());
+      }
+      importStatementsThatAreRemoved.removeAll(importLinesInFile);
+
+      if (importStatementsThatAreRemoved.isEmpty()) {
         // Merging this hunk did not remove any import statements.
+        if (verbose) {
+          System.out.printf(
+              "no import statements removed, old Startlineoffset=%d,"
+                  + " h.lineChangeSize()=%d, new startlineoffset=%d%n",
+              startLineOffset, h.lineChangeSize(), startLineOffset + h.lineChangeSize());
+        }
         startLineOffset += h.lineChangeSize();
         continue;
       }
-      for (int i = 0; i < importStatementsThatMightBeRemoved.size(); i++) {
-        importStatementsThatMightBeRemoved.set(
-            i, importStatementsThatMightBeRemoved.get(i) + System.lineSeparator());
+      if (verbose) {
+        System.out.printf("importStatementsThatAreRemoved=%s%n", importStatementsThatAreRemoved);
       }
 
+      // The 3 sections are (in order) left, base, right.
+      // We use `edit` only to determine where to insert the import statements (and how to adjust
+      // the startLineOffset).
       Diff3HunkSection edit;
       switch (h.kind()) {
         case ONE_DIFFERS:
@@ -203,6 +251,9 @@ public class JavaImportsMerger extends Merger {
           continue;
         default:
           throw new Error("Unhandled kind: " + h.kind());
+      }
+      if (verbose) {
+        System.out.printf("edit=%s%n", edit);
       }
 
       int startLine;
@@ -225,15 +276,44 @@ public class JavaImportsMerger extends Merger {
         default:
           throw new Error("Unhandled kind: " + edit.command().kind());
       }
+      if (verbose) {
+        System.out.printf(
+            "old startLine = %s, startLineOffset = %s, new startLine = %s%n",
+            startLine, startLineOffset, startLine + startLineOffset);
+      }
       startLine += startLineOffset;
-      if (verbose) {
-        System.out.printf("Before inserting at %d: %s%n", startLine, fileLines);
+      if (startLine < 0 || startLine >= fileLines.size()) {
+        System.out.printf("problem in applyImportDiffs.%n");
+        System.out.printf("diff3file = %s%n", diff3file);
+        System.out.printf("startLine = %s%n", startLine);
+        System.out.printf("startLineOffset = %s%n", startLineOffset);
+        System.out.printf("hunk = %s%n", h);
+        System.out.printf("edit = %s%n", edit);
+        System.out.printf("fileLines = %s%n", fileLines);
       }
-      fileLines.addAll(startLine, importStatementsThatMightBeRemoved);
       if (verbose) {
-        System.out.printf("After inserting: %s%n", fileLines);
+        System.out.printf(
+            "Before inserting import lines at %d (startLineOffset=%d): %s%n",
+            startLine, startLineOffset, fileLines);
       }
+      // TODO: I probably need to adjust lastImportLineInFile based on previous insertions.
+      startLine = Math.max(startLine, firstImportLineInFile - 1);
+      startLine = Math.min(startLine, lastImportLineInFile + 1);
+      if (verbose) {
+        System.out.printf("Adjusted startLine: %d%n", startLine);
+      }
+      fileLines.addAll(startLine, importStatementsThatAreRemoved);
+      // TODO: Also adjust startLineOffset to account for the inserted lines?
       startLineOffset += h.lineChangeSize();
+      if (verbose) {
+        System.out.printf(
+            "After inserting import lines at %d (lineChangeSize=%d, startLineOffset=%d): %s%n",
+            startLine, h.lineChangeSize(), startLineOffset, fileLines);
+      }
+    }
+
+    if (verbose) {
+      System.out.printf("applyImportDiffs returning: %s%n", fileLines);
     }
 
     return fileLines;
@@ -387,6 +467,10 @@ public class JavaImportsMerger extends Merger {
         }
       }
     }
+    HashSet<String> intersection = new HashSet<>(deleted);
+    intersection.retainAll(inserted);
+    deleted.removeAll(intersection);
+    inserted.removeAll(intersection);
     return IPair.of(deleted, inserted);
   }
 
@@ -409,10 +493,10 @@ public class JavaImportsMerger extends Merger {
     Set<String> insertedIdentifiers =
         new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
-    for (String dotted : deleted) {
-      String deletedIdentifier = lastIdentifier(dotted);
+    for (String del : deleted) {
+      String deletedIdentifier = lastIdentifier(del);
       if (insertedIdentifiers.contains(deletedIdentifier)) {
-        result.add(dotted);
+        result.add(del);
       }
     }
     return Collections.unmodifiableList(result);

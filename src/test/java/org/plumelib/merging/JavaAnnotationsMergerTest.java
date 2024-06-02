@@ -14,6 +14,10 @@ public class JavaAnnotationsMergerTest {
     assertTrue(JavaAnnotationsMerger.isJavaAnnotations(s), s);
   }
 
+  void assertIsNotJavaAnnotations(String s) {
+    assertFalse(JavaAnnotationsMerger.isJavaAnnotations(s), s);
+  }
+
   void assertMatches(Pattern p, String s) {
     assertTrue(p.matcher(s).matches());
   }
@@ -236,5 +240,8 @@ public class JavaAnnotationsMergerTest {
 
     assertIsJavaAnnotations("  ");
     assertIsJavaAnnotations("");
+
+    assertIsNotJavaAnnotations(
+        "public Column<?> createColumn() { final String typeString = getType(); }");
   }
 }

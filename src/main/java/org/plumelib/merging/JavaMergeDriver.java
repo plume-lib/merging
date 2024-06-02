@@ -35,7 +35,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
   }
 
   /**
-   * A git merge driver to merge a Java file.
+   * A git merge driver.
    *
    * <p>Exit status greater than 128 means to abort the merge.
    *
@@ -67,7 +67,7 @@ public class JavaMergeDriver extends AbstractMergeDriver {
   /**
    * Does the work of JavaMergeDriver.
    *
-   * @param jclo command-line options
+   * @param jclo the command-line options
    */
   public void mainHelper(JavaCommandLineOptions jclo) {
 
@@ -122,13 +122,6 @@ public class JavaMergeDriver extends AbstractMergeDriver {
 
       // TODO: Common (but short) code in both JavaMergeDriver and JavaMergeTool.
 
-      if (jclo.adjacent) {
-        if (jclo.verbose) {
-          System.out.println("calling adjacent");
-        }
-        new AdjacentLinesMerger(jclo.verbose).merge(ms);
-      }
-
       // Even if gitMergeFileExitCode is 0, give fixups a chance to run.
       if (jclo.annotations) {
         if (jclo.verbose) {
@@ -137,7 +130,23 @@ public class JavaMergeDriver extends AbstractMergeDriver {
         new JavaAnnotationsMerger(jclo.verbose).merge(ms);
       }
 
-      // Imports should come last, because it does nothing unless every non-import conflict
+      if (jclo.version_numbers) {
+        if (jclo.verbose) {
+          System.out.println("calling version numbers");
+        }
+        new VersionNumbersMerger(jclo.verbose).merge(ms);
+      }
+
+      // Sub-line merges go above here, whole-line merges go below here.
+
+      if (jclo.adjacent) {
+        if (jclo.verbose) {
+          System.out.println("calling adjacent");
+        }
+        new AdjacentLinesMerger(jclo.verbose).merge(ms);
+      }
+
+      // Imports must come last, because it does nothing unless every non-import conflict
       // has already been resolved.
       if (jclo.imports) {
         if (jclo.verbose) {

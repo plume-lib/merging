@@ -38,13 +38,13 @@ import org.plumelib.util.StringsPlume;
  * <p>diff3 style:
  *
  * <pre>{@code
- * <<<<<<< ours
+ * <<<<<<< OURS
  * puts 'hola world'
- * ||||||| base
+ * ||||||| BASE
  * puts 'hello world'
  * =======
  * puts 'hello mundo'
- * >>>>>>> theirs
+ * >>>>>>> THEIRS
  * }</pre>
  */
 public class ConflictedFile {
@@ -86,6 +86,7 @@ public class ConflictedFile {
    *
    * @param path the path of the conflicted file
    */
+  @SideEffectFree
   public ConflictedFile(Path path) {
     this(FilesPlume.readString(path), path);
   }
@@ -96,6 +97,7 @@ public class ConflictedFile {
    * @param path the path of the conflicted file
    * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    */
+  @SideEffectFree
   public ConflictedFile(Path path, boolean hasConflict) {
     this(FilesPlume.readString(path), hasConflict, path);
   }
@@ -106,6 +108,7 @@ public class ConflictedFile {
    * @param fileContents the conflicted file, as a single string
    * @param path the path to the conflicted file
    */
+  @SideEffectFree
   public ConflictedFile(String fileContents, Path path) {
     this.fileContents = fileContents;
     this.lines = null;
@@ -120,6 +123,7 @@ public class ConflictedFile {
    * @param hasConflict true if the file contains a conflict, false if the file contains no conflict
    * @param path the path to the conflicted file
    */
+  @SideEffectFree
   public ConflictedFile(String fileContents, boolean hasConflict, Path path) {
     this.fileContents = fileContents;
     this.lines = null;
@@ -135,6 +139,7 @@ public class ConflictedFile {
    * @param lines the lines of the conflicted file
    * @param path the path to the conflicted file
    */
+  @SideEffectFree
   public ConflictedFile(List<String> lines, Path path) {
     this.lines = lines;
     this.hunks = null;

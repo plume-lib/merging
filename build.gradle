@@ -13,7 +13,7 @@ plugins {
   id('net.ltgt.errorprone') version '3.1.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.38'
+  id 'org.checkerframework' version '0.6.39'
 }
 
 repositories {
@@ -26,7 +26,7 @@ dependencies {
   implementation 'com.google.googlejavaformat:google-java-format:1.21.0'
   implementation 'com.google.guava:guava:32.1.1-jre'
   implementation 'org.plumelib:javac-parse:0.1.0'
-  implementation 'org.plumelib:plume-util:1.9.3'
+  implementation 'org.plumelib:plume-util:1.10.0-SNAPSHOT'
   implementation 'org.plumelib:options:2.0.3'
 
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
@@ -258,5 +258,5 @@ check.dependsOn requireJavadoc
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
   description 'Run etags to create an Emacs TAGS table'
-  commandLine 'bash', '-c', "find src/ -name '*.java' | sort | xargs etags"
+  commandLine 'bash', '-c', "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags"
 }

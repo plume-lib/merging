@@ -63,7 +63,7 @@ public class JavaAnnotationsMerger extends Merger {
     }
 
     if (verbose) {
-      System.out.printf("before replacement: replacements = %s%n", replacements);
+      System.out.printf("JavaAnnotationsMerger: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
     ConflictedFile result = new ConflictedFile(newLines, cf.path);
@@ -109,6 +109,9 @@ public class JavaAnnotationsMerger extends Merger {
    */
   // "protected" to permit tests to access it.
   protected static boolean isJavaAnnotations(String text) {
+    // For use by diagnostics that are currently commented out.
+    // String origText = text;
+
     text = commentPattern.matcher(text).replaceAll(" ");
     text = text.trim();
     if (text.isEmpty()) {
@@ -136,6 +139,8 @@ public class JavaAnnotationsMerger extends Merger {
       } else {
         declText = text.substring(8) + " varname";
       }
+    } else if (text.endsWith("}")) {
+      return false;
     } else if (annotationStartPattern.matcher(text).find()) {
       if (useRegex && annotationsPattern.matcher(text).matches()) {
         return true;
@@ -145,14 +150,28 @@ public class JavaAnnotationsMerger extends Merger {
     } else {
       return false;
     }
-    String classText = "class MyClass {" + declText + ";" + "}";
 
+    String classText = "class MyClass {" + declText + ";" + "}";
     // Use this diagnostic to determine which strings are still getting parsed.
     // Perhaps write regular expressions for them to improve performance.
-    // System.out.printf("isJavaAnnotations: %s%n", text);
-
+    // System.out.printf("isJavaAnnotations(%s) about to parse: %s%n", origText, classText);
     JCCompilationUnit mergedCU = JavacParse.parseJavaCode(classText);
-    return mergedCU != null;
+
+    if (mergedCU == null) {
+      return false;
+    }
+
+    if (annotationStartPattern.matcher(text).find()) {
+      String classTextAnnoOnly = "class MyClass {" + text + ";" + "}";
+      JCCompilationUnit annoOnlyCU = JavacParse.parseJavaCode(classTextAnnoOnly);
+      if (annoOnlyCU != null) {
+        // The argument parses all on its own, so it is not an annotation (despite the fact that it
+        // parses when followed by " String varname;").
+        return false;
+      }
+    }
+
+    return true;
   }
 
   ///////////////////////////////////////////////////////////////////////////

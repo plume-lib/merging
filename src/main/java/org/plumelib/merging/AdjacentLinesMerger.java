@@ -10,7 +10,6 @@ import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.merging.fileformat.RDiff;
 import org.plumelib.merging.fileformat.RDiff.Equal;
-import org.plumelib.merging.fileformat.RDiff.NoOp;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.CollectionsPlume.Replacement;
 import org.plumelib.util.IPair;
@@ -57,7 +56,7 @@ public class AdjacentLinesMerger extends Merger {
     }
 
     if (verbose) {
-      System.out.printf("before replacement: replacements = %s%n", replacements);
+      System.out.printf("AdjacentLinesMerger: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
     ConflictedFile result = new ConflictedFile(newLines, cf.path);
@@ -104,15 +103,15 @@ public class AdjacentLinesMerger extends Merger {
       RDiff d1 = i1.next();
       RDiff d2 = i2.next();
       assert d1.preText().equals(d2.preText());
-      if (d1 instanceof Equal || d1 instanceof NoOp) {
+      if (d1 instanceof Equal || d1.isNoOp()) {
         result.add(d2.postText());
-      } else if (d2 instanceof Equal || d2 instanceof NoOp) {
+      } else if (d2 instanceof Equal || d2.isNoOp()) {
         result.add(d1.postText());
       } else if (d1.postText().equals(d2.postText())) {
         // Can this happen?
         result.add(d1.postText());
       } else {
-        JavaLibrary.exitErroneously(String.format("Bad alignment: d1=%s d2=%s", d1, d2));
+        return null;
       }
     }
     return result;
