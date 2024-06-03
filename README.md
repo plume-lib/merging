@@ -1,14 +1,8 @@
-# merge-tools
+# Plume-lib merging:  merge drivers and merge tools
 
 This project contains git merge drivers and git merge tools.  (See
 [below](#git-merge-terminology) for definitions of "merge driver" and
 "merge tool".)
-
-Currently some of the mergers only work on Java files, and some are more general.
-
-Currently they are relatively slow:  about 1/3 second per Java file that was
-modified in both versions to be merged.  Most merges involve few Java files that
-were modified in both versions, but if there are many, the merge will be slow.
 
 
 ## Features
@@ -45,8 +39,19 @@ command-line arguments.
 
 ## How to use
 
-You can use the mergers in this repository in three ways: as merge drivers,
-as merge tools, or as re-merge tools.
+You can use the mergers in this repository in three ways.
+
+ * Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most
+   convenient, because you don't have to remember to issue any commands.
+
+ * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) leads
+   to the best merge results; see
+   [below](#why-to-use-a-re-merge-tool-rather-than-a-merge-driver) for an
+   explanation.
+
+ * Using them as [**merge tools**](#how-to-use-as-a-merge-tool) is not
+   recommended, because a merge tool requires too much user interaction for
+   what should be an automated process.
 
 
 ### Common setup
@@ -57,19 +62,17 @@ as merge tools, or as re-merge tools.
 
 2. In the top level of this repository, run: `./gradlew shadowJar`
 
-3. Put directory `.../merge-tools/src/main/sh/` on your PATH,
+3. Put directory `.../merging/src/main/sh/` on your PATH,
 adjusting "..." according to where you cloned this repository.
-After changing a dotfile to set PATH, you may need to log out
-and log back in again to have the change take effect.
 (Or, use the absolute pathname in uses of `*.sh` files below.)
+After changing one of your dotfiles to set PATH, you may need to log out
+and log back in again to have the change take effect.
 
 
 ### How to use as a merge driver
 
-After performing the following steps, git will automatically use this merge
-driver for every merge of Java files.  You can also define your own merge
-drivers that pass different sets of arguments, beyond the `merge-java` and
-`merge-adjacent` merge drivers defined below.
+After performing the following steps, git will automatically use the merge
+driver for **every merge**.
 
 1. Run these commands:
 ```
@@ -83,6 +86,10 @@ git config --global merge.merge-adjacent.driver 'java-merge-driver.sh --only-adj
 To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.
 
+You can define additional merge drivers that pass different sets of
+arguments, beyond the `merge-java` and `merge-adjacent` merge drivers
+defined below.
+
 2. In a gitattributes file, add:
 
 ```
@@ -95,50 +102,46 @@ or
 * merge=merge-adjacent
 ```
 
-To enable this for a single repository, add this to the repository's `.gitattributes` file.
-(Or to its `.git/info/attributes` file, in which case it won't be committed with the project.)
+To enable the merge driver for a single repository, add the above text to
+the repository's `.gitattributes` file.  (Or to its `.git/info/attributes`
+file, in which case it won't be committed with the project.)
 
-To enable this for all repositories, add this to your your user-level
-gitattributes file.  The user-level gitattributes file is by default
-`$XDG_CONFIG_HOME/git/attributes`.  You can change the user-level file to be
-`~/.gitattributes` by running the following command, once ever per computer:
-`git config --global core.attributesfile '~/.gitattributes'`
+To enable the merge driver for all repositories, add the above text to your
+user-level gitattributes file.  The user-level gitattributes file is by
+default `$XDG_CONFIG_HOME/git/attributes`.  You can change the user-level
+file to be `~/.gitattributes` by running the following command, once ever
+per computer:  `git config --global core.attributesfile '~/.gitattributes'`
 
 
-### How to use as a merge tool
+### How to use as a re-merge tool
 
-First, edit your `~/.gitconfig` file as shown below.
+See [below](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 
-Run one of the following command after a git merge that leaves conflicts.
+**To perform a merge**, run:
+
+```
+git merge [ARGS]
+git-mergetool.sh --all [--tool=merge-java]
+```
+
 (You can omit the `--tool=...` command-line argument if you have only set
 up one merge tool.)
 
+Or, **after a git merge that leaves conflicts**, run:
+
 ```
-git mergetool --tool=merge-java
-```
-or
-```
-git mergetool --tool=merge-adjacent
+git-mergetool.sh --all [--tool=merge-java]
 ```
 
-A fundamental limitation is that `git mergetool` requires user interaction in
-two scenarios (even with the `-y` and `--no-prompt` command-line
-arguments!):
- * Whenever a file was not perfectly merged, you need to type `y` to continue.
-   You should choose "y" because the merge tool might have made some
-   improvements, and it might make improvements to files it has not yet seen.
- * Whenever there is a merge-delete conflict, you need to choose among
-   "Use (m)odified or (d)eleted file, or (a)bort?".
-
-Instead of `git mergetool`, you can run `git-mergetool.sh`, which
-eliminates the need for user interaction.
+You can create a shell alias or a git alias that first runs `git merge`,
+then runs `git-mergetool.sh --all`.
 
 
-#### Setup for use as a merge tool
+#### Setup for use as a merge tool or re-merge-tool
 
 There is just one step for setup.
 
-1. Run the following commands:
+1. Run the following commands to edit your `~/.gitconfig` file.
 
 ```
 git config --global merge.conflictstyle diff3
@@ -154,58 +157,103 @@ git config --global mergetool.merge-adjacent.trustExitCode true
 To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.
 
+You may wish to set up just one merge tool (not two as shown above), so
+that you do not have to pass the `--tool=` command-line argument to
+`git-mergetool.sh` and `git mergetool`.
 
-### How to use as a re-merge tool
 
-Edit your `~/.gitconfig` file as for a merge tool.
+### How to use as a merge tool
 
-To perform a merge, run:
+See [above](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
+
+**After a git merge that leaves conflicts**, run one of the following commands.
+(You can omit the `--tool=...` command-line argument if you have only set
+up one merge tool.)
 
 ```
-git merge [ARGS]
-git-mergetool.sh --all
+git mergetool [--tool=merge-java]
+```
+or
+```
+git mergetool [--tool=merge-adjacent]
 ```
 
-`git-mergetool.sh` also supports the `--tool=<tool>` command-line option.
+A fundamental limitation of `git mergetool` is that it requires user
+interaction in two scenarios (even with the `-y` and `--no-prompt`
+command-line arguments!):
 
-You can create a shell alias or a git alias that first runs `git merge`,
-then runs `git-mergetool.sh --all`.
+ * Whenever a file was not perfectly merged, you need to type `y` to
+   continue.  You should choose "y" because the merge tool might have made
+   some improvements even if it didn't resolve every conflict, and also
+   because you wish to run it on the rest of the files in the repository.
+
+ * Whenever there is a merge-delete conflict, you need to choose among
+   "Use (m)odified or (d)eleted file, or (a)bort?".
+
+Instead of `git mergetool`, you can run `git-mergetool.sh`, which
+eliminates the need for user interaction.
 
 
 ## Git merge terminology
 
-A **merge driver** is automatically called during `git merge` whenever no
-two of {base,parent1,parent2} are the same.  It writes a merged file, which
+A **merge driver** is _automatically called_ during `git merge` whenever no
+two of {base,version1,version2} are the same.  It writes a merged file, which
 may or may not contain conflict markers.  The merge drivers in this
 repository first call `git merge-file`, then resolve some conflicts left by
 `git merge-file`.
 
-A **merge tool** is called manually by the programmer (via `git mergetool`)
+A **merge tool** is _called manually_ by the programmer (via `git mergetool`)
 after a merge that left conflict markers.  After running `git merge` (and
 perhaps manually resolving some of the conflicts), you might run a merge
 tool to resolve further conflicts.  For each file that contains conflict
-markers, the merge tool runs and observes the base, parent1, parent2, and
+markers, the merge tool runs and observes the base, version1, version2, and
 the conflicted merge (which the merge tool can overwrite with a new merge
 result).  If the merge driver produced a clean merge for a given file, then
 the merge tool is not run on the file.
 
-A **re-merge tool** is a merge tool that is run on every file, even ones
-for which the merge driver produced a clean merge.  The command
-`git-mergetool-on-all.sh` runs a re-merge tool.
-A re-merge tool is only necessary for mergers that may re-introduce lines
-that were removed in a clean merge.  The [Java
-imports](README-java-imports.md) merger is the only example currently.  For
-most mergers (other than the Java imports merger), using them as a merge
-tool is adequate.
+A **re-merge tool** is _called manually_ by the programmer
+(via `git-mergetool.sh`).
+A re-merge tool differs from a merge tool in the following ways:
 
-You may wish to use a merger in this repository as a merge tool or a
-re-merge tool, rather than as a merge driver.  The reason is that `git
-merge-file` sometimes produces merge conflicts where `git merge` does not
-(even with rerere and other `git merge` functionality disabled!).
-Therefore, the merge drivers in this repository (which first call `git
-merge-file`, then improve the results) may produce suboptimal results.  A
-merge tool or re-merge tool lets you use `git merge`, then still use a
-merger to improve the results.
+ * It not require user interaction.  (By contrast, a regular git merge tool
+   requires you to press a key for every file that gets merged.)
+
+ * With the `--all` command-line argument, it is run on every file that
+   differed between the two versions being merged -- even ones for which
+   the merge driver produced a clean merge.  This feature is is only
+   necessary for mergers that may re-introduce lines that were removed in a
+   clean merge.  The [Java imports](README-java-imports.md) merger is the
+   only example currently.  Most mergers (other than the Java imports
+   merger) do not require the `--all` command-line argument.
+
+A **merger** is either a merge tool or a merge driver.
+
+A **merge strategy** works on internal git data structures, deciding what
+text to hand to a merge driver.  (For example, it detects renames.)
+However, if two of {version1,version2,base} are the same, then the merge
+strategy makes a decision and the merge driver is never called.  This
+repository does not include a merge strategy; the ones built into git are
+adequate.
+
+
+## Why to use a (re-)merge tool rather than a merge driver
+
+You may wish to use a merger in this repository as a re-merge tool, rather
+than as a merge driver.  The reason is that `git merge-file` sometimes
+produces merge conflicts where `git merge` does not (even with rerere and
+other `git merge` functionality disabled!).  Therefore, the merge drivers
+in this repository (which first call `git merge-file`, then improve the
+results) may produce suboptimal results.  A (re-)merge tool lets you use
+`git merge`, then still use a merger to improve the results.
+
+
+## Limitations
+
+The mergers are relatively slow:  about 1/3 second per file that was
+modified in both versions to be merged.  Most merges involve few files that
+were modified in both of the versions being merged, so this is usually not
+a problem; but if many files are modified in both of the versions, the
+merge will be slow.
 
 
 ## License

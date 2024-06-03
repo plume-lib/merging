@@ -16,7 +16,7 @@ fi
 SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 ROOTDIR="${SCRIPTDIR}/../../.."
-JARFILE="${ROOTDIR}/build/libs/merge-tools-all.jar"
+JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
 if [ ! -f "$JARFILE" ] ; then
     (cd "$ROOTDIR" && ./gradlew shadowJar)
 fi
@@ -30,7 +30,7 @@ java \
   --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-  -cp "${SCRIPTDIR}/../../../build/libs/merge-tools-all.jar" \
+  -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
   org.plumelib.merging.JavaMergeDriver \
   "$@"
 
