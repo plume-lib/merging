@@ -41,13 +41,17 @@ command-line arguments.
 
 You can use the mergers in this repository in three ways.
 
- * Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most convenient, because you don't
-   have to remember to issue any commands.
- * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) leads to the best merge results; see
-   [below](#why-to) for an explanation.
- * Using them as [**merge tools**](#how-to-use-as-a-merge-tool) is not recommended, because a merge tool
-   requires too much user interaction for what should be an automated
-   process.
+ * Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most
+   convenient, because you don't have to remember to issue any commands.
+
+ * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) leads
+   to the best merge results; see
+   [below](#why-to-use-a-re-merge-tool-rather-than-a-merge-driver) for an
+   explanation.
+
+ * Using them as [**merge tools**](#how-to-use-as-a-merge-tool) is not
+   recommended, because a merge tool requires too much user interaction for
+   what should be an automated process.
 
 
 ### Common setup
@@ -60,9 +64,9 @@ You can use the mergers in this repository in three ways.
 
 3. Put directory `.../merging/src/main/sh/` on your PATH,
 adjusting "..." according to where you cloned this repository.
-After changing a dotfile to set PATH, you may need to log out
-and log back in again to have the change take effect.
 (Or, use the absolute pathname in uses of `*.sh` files below.)
+After changing one of your dotfiles to set PATH, you may need to log out
+and log back in again to have the change take effect.
 
 
 ### How to use as a merge driver
@@ -153,8 +157,8 @@ To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.
 
 You may wish to set up just one merge tool (not two as shown above), so
-that you do not have to pass the `--tool=` command-line argument to `git
-mergetool` and `git-mergetool.sh`.
+that you do not have to pass the `--tool=` command-line argument to
+`git-mergetool.sh` and `git mergetool`.
 
 
 ### How to use as a merge tool
