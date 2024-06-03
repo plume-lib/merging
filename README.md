@@ -226,14 +226,13 @@ A re-merge tool differs from a merge tool in the following ways:
    only example currently.  Most mergers (other than the Java imports
    merger) do not require the `--all` command-line argument.
 
- * A **merger** is either a merge tool or a merge driver.
+A **merger** is either a merge tool or a merge driver.
 
- * A **merge strategy** works on internal git data structures, deciding
-   what text to hand to a merge driver.  However, if two of
-   {parent1,parent2,base} are the same, then the merge strategy makes a
-   decision and the merge driver is never called.  This repository
-   (plume-lib merging) does not include a merge strategy; the ones built
-   into git are adequate.
+A **merge strategy** works on internal git data structures, deciding what
+text to hand to a merge driver.  However, if two of {parent1,parent2,base}
+are the same, then the merge strategy makes a decision and the merge driver
+is never called.  This repository (plume-lib merging) does not include a
+merge strategy; the ones built into git are adequate.
 
 
 ## Why to use a (re-)merge tool rather than a merge driver
