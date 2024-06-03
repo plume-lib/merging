@@ -238,7 +238,7 @@ results) may produce suboptimal results.  A (re-)merge tool lets you use
 
 ## Limitations
 
-The mergers are relatively slow:  about 1/3 second per Java file that was
+The mergers are relatively slow:  about 1/3 second per file that was
 modified in both versions to be merged.  Most merges involve few files that
 were modified in both of the versions being merged, so this is usually not
 a problem; but if many files are modified in both of the versions, the
