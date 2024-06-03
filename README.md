@@ -229,10 +229,11 @@ A re-merge tool differs from a merge tool in the following ways:
 A **merger** is either a merge tool or a merge driver.
 
 A **merge strategy** works on internal git data structures, deciding what
-text to hand to a merge driver.  However, if two of {parent1,parent2,base}
-are the same, then the merge strategy makes a decision and the merge driver
-is never called.  This repository (plume-lib merging) does not include a
-merge strategy; the ones built into git are adequate.
+text to hand to a merge driver.  (For example, it detects renames.)
+However, if two of {version1,version2,base} are the same, then the merge
+strategy makes a decision and the merge driver is never called.  This
+repository does not include a merge strategy; the ones built into git are
+adequate.
 
 
 ## Why to use a (re-)merge tool rather than a merge driver
