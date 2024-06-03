@@ -121,16 +121,17 @@ See [below](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 
 ```
 git merge [ARGS]
-git-mergetool.sh --all
+git-mergetool.sh --all [--tool=merge-java]
 ```
+
+(You can omit the `--tool=...` command-line argument if you have only set
+up one merge tool.)
 
 Or, **after a git merge that leaves conflicts**, run:
 
 ```
-git-mergetool.sh --all
+git-mergetool.sh --all [--tool=merge-java]
 ```
-
-`git-mergetool.sh` also supports the `--tool=<tool>` command-line option.
 
 You can create a shell alias or a git alias that first runs `git merge`,
 then runs `git-mergetool.sh --all`.
