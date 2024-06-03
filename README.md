@@ -171,11 +171,11 @@ See [above](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 up one merge tool.)
 
 ```
-git mergetool --tool=merge-java
+git mergetool [--tool=merge-java]
 ```
 or
 ```
-git mergetool --tool=merge-adjacent
+git mergetool [--tool=merge-adjacent]
 ```
 
 A fundamental limitation is that `git mergetool` requires user interaction in
