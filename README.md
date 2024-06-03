@@ -178,9 +178,9 @@ or
 git mergetool [--tool=merge-adjacent]
 ```
 
-A fundamental limitation is that `git mergetool` requires user interaction in
-two scenarios (even with the `-y` and `--no-prompt` command-line
-arguments!):
+A fundamental limitation of `git mergetool` is that it requires user
+interaction in two scenarios (even with the `-y` and `--no-prompt`
+command-line arguments!):
 
  * Whenever a file was not perfectly merged, you need to type `y` to
    continue.  You should choose "y" because the merge tool might have made
@@ -211,7 +211,8 @@ the conflicted merge (which the merge tool can overwrite with a new merge
 result).  If the merge driver produced a clean merge for a given file, then
 the merge tool is not run on the file.
 
-A **re-merge tool** is _called manually_ by the programmer (via 'git-mergetool.sh`).
+A **re-merge tool** is _called manually_ by the programmer
+(via `git-mergetool.sh`).
 A re-merge tool differs from a merge tool in the following ways:
 
  * It not require user interaction.  (By contrast, a regular git merge tool
@@ -223,7 +224,16 @@ A re-merge tool differs from a merge tool in the following ways:
    necessary for mergers that may re-introduce lines that were removed in a
    clean merge.  The [Java imports](README-java-imports.md) merger is the
    only example currently.  Most mergers (other than the Java imports
-   merger) do not require the --all command-line argument.
+   merger) do not require the `--all` command-line argument.
+
+ * A **merger** is either a merge tool or a merge driver.
+
+ * A **merge strategy** works on internal git data structures, deciding
+   what text to hand to a merge driver.  However, if two of
+   {parent1,parent2,base} are the same, then the merge strategy makes a
+   decision and the merge driver is never called.  This repository
+   (plume-lib merging) does not include a merge strategy; the ones built
+   into git are adequate.
 
 
 ## Why to use a (re-)merge tool rather than a merge driver
