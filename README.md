@@ -41,11 +41,11 @@ command-line arguments.
 
 You can use the mergers in this repository in three ways.
 
- * Using them as **merge drivers** is most convenient, because you don't
+ * Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most convenient, because you don't
    have to remember to issue any commands.
- * Using them as **re-merge tools** leads to the best merge results; see
+ * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) leads to the best merge results; see
    [below](#why-to) for an explanation.
- * Using them as **merge tools** is not recommended, because a merge tool
+ * Using them as [**merge tools**](#how-to-use-as-a-merge-tool) is not recommended, because a merge tool
    requires too much user interaction for what should be an automated
    process.
 
@@ -67,8 +67,8 @@ and log back in again to have the change take effect.
 
 ### How to use as a merge driver
 
-After performing the following steps, git will automatically use this merge
-driver for **every merge** of Java files.
+After performing the following steps, git will automatically use the merge
+driver for **every merge**.
 
 1. Run these commands:
 ```
