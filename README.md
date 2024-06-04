@@ -57,6 +57,8 @@ You can use the mergers in this repository in three ways.
 ### Common setup
 
 0. You must have Java 17 or later installed.
+   Either the `JAVA_HOME` or `JAVA17_HOME` environment variable
+   must be set to it.
 
 1. Clone this repository.
 
