@@ -125,11 +125,11 @@ mergetool_trustExitCode="$(git config --get mergetool."$tool".trustExitCode)"
 
 for file in "${files[@]}" ; do
   basefile="$(mktemp -p /tmp "base-XXXXXX-$(basename "$file")")"
-  git show "$BASE_REV:$file" > "$basefile"
+  if ! git cat-file -e "$BASE_REV:$file" 2> /dev/null > "$basefile" ; then continue ; fi
   leftfile="$(mktemp -p /tmp "left-XXXXXX-$(basename "$file")")"
-  git show "$LEFT_REV:$file" > "$leftfile"
+  if ! git cat-file -e "$LEFT_REV:$file" 2> /dev/null > "$leftfile" ; then continue ; fi
   rightfile="$(mktemp -p /tmp "right-XXXXXX-$(basename "$file")")"
-  git show "$RIGHT_REV:$file" > "$rightfile"
+  if ! git cat-file -e "$RIGHT_REV:$file" 2> /dev/null > "$rightfile" ; then continue ; fi
 
   command="export BASE='$basefile'; export LOCAL='$leftfile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
   if [ -n "$verbose" ] ; then

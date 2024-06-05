@@ -30,7 +30,7 @@ dependencies {
   implementation 'org.plumelib:options:2.0.3'
 
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
 }
 
 // Don't use a toolchain because it uses `--release`, which is incompatible with `--add-exports`.

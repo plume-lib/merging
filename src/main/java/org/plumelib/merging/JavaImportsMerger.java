@@ -111,7 +111,7 @@ public class JavaImportsMerger extends Merger {
     // Iterate through the diffs, adding lines to the file.
     List<String> mergedFileContentsLines;
     try {
-      mergedFileContentsLines = applyImportDiffs(CommonLines.toLines(cls), diff3file);
+      mergedFileContentsLines = insertRemovedImports(CommonLines.toLines(cls), diff3file);
     } catch (Throwable t) {
       System.out.printf(
           "Problem with conflicted file (hasTrivalConflict=%s):%n", cf.hasTrivalConflict());
@@ -181,8 +181,9 @@ public class JavaImportsMerger extends Merger {
    * @param diff3file the diffs
    * @return the lines of the file, after inserting more import statements
    */
-  List<String> applyImportDiffs(List<String> fileLines, Diff3File diff3file) {
+  List<String> insertRemovedImports(List<String> fileLines, Diff3File diff3file) {
 
+    // Find the first and last import lines in the file.
     int firstImportLineInFile = -1;
     int lastImportLineInFile = -1;
     Set<String> importLinesInFile = new HashSet<>();
@@ -198,7 +199,7 @@ public class JavaImportsMerger extends Merger {
     }
 
     if (verbose) {
-      System.out.printf("applyImportDiffs: diff3file=%s%n", diff3file);
+      System.out.printf("insertRemovedImports: diff3file=%s%n", diff3file);
     }
 
     int startLineOffset = 0;
@@ -209,6 +210,8 @@ public class JavaImportsMerger extends Merger {
       List<String> hunkSection2Lines = h.section2().lines();
       List<String> importStatementsThatAreRemoved =
           CollectionsPlume.filter(hunkSection2Lines, JavaLibrary::isImportStatement);
+      // Do not reinsert deleted wildcard imports.
+      importStatementsThatAreRemoved.removeIf(s -> s.endsWith("*;"));
       for (int i = 0; i < importStatementsThatAreRemoved.size(); i++) {
         importStatementsThatAreRemoved.set(
             i, importStatementsThatAreRemoved.get(i) + System.lineSeparator());
@@ -283,7 +286,7 @@ public class JavaImportsMerger extends Merger {
       }
       startLine += startLineOffset;
       if (startLine < 0 || startLine >= fileLines.size()) {
-        System.out.printf("problem in applyImportDiffs.%n");
+        System.out.printf("problem in insertRemovedImports.%n");
         System.out.printf("diff3file = %s%n", diff3file);
         System.out.printf("startLine = %s%n", startLine);
         System.out.printf("startLineOffset = %s%n", startLineOffset);
@@ -313,7 +316,7 @@ public class JavaImportsMerger extends Merger {
     }
 
     if (verbose) {
-      System.out.printf("applyImportDiffs returning: %s%n", fileLines);
+      System.out.printf("insertRemovedImports returning: %s%n", fileLines);
     }
 
     return fileLines;
