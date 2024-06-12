@@ -31,7 +31,7 @@ public class AdjacentLinesMerger extends Merger {
 
     List<ConflictElement> hunks = cf.hunks();
     if (hunks == null) {
-      JavaLibrary.exitErroneously("Unparseable file " + cf.path);
+      Main.exitErroneously("Unparseable file " + cf.path);
       throw new Error("unreachable");
     }
 
@@ -73,7 +73,7 @@ public class AdjacentLinesMerger extends Merger {
   private @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
     String baseJoined = mc.baseJoined();
     if (baseJoined == null) {
-      JavaLibrary.exitErroneously("need a 3-way diff");
+      Main.exitErroneously("need a 3-way diff");
       throw new Error("unreachable");
     }
 
@@ -126,7 +126,7 @@ public class AdjacentLinesMerger extends Merger {
    */
   private static @Nullable List<String> mergedLinewise(MergeConflict mc) {
     if (mc.base() == null) {
-      JavaLibrary.exitErroneously("need a 3-way diff");
+      Main.exitErroneously("need a 3-way diff");
       throw new Error("unreachable");
     }
 

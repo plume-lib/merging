@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.StringJoiner;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.plumelib.merging.fileformat.ConflictedFile;
@@ -15,25 +14,13 @@ import org.plumelib.util.FilesPlume;
 /** Data about a merge. */
 public class MergeState {
 
-  /** The base file name. */
-  public final String baseFileName;
-
-  /** The left file name. Also known as "current" or "ours". */
-  public final String leftFileName;
-
-  /** The right file name. Also known as "other" or "theirs". */
-  public final String rightFileName;
-
-  /** The merged file name. */
-  public final @Nullable String mergedFileName;
+  /** The left file. Also known as "current" or "ours". May be overwritten. */
+  public final Path leftPath;
 
   /** The base file path. */
   public final Path basePath;
 
-  /** The left file path; is overwritten by this method. */
-  public final Path leftPath;
-
-  /** The right file path. */
+  /** The right file. Also known as "other" or "theirs". */
   public final Path rightPath;
 
   /** The merged file path. */
@@ -63,43 +50,34 @@ public class MergeState {
   /**
    * Creates a MergeState.
    *
-   * @param baseFileName the base file name
-   * @param leftFileName the left (aka current or ours), file name; is overwritten by a merge driver
-   * @param rightFileName the right (aka other or theirs) file name
-   * @param mergedFileName the merged file name; is overwritten by a merge tool; is null for a merge
-   *     driver
+   * @param leftPath the left (aka current or ours) file; is overwritten by a merge driver
+   * @param basePath the base file
+   * @param rightPath the right (aka other or theirs) file
+   * @param mergedPath the merged file; is overwritten by a merge tool; is null for a merge driver
    * @param hasConflictInitially true if the merged file contains a conflict
    */
   public MergeState(
-      String baseFileName,
-      String leftFileName,
-      String rightFileName,
-      String mergedFileName,
-      boolean hasConflictInitially) {
+      Path leftPath, Path basePath, Path rightPath, Path mergedPath, boolean hasConflictInitially) {
 
-    this.baseFileName = baseFileName;
-    this.leftFileName = leftFileName;
-    this.rightFileName = rightFileName;
-    this.mergedFileName = mergedFileName;
-    this.basePath = Path.of(baseFileName);
-    this.leftPath = Path.of(leftFileName);
-    this.rightPath = Path.of(rightFileName);
-    this.mergedPath = Path.of(mergedFileName);
+    this.leftPath = leftPath;
+    this.basePath = basePath;
+    this.rightPath = rightPath;
+    this.mergedPath = mergedPath;
     this.hasConflictInitially = hasConflictInitially;
-    if (!Files.isReadable(basePath)) {
-      JavaLibrary.exitErroneously("file is not readable: " + baseFileName);
-    }
     if (!Files.isReadable(leftPath)) {
-      JavaLibrary.exitErroneously("file is not readable: " + leftFileName);
+      Main.exitErroneously("file is not readable: " + leftPath);
+    }
+    if (!Files.isReadable(basePath)) {
+      Main.exitErroneously("file is not readable: " + basePath);
     }
     if (!Files.isReadable(rightPath)) {
-      JavaLibrary.exitErroneously("file is not readable: " + rightFileName);
+      Main.exitErroneously("file is not readable: " + rightPath);
     }
     if (!Files.isReadable(mergedPath)) {
-      JavaLibrary.exitErroneously("file is not readable: " + mergedFileName);
+      Main.exitErroneously("file is not readable: " + mergedPath);
     }
     if (!Files.isWritable(mergedPath)) {
-      JavaLibrary.exitErroneously("file is not writable: " + mergedFileName);
+      Main.exitErroneously("file is not writable: " + mergedPath);
     }
   }
 
@@ -111,10 +89,6 @@ public class MergeState {
   public String toString(@GuardSatisfied MergeState this) {
     StringJoiner sj = new StringJoiner(System.lineSeparator());
     sj.add("MergeState{");
-    sj.add("  baseFileName=" + baseFileName);
-    sj.add("  leftFileName=" + leftFileName);
-    sj.add("  rightFileName=" + rightFileName);
-    sj.add("  mergedFileName=" + mergedFileName);
     sj.add("  basePath=" + basePath);
     sj.add("  leftPath=" + leftPath);
     sj.add("  rightPath=" + rightPath);
@@ -215,6 +189,7 @@ public class MergeState {
       // mergetool, reverting to the state before the mergetool was run from a backup file. To work
       // around this, such a tool can write partial results to a *_BACKUP_* file (named analogously
       // to *_LOCAL_*, *_BASE_*, etc.).
+      String baseFileName = basePath.toString();
       if (baseFileName.contains("_BASE_")) {
         writeBack(Path.of(baseFileName.replace("_BASE_", "_BACKUP_")));
       }
