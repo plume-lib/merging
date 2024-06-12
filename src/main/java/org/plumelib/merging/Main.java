@@ -23,6 +23,9 @@ import picocli.CommandLine.Parameters;
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
 public class Main implements Callable<Integer> {
 
+  /** Creates a Main. */
+  public Main() {}
+
   /** Whether to run as a merge driver or a merge tool. */
   @Parameters(index = "0", description = "\"driver\" or \"tool\"")
   MergeMode command;
