@@ -16,8 +16,7 @@ import picocli.CommandLine.Parameters;
 
 /** Acts as a git merge driver or merge tool. */
 @SuppressWarnings({
-  "nullness:initialization.field.uninitialized",
-  "nullness:initialization.static.field.uninitialized",
+  "nullness:initialization.fields.uninitialized",
   "initializedfields:contracts.postcondition"
 }) // picocli initializes w/reflection
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
