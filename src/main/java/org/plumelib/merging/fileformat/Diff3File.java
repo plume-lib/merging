@@ -55,13 +55,10 @@ public class Diff3File {
    *
    * @param filename the name of the diff3 file
    * @return the parsed file
+   * @throws Diff3ParseException if there is a problem parsing the file
    */
-  public static Diff3File parseFile(String filename) {
-    try {
-      return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
-    } catch (Throwable e) {
-      throw new Error("Problem parsing " + filename, e);
-    }
+  public static Diff3File parseFile(String filename) throws Diff3ParseException {
+    return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
   }
 
   /**
@@ -84,7 +81,7 @@ public class Diff3File {
       // This is the first line of a hunk
       String line = lines.get(i);
       if (!line.startsWith("====")) {
-        throw new Error("Expected \"====\" at line " + (i + 1) + ", found: " + line);
+        throw new Error(filename + ":" + (i + 1) + ": expected \"====\", found: " + line);
       }
       i = Diff3Hunk.parse(lines, i, result);
     }
@@ -599,18 +596,19 @@ public class Diff3File {
   /**
    * Runs diff3 on the given files and returns the result.
    *
-   * @param leftFileName the left file name
-   * @param baseFileName the base file name
-   * @param rightFileName the right file name
+   * @param leftPath the left file
+   * @param basePath the base file
+   * @param rightPath the right file
    * @return the diff3 of the files
    * @throws Diff3ParseException if there is trouble parsing the diff3 output
    */
-  public static Diff3File from3files(String leftFileName, String baseFileName, String rightFileName)
+  public static Diff3File from3paths(Path leftPath, Path basePath, Path rightPath)
       throws Diff3ParseException {
 
     // Don't use `diff3 --merge`, because we want to know all the differences, even those that
     // merged cleanly.
-    ProcessBuilder pbDiff3 = new ProcessBuilder("diff3", leftFileName, baseFileName, rightFileName);
+    ProcessBuilder pbDiff3 =
+        new ProcessBuilder("diff3", leftPath.toString(), basePath.toString(), rightPath.toString());
     if (verbose) {
       System.out.printf("About to call: %s%n", pbDiff3.command());
     }
@@ -632,13 +630,10 @@ public class Diff3File {
       throw new Diff3ParseException(
           String.format(
               "error%s while running: diff3 %s %s %s",
-              (eMessage == null ? "" : (": " + eMessage + " ")),
-              leftFileName,
-              baseFileName,
-              rightFileName));
+              (eMessage == null ? "" : (": " + eMessage + " ")), leftPath, basePath, rightPath));
     }
 
-    Diff3File diff3file = Diff3File.parseFileContents(diff3Output, leftFileName);
+    Diff3File diff3file = Diff3File.parseFileContents(diff3Output, leftPath.toString());
     return diff3file;
   }
 

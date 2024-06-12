@@ -27,8 +27,8 @@ You can enable and disable each feature individually, or enable just one feature
 These command-line arguments are supported by the merge driver
 `java-merge-driver.sh` and the merge tool `java-merge-tool.sh`.
  * `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
- * `--annotations`, `--no-annotations`, `--only-annotations` [default: enabled]
- * `--imports`, `--no-imports`, `--only-imports` [default: enabled]
+ * `--java-annotations`, `--no-java-annotations`, `--only-java-annotations` [default: enabled]
+ * `--java-imports`, `--no-java-imports`, `--only-java-imports` [default: enabled]
  * `--version-numbers`, `--no-version-numbers`, `--only-version-numbers` [default: enabled]
 
 Unfortunately, git does not permit the user to specify command-line
