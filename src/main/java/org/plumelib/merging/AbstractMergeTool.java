@@ -66,7 +66,7 @@ public class AbstractMergeTool {
           || mergedFileName == null) {
         JavaLibrary.exitErroneously(
             String.format(
-                "unset environment variable: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s%n",
+                "unset environment variable: BASE=%s, LOCAL=%s, REMOTE=%s, MERGED=%s",
                 baseFileName, leftFileName, rightFileName, mergedFileName));
         throw new Error("unreachable");
       }

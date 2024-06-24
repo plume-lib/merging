@@ -17,6 +17,7 @@ SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 ROOTDIR="${SCRIPTDIR}/../../.."
 JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
+EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
 if [ ! -f "$JARFILE" ] ; then
     (cd "$ROOTDIR" && ./gradlew shadowJar)
 fi
@@ -25,8 +26,12 @@ fi
 # TIMEFORMAT="%3R seconds" \
 # time \
 
-if [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$JAVA17_HOME" ] ; then
-  # JAVA_HOME is set and JAVA17_HOME is set and they differ.
+if [ -x "$EXECUTABLE" ] ; then
+  echo "running executable $EXECUTABLE"
+  "$EXECUTABLE" driver "$@"
+  result=$?
+elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$JAVA17_HOME" ] ; then
+  # JAVA_HOME is set, and JAVA17_HOME is set, and they differ.
   JAVA_HOME="$JAVA17_HOME" \
   "$JAVA17_HOME"/bin/java \
     --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
@@ -36,7 +41,7 @@ if [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$
     --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
-    org.plumelib.merging.JavaMergeDriver \
+    org.plumelib.merging.Main driver \
     "$@"
   result=$?
 else
@@ -49,7 +54,7 @@ else
     --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
-    org.plumelib.merging.JavaMergeDriver \
+    org.plumelib.merging.Main driver \
     "$@"
   result=$?
 fi

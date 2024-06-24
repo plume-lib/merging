@@ -14,6 +14,12 @@ plugins {
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.39'
+
+  // GraalVM native compilation
+  id 'org.graalvm.buildtools.native' version '0.10.2'
+
+  // To show Gradle dependencies, run: ./gradlew SOMETASKNAME taskTree
+  id "com.dorongold.task-tree" version "4.0.0"
 }
 
 repositories {
@@ -119,8 +125,26 @@ spotless {
 
 application {
   // There are multiple applications, not just one, in this project.
-  mainClass = 'com.something.MyMainClass'
+  mainClass = "org.plumelib.merging.JavaMergeTool"
 }
+
+graalvmNative {
+    binaries {
+        main {
+            imageName = "plumelib-merge"
+            mainClass = "org.plumelib.merging.Main"
+            buildArgs.add("-O4")
+        }
+        test {
+            buildArgs.add("-O0")
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
+    }
+}
+
+// print System.getProperty("java.class.path")
 
 /// Error Prone linter
 
@@ -259,4 +283,9 @@ check.dependsOn requireJavadoc
 task tags(type: Exec) {
   description 'Run etags to create an Emacs TAGS table'
   commandLine 'bash', '-c', "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags"
+}
+
+task javaversion(type: Exec) {
+  description 'Run etags to create an Emacs TAGS table'
+  commandLine 'java', '-version'
 }
