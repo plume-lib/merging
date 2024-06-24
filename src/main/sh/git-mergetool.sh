@@ -127,11 +127,11 @@ mergetool_trustExitCode="$(git config --get mergetool."$tool".trustExitCode)"
 
 for file in "${files[@]}" ; do
   # `git cat-file -e "$RIGHT_REV:$file"` sometimes doesn't work; I don't know why.  So use `git show`.
-  basefile="$(mktemp -p /tmp "base-XXXXXX-$(basename "$file")")"
+  basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
   if ! git show "$BASE_REV:$file" > "$basefile" ; then continue ; fi
-  leftfile="$(mktemp -p /tmp "left-XXXXXX-$(basename "$file")")"
+  leftfile="$(mktemp -p /tmp "left-XXXXXX" --suffix "-$(basename "$file")")"
   if ! git show "$LEFT_REV:$file" > "$leftfile" ; then continue ; fi
-  rightfile="$(mktemp -p /tmp "right-XXXXXX-$(basename "$file")")"
+  rightfile="$(mktemp -p /tmp "right-XXXXXX" --suffix "-$(basename "$file")")"
   if ! git show "$RIGHT_REV:$file" > "$rightfile" ; then continue ; fi
 
   command="export BASE='$basefile'; export LOCAL='$leftfile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
