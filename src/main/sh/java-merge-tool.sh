@@ -54,7 +54,7 @@ else
 fi
 
 if [ -n "$VERBOSE" ] ; then
-  echo "Result $result for java-merge-tool.sh:" "$@"
+  echo "Result $result for merge-tool.sh:" "$@"
 fi
 
 exit $result

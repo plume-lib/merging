@@ -54,7 +54,7 @@ else
 fi
 
 if [ -n "$VERBOSE" ] ; then
-  echo "Result $result for java-merge-driver.sh:" "$@"
+  echo "Result $result for merge-driver.sh:" "$@"
 fi
 
 exit $result
