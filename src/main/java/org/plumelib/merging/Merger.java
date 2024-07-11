@@ -57,7 +57,7 @@ abstract class Merger {
     @NonNull List<ConflictElement> hunks = cf.hunks();
     if (verbose) {
       System.out.printf(
-          "%s: conflicted file (size %s)=%s%n",
+          "%s: conflicted file before resolving (size %s)=%s%n",
           this.getClass().getSimpleName(), (hunks == null ? "null" : ("" + hunks.size())), cf);
     }
     if (hunks == null) {
