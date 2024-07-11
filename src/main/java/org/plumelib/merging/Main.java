@@ -126,6 +126,7 @@ public class Main implements Callable<Integer> {
    * @param args the command-line arguments
    */
   public static void main(String[] args) {
+    // `execute()` invokes the `call()` method of the `Callable` class (which Main extends).
     int exitCode = new CommandLine(new Main()).execute(args);
     System.exit(exitCode);
   }
