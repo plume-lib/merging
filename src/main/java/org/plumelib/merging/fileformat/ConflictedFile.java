@@ -548,7 +548,6 @@ public class ConflictedFile {
      */
     public CommonLines {}
 
-    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
     @Override
     public String toString(@GuardSatisfied CommonLines this) {
       return textLines.toString();

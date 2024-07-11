@@ -10,10 +10,10 @@ plugins {
   id 'com.diffplug.spotless' version '6.25.0'
 
   // Error Prone linter
-  id('net.ltgt.errorprone') version '3.1.0'
+  id('net.ltgt.errorprone') version '4.0.1'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.39'
+  id 'org.checkerframework' version '0.6.42'
 }
 
 repositories {
@@ -23,16 +23,15 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.google.googlejavaformat:google-java-format:1.21.0'
-  implementation 'com.google.guava:guava:32.1.1-jre'
+  implementation 'com.google.googlejavaformat:google-java-format:1.22.0'
   implementation 'org.plumelib:javac-parse:0.1.0'
   implementation 'org.plumelib:plume-util:1.10.0-SNAPSHOT'
 
   annotationProcessor 'info.picocli:picocli-codegen:4.7.6'
   implementation 'info.picocli:picocli:4.7.6'
 
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.3'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.3'
 }
 
 // Don't use a toolchain because it uses `--release`, which is incompatible with `--add-exports`.
@@ -130,7 +129,7 @@ application {
 /// Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.26.1')
+  errorprone('com.google.errorprone:error_prone_core:2.28.0')
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
@@ -177,7 +176,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.43.0-SNAPSHOT'
+  ext.checkerFrameworkVersion = '3.45.0'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
