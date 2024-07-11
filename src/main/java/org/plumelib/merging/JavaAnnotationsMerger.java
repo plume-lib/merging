@@ -44,6 +44,9 @@ public class JavaAnnotationsMerger extends Merger {
     for (MergeConflict mc : cf.mergeConflicts()) {
       String leftLines = StringsPlume.join("", mc.left());
       String rightLines = StringsPlume.join("", mc.right());
+      // If left or right introduces a comment and an annotation, that is OK.  But if one side
+      // introduces only a comment, then it must differ from the other side (because it's a
+      // MergeConflict), and we don't want to merge it as an annotation.
       if (isComment(leftLines) || isComment(rightLines)) {
         continue;
       }
