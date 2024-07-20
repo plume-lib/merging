@@ -129,7 +129,7 @@ application {
 /// Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.29.1')
+  errorprone('com.google.errorprone:error_prone_core:2.29.2')
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
