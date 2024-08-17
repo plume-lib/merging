@@ -6,6 +6,8 @@ test-annotations: AnnotationsTest1.diff
 
 test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff ImportsTest9.diff
 
+test-insertion: InsertionTest4.diff
+
 test-version-numbers: VersionNumbersTest1.diff
 
 Adjacent%.diff:
@@ -72,6 +74,31 @@ Imports%.diff:
 
 	cp -f $(basename $@)B.java $(basename $@)Output.java
 	../../main/sh/java-merge-driver.sh --only-imports \
+	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
+	if [ -f $(basename $@)Goal-backward.java ] ; then \
+	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
+	else \
+	  diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
+	fi
+
+Insertion%.diff:
+	@(cd ../../.. && ./gradlew -q assemble)
+
+	cp -f $(basename $@)A.java $(basename $@).git-merge
+	git merge-file --diff3 \
+	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
+
+	cp -f $(basename $@)A.java $(basename $@)Output.java
+	../../main/sh/java-merge-driver.sh \
+	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
+	if [ -f $(basename $@)Goal-forward.java ] ; then \
+	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
+	else \
+	  diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
+	fi
+
+	cp -f $(basename $@)B.java $(basename $@)Output.java
+	../../main/sh/java-merge-driver.sh \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
 	if [ -f $(basename $@)Goal-backward.java ] ; then \
 	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
