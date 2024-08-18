@@ -133,19 +133,19 @@ application {
 }
 
 graalvmNative {
-    binaries {
-        main {
-            imageName = "plumelib-merge"
-            mainClass = "org.plumelib.merging.Main"
-            buildArgs.add("-O4")
-        }
-        test {
-            buildArgs.add("-O0")
-        }
+  binaries {
+    main {
+      imageName = "plumelib-merge"
+      mainClass = "org.plumelib.merging.Main"
+      buildArgs.add("-O4")
     }
-    binaries.all {
-        buildArgs.add("--verbose")
+    test {
+      buildArgs.add("-O0")
     }
+  }
+  binaries.all {
+    buildArgs.add("--verbose")
+  }
 }
 
 // print System.getProperty("java.class.path")
