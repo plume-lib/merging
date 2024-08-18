@@ -11,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.plumelib.merging.JavaLibrary;
+import org.plumelib.merging.Main;
 import org.plumelib.util.CollectionsPlume;
 import org.plumelib.util.FilesPlume;
 import org.plumelib.util.StringsPlume;
@@ -174,7 +175,7 @@ public class ConflictedFile {
   public List<MergeConflict> mergeConflicts() {
     hunks();
     if (hunks == null) {
-      JavaLibrary.exitErroneously("parsing failed for " + path + ": " + parseError());
+      Main.exitErroneously("parsing failed for " + path + ": " + parseError());
       throw new Error("unreachable");
     }
     List<MergeConflict> result = new ArrayList<>((hunks.size() + 1) / 2);
@@ -228,7 +229,7 @@ public class ConflictedFile {
       } else if (lines != null) {
         hasConflict = CollectionsPlume.anyMatch(lines, l -> l.startsWith("<<<<<<"));
       } else {
-        JavaLibrary.exitErroneously("Too many null fields in state");
+        Main.exitErroneously("Too many null fields in state");
         throw new Error("unreachable");
       }
       hasConflictInitialized = true;
@@ -283,7 +284,7 @@ public class ConflictedFile {
           lines.addAll(ce.toLines());
         }
       } else {
-        JavaLibrary.exitErroneously("Too many null fields in state");
+        Main.exitErroneously("Too many null fields in state");
         throw new Error("unreachable");
       }
     }
@@ -296,7 +297,18 @@ public class ConflictedFile {
     if (parseError != null) {
       return "ParseError{" + parseError + "}";
     } else if (hunks != null) {
-      return "ConflictedFile{" + hunks.toString() + "}";
+      return "ConflictedFile{"
+          + "hasConflictInitialized="
+          + hasConflictInitialized
+          + ";"
+          + "hasConflict="
+          + hasConflict
+          + ";"
+          + "hasTrivalConflict="
+          + hasTrivalConflict
+          + ";"
+          + hunks.toString()
+          + "}";
     } else {
       return "UnparsedConflictedFile{" + fileContents() + "}";
     }
@@ -547,7 +559,6 @@ public class ConflictedFile {
      */
     public CommonLines {}
 
-    @SuppressWarnings("lock:override.receiver") // JDK needs annotations on java.lang.Record
     @Override
     public String toString(@GuardSatisfied CommonLines this) {
       return textLines.toString();

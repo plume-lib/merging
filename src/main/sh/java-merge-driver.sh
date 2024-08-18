@@ -45,7 +45,6 @@ elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != 
     "$@"
   result=$?
 else
-  java -version
   "$JAVA_HOME"/bin/java \
     --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
