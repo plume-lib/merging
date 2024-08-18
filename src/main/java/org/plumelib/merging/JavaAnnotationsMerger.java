@@ -44,6 +44,12 @@ public class JavaAnnotationsMerger extends Merger {
     for (MergeConflict mc : cf.mergeConflicts()) {
       String leftLines = StringsPlume.join("", mc.left());
       String rightLines = StringsPlume.join("", mc.right());
+      // If left or right introduces a comment and an annotation, that is OK.  But if one side
+      // introduces only a comment, then it must differ from the other side (because it's a
+      // MergeConflict), and we don't want to merge it as an annotation.
+      if (isComment(leftLines) || isComment(rightLines)) {
+        continue;
+      }
       if (verbose) {
         System.err.printf("calling diff_main([[[%s]]], [[[%s]]])%n", leftLines, rightLines);
       }
@@ -101,8 +107,30 @@ public class JavaAnnotationsMerger extends Merger {
   }
 
   /**
-   * Returns true if the given text is one or more Java annotations or modifiers. Acutally permits
-   * ancillary text too; for example "@Anno ClassName this" and "extends @Anno Object"
+   * Returns true if the given text consists of at least one Java comment, and contains only
+   * whitespace and Java comments.
+   *
+   * @param text a string
+   * @return true if the given text is a Java comment, plus optional comments and whitespace
+   */
+  protected static boolean isComment(String text) {
+    text = text.strip();
+    if (text.isEmpty()) {
+      return false;
+    }
+    text = commentPattern.matcher(text).replaceAll(" ");
+    text = text.strip();
+    if (text.isEmpty()) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if the given text is zero or more Java annotations or modifiers. Actually permits
+   * ancillary text too; for example "@Anno ClassName this" and "extends @Anno Object" and comments.
+   *
+   * <p>Note that it returns true for a text consisting only of whitespace and comments.
    *
    * @param text a string
    * @return true if the given text is one or more Java annotations or modifiers
@@ -113,7 +141,7 @@ public class JavaAnnotationsMerger extends Merger {
     // String origText = text;
 
     text = commentPattern.matcher(text).replaceAll(" ");
-    text = text.trim();
+    text = text.strip();
     if (text.isEmpty()) {
       return true;
     }
@@ -140,6 +168,8 @@ public class JavaAnnotationsMerger extends Merger {
         declText = text.substring(8) + " varname";
       }
     } else if (text.endsWith("}")) {
+      return false;
+    } else if (text.endsWith(";")) {
       return false;
     } else if (annotationStartPattern.matcher(text).find()) {
       if (useRegex && annotationsPattern.matcher(text).matches()) {

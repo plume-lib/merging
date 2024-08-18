@@ -90,8 +90,8 @@ public class JavaImportsMergerTest {
   void assertJavaImportsMerger(
       String fileA, String fileB, String fileBase, String fileOutput, String fileGoal) {
     Path pathA = Paths.get("src", "test", "resources", fileA);
-    // Path pathB = Paths.get("src", "test", "resources", fileB);
-    // Path pathBase = Paths.get("src", "test", "resources", fileBase);
+    Path pathB = Paths.get("src", "test", "resources", fileB);
+    Path pathBase = Paths.get("src", "test", "resources", fileBase);
     Path pathOutput = Paths.get("src", "test", "resources", fileOutput);
     Path pathGoal = Paths.get("src", "test", "resources", fileGoal);
     try {
@@ -99,7 +99,7 @@ public class JavaImportsMergerTest {
     } catch (IOException e) {
       throw new Error("Problem copying " + pathA + " to " + pathOutput, e);
     }
-    MergeState ms = new MergeState(fileBase, fileA, fileB, fileOutput, true);
+    MergeState ms = new MergeState(pathA, pathBase, pathB, pathOutput, true);
     JavaImportsMerger jim = new JavaImportsMerger(false);
     jim.merge(ms);
     try {

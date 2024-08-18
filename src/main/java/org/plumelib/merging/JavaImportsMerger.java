@@ -101,10 +101,9 @@ public class JavaImportsMerger extends Merger {
     Diff3File diff3file;
     try {
       diff3file =
-          Diff3File.from3files(
-              mergeState.leftFileName, mergeState.baseFileName, mergeState.rightFileName);
+          Diff3File.from3paths(mergeState.leftPath, mergeState.basePath, mergeState.rightPath);
     } catch (Diff3ParseException e) {
-      JavaLibrary.exitErroneously(e.getMessage());
+      Main.exitErroneously(e.getMessage());
       throw new Error("unreachable");
     }
 
@@ -355,7 +354,7 @@ public class JavaImportsMerger extends Merger {
       int leftCommentIndex = CollectionsPlume.indexOf(leftLines, comment, leftIndex);
       int rightCommentIndex = CollectionsPlume.indexOf(rightLines, comment, rightIndex);
       if (leftCommentIndex == -1 || rightCommentIndex == -1) {
-        JavaLibrary.exitErroneously("didn't find comment: " + comment);
+        Main.exitErroneously("didn't find comment: " + comment);
       }
       result.addAll(
           mergeImportsAndSpaces(

@@ -36,11 +36,10 @@ if [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$
     --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
-    org.plumelib.merging.JavaMergeDriver \
+    org.plumelib.merging.Main driver \
     "$@"
   result=$?
 else
-  java -version
   "$JAVA_HOME"/bin/java \
     --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
@@ -49,7 +48,7 @@ else
     --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
-    org.plumelib.merging.JavaMergeDriver \
+    org.plumelib.merging.Main driver \
     "$@"
   result=$?
 fi

@@ -1,11 +1,10 @@
 package org.plumelib.merging;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.plumelib.util.CollectionsPlume;
 
-/** This class contains static methods related to Java code, and more. */
+/** This class contains static methods related to Java code. */
 public class JavaLibrary {
 
   /** Do not instantiate. */
@@ -77,18 +76,5 @@ public class JavaLibrary {
    */
   public static boolean isImportBlockLine(String line) {
     return line.isEmpty() || isBlankLine(line) || isCommentLine(line) || isImportStatement(line);
-  }
-
-  /**
-   * Print an error message and then exit erroneously. Call this when there is an unexpected and
-   * unrecoverable problem, such as an invalid invocation or inability to read or parse files
-   *
-   * @param errorMessage the error message
-   */
-  public static void exitErroneously(String errorMessage) {
-    String className = MethodHandles.lookup().lookupClass().getSimpleName();
-    System.out.println(className + ": " + errorMessage);
-    System.err.println(className + ": " + errorMessage);
-    System.exit(129);
   }
 }
