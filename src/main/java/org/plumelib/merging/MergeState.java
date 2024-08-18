@@ -26,11 +26,11 @@ public class MergeState {
   /** The merged file path. */
   public final Path mergedPath;
 
-  /** The base file contents. */
-  private @MonotonicNonNull List<String> baseFileLines;
-
   /** The left file contents. */
   private @MonotonicNonNull List<String> leftFileLines;
+
+  /** The base file contents. */
+  private @MonotonicNonNull List<String> baseFileLines;
 
   /** The right file contents. */
   private @MonotonicNonNull List<String> rightFileLines;
