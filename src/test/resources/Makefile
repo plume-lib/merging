@@ -6,6 +6,7 @@ test-annotations: AnnotationsTest1.diff
 
 test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff ImportsTest9.diff
 
+# This test is not yet enabled.  It is a test for an insert-insert conflict.
 test-insertion: InsertionTest4.diff
 
 test-version-numbers: VersionNumbersTest1.diff
