@@ -297,7 +297,18 @@ public class ConflictedFile {
     if (parseError != null) {
       return "ParseError{" + parseError + "}";
     } else if (hunks != null) {
-      return "ConflictedFile{" + hunks.toString() + "}";
+      return "ConflictedFile{"
+          + "hasConflictInitialized="
+          + hasConflictInitialized
+          + ";"
+          + "hasConflict="
+          + hasConflict
+          + ";"
+          + "hasTrivalConflict="
+          + hasTrivalConflict
+          + ";"
+          + hunks.toString()
+          + "}";
     } else {
       return "UnparsedConflictedFile{" + fileContents() + "}";
     }
