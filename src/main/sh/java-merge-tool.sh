@@ -9,8 +9,6 @@ if [ "$1" = "--verbose" ] ; then
   VERBOSE=1
 fi
 
-VERBOSE=1
-
 if [ -n "$VERBOSE" ] ; then
   echo "$0:" "$@"
 fi
@@ -39,7 +37,6 @@ if [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
     org.plumelib.merging.Main tool \
-    --verbose \
     "$@"
   result=$?
 else
@@ -52,7 +49,6 @@ else
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
     org.plumelib.merging.Main tool \
-    --verbose \
     "$@"
   result=$?
 fi

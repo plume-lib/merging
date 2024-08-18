@@ -508,8 +508,10 @@ public class JavaImportsMerger extends Merger {
     if (deleted.isEmpty() || inserted.isEmpty()) {
       return Collections.emptyList();
     }
+    if (verbose) {
     System.out.printf("deleted imports =  %s%n", deleted);
     System.out.printf("inserted imports = %s%n", inserted);
+    }
     Set<String> insertedIdentifiers =
         new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
@@ -519,7 +521,7 @@ public class JavaImportsMerger extends Merger {
         result.add(del);
       }
     }
-    System.out.printf("renamedImports = %s%n", result);
+    if (verbose) {System.out.printf("renamedImports = %s%n", result);}
     return Collections.unmodifiableList(result);
   }
 
