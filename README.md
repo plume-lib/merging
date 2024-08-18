@@ -149,10 +149,10 @@ There is just one step for setup.
 git config --global merge.conflictstyle diff3
 git config --global mergetool.prompt false
 git config --global merge.tool merge-java
-git config --global mergetool.merge-java.cmd 'java-merge-tool.sh ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
+git config --global mergetool.merge-java.cmd 'java-merge-tool.sh ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
 git config --global mergetool.merge-java.trustExitCode true
 git config --global merge.tool merge-adjacent
-git config --global mergetool.merge-adjacent.cmd 'java-merge-tool.sh --only-adjacent ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
+git config --global mergetool.merge-adjacent.cmd 'java-merge-tool.sh --only-adjacent ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
 git config --global mergetool.merge-adjacent.trustExitCode true
 ```
 

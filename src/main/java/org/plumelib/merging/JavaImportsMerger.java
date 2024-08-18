@@ -73,6 +73,9 @@ public class JavaImportsMerger extends Merger {
     String baseContents = String.join("", mergeState.baseFileLines());
     String leftContents = String.join("", mergeState.leftFileLines());
     String rightContents = String.join("", mergeState.rightFileLines());
+    if (verbose) {
+      System.out.printf("mergeState=%s%n", mergeState);
+    }
     forbiddenImports.addAll(renamedImports(baseContents, leftContents));
     forbiddenImports.addAll(renamedImports(baseContents, rightContents));
 
@@ -122,17 +125,30 @@ public class JavaImportsMerger extends Merger {
       throw t;
     }
 
-    mergedFileContentsLines =
-        CollectionsPlume.filter(
-            mergedFileContentsLines,
-            (String line) -> {
-              final String imported = getImportedType(line);
-              return imported == null || !forbiddenImports.contains(imported);
-            });
+    if (verbose) {
+      System.out.println("forbiddenImports=" + forbiddenImports);
+    }
+    if (!forbiddenImports.isEmpty()) {
+      if (verbose) {
+        System.out.printf("baseContents = %s%nend of baseContents.%n", baseContents);
+        System.out.printf("leftContents = %s%nend of leftContents.%n", leftContents);
+        System.out.printf("rightContents = %s%nend of rightContents.%n", rightContents);
+      }
+      mergedFileContentsLines =
+          CollectionsPlume.filter(
+              mergedFileContentsLines,
+              (String line) -> {
+                final String imported = getImportedType(line);
+                return imported == null || !forbiddenImports.contains(imported);
+              });
+      if (verbose) {
+        System.out.println("without forbidden imports = " + mergedFileContentsLines);
+      }
+    }
 
     String mergedFileContents = String.join("", mergedFileContentsLines);
     if (verbose) {
-      System.out.println("mergedFileContents=" + mergedFileContents);
+      System.out.println("input to gjf = " + mergedFileContents);
     }
 
     String gjfFileContents;
@@ -492,6 +508,8 @@ public class JavaImportsMerger extends Merger {
     if (deleted.isEmpty() || inserted.isEmpty()) {
       return Collections.emptyList();
     }
+    System.out.printf("deleted imports =  %s%n", deleted);
+    System.out.printf("inserted imports = %s%n", inserted);
     Set<String> insertedIdentifiers =
         new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
@@ -501,6 +519,7 @@ public class JavaImportsMerger extends Merger {
         result.add(del);
       }
     }
+    System.out.printf("renamedImports = %s%n", result);
     return Collections.unmodifiableList(result);
   }
 
@@ -530,8 +549,8 @@ public class JavaImportsMerger extends Merger {
   private static Pattern horizontalSpace = Pattern.compile("\\s+");
 
   /**
-   * If the given line is an import statement, then return what is being imported, as a dotted
-   * identifier.
+   * If the given line is an import statement, then return what is being imported, as a
+   * fully-qualified dotted identifier.
    *
    * @param line a line of code
    * @return what is being imported, or null if the line isn't an import statement

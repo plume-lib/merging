@@ -1,13 +1,15 @@
 #!/bin/sh
 
 # This is a git merge tool for Java files. A git merge tool takes as input four
-# filenames, for the base, local, remote, and merged versions of the file.
+# filenames, for the local, base, remote, and merged versions of the file.
 # The merge tool overwrites the merged file with a better merge result.
 # Command-line flags such as `--verbose` can be passed before the filenames.
 
 if [ "$1" = "--verbose" ] ; then
   VERBOSE=1
 fi
+
+VERBOSE=1
 
 if [ -n "$VERBOSE" ] ; then
   echo "$0:" "$@"
@@ -37,6 +39,7 @@ if [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
     org.plumelib.merging.Main tool \
+    --verbose \
     "$@"
   result=$?
 else
@@ -49,6 +52,7 @@ else
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
     -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
     org.plumelib.merging.Main tool \
+    --verbose \
     "$@"
   result=$?
 fi
