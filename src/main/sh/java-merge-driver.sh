@@ -27,7 +27,9 @@ fi
 # time \
 
 if [ -x "$EXECUTABLE" ] ; then
-  echo "running executable $EXECUTABLE"
+  if [ -n "$VERBOSE" ] ; then
+    echo "running executable $EXECUTABLE"
+  fi
   "$EXECUTABLE" driver "$@"
   result=$?
 elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$JAVA17_HOME" ] ; then
