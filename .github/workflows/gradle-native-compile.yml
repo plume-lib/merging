@@ -12,7 +12,8 @@ jobs:
         java: [ '17', '21', '22' ]
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out code
+      uses: actions/checkout@v4
       with:
         fetch-depth: 1
         show-progress: false
@@ -24,13 +25,6 @@ jobs:
         distribution: 'graalvm'
         github-token: ${{ secrets.GITHUB_TOKEN }}
         native-image-job-reports: 'true'
+
     - name: ./gradlew nativeCompile check
       run: ./gradlew nativeCompile check
-
-## Older
-#     - name: Set up JDK
-#       uses: actions/setup-java@v4
-#       with:
-#         distribution: 'temurin'
-#         java-version: ${{ matrix.java }}
-#       
