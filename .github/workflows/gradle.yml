@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [ '17', '21', '22' ]
+        java: [ '17', '21', '23-ea' ]
 
     steps:
     - uses: actions/checkout@v4
