@@ -64,8 +64,8 @@ You can use the mergers in this repository in three ways.
 
 2. In the top level of this repository, run either `./gradlew
 nativeCompile` (if you are using GraalVM) or `./gradlew shadowJar` (if you
-are using any other JVM).  Using `nativeCompile` produces a binary that
-runs much faster than Java `.class` files do.
+are using any other JVM).  Using `nativeCompile` is recommended, because it
+produces a binary that runs much faster than Java `.class` files do.
 
 3. Put directory `.../merging/src/main/sh/` on your PATH,
 adjusting "..." according to where you cloned this repository.

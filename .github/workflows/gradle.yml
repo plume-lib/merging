@@ -16,6 +16,7 @@ jobs:
       with:
         fetch-depth: 1
         show-progress: false
+
     - name: Set up JDK
       uses: actions/setup-java@v4
       with:
