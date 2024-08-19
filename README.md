@@ -62,7 +62,10 @@ You can use the mergers in this repository in three ways.
 
 1. Clone this repository.
 
-2. In the top level of this repository, run: `./gradlew shadowJar`
+2. In the top level of this repository, run either `./gradlew
+nativeCompile` (if you are using GraalVM) or `./gradlew shadowJar` (if you
+are using any other JVM).  Using `nativeCompile` is recommended, because it
+produces a binary that runs much faster than Java `.class` files do.
 
 3. Put directory `.../merging/src/main/sh/` on your PATH,
 adjusting "..." according to where you cloned this repository.
@@ -247,15 +250,6 @@ other `git merge` functionality disabled!).  Therefore, the merge drivers
 in this repository (which first call `git merge-file`, then improve the
 results) may produce suboptimal results.  A (re-)merge tool lets you use
 `git merge`, then still use a merger to improve the results.
-
-
-## Limitations
-
-The mergers are relatively slow:  about 1/3 second per file that was
-modified in both versions to be merged.  Most merges involve few files that
-were modified in both of the versions being merged, so this is usually not
-a problem; but if many files are modified in both of the versions, the
-merge will be slow.
 
 
 ## License
