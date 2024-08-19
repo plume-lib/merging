@@ -508,8 +508,8 @@ public class JavaImportsMerger extends Merger {
     if (deleted.isEmpty() || inserted.isEmpty()) {
       return Collections.emptyList();
     }
-    System.out.printf("deleted imports =  %s%n", deleted);
-    System.out.printf("inserted imports = %s%n", inserted);
+    // System.out.printf("deleted imports =  %s%n", deleted);
+    // System.out.printf("inserted imports = %s%n", inserted);
     Set<String> insertedIdentifiers =
         new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
