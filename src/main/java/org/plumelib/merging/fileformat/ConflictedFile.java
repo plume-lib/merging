@@ -147,9 +147,9 @@ public class ConflictedFile {
     this.path = path;
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// End of constructors
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // End of constructors
+  //
 
   /**
    * Returns the contents of the conflicted file, or null if the file cannot be parsed.
@@ -630,9 +630,9 @@ public class ConflictedFile {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Parsing
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Parsing
+  //
 
   /** Parse a conflicted file, filling in the {@link #hunks} or {@link #parseError} field. */
   @SuppressWarnings({"allcheckers:purity", "lock"}) // pure from clients' point of view

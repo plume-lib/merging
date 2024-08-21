@@ -112,8 +112,8 @@ public class JavaImportsMergerTest {
     }
   }
 
-  /// This test gets skipped, and causes other tests not to run.  So, for now, run the tests via a
-  /// Makefile. :-(
+  // // This test gets skipped, and causes other tests not to run.  So, for now, run the tests via a
+  // // Makefile. :-(
   // @Test
   // void testJavaImportsMerger() {
   //   assertJavaImportsMerger("ImportsTest1");
