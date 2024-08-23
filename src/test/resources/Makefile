@@ -16,7 +16,7 @@ Adjacent%.diff:
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	../../main/sh/java-merge-driver.sh --only-adjacent \
+	../../main/sh/merge-driver.sh --only-adjacent \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
@@ -25,7 +25,7 @@ Adjacent%.diff:
 	fi
 
 	cp -f $(basename $@)B.java $(basename $@)Output.java
-	../../main/sh/java-merge-driver.sh --only-adjacent \
+	../../main/sh/merge-driver.sh --only-adjacent \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
 	if [ -f $(basename $@)Goal-backward.java ] ; then \
 	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
@@ -38,7 +38,7 @@ Annotations%.diff:
 	@(cd ../../.. && ./gradlew -q assemble)
 
 	cp -f $(basename $@)Merged.java $(basename $@)Output.java
-	../../main/sh/java-merge-tool.sh --only-java-annotations \
+	../../main/sh/merge-tool.sh --only-java-annotations \
 	  $(basename $@)Base.java $(basename $@)A.java $(basename $@)B.java $(basename $@)Output.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
@@ -47,7 +47,7 @@ Annotations%.diff:
 	fi
 
 	cp -f $(basename $@)Merged.java $(basename $@)Output.java
-	../../main/sh/java-merge-tool.sh --only-java-annotations \
+	../../main/sh/merge-tool.sh --only-java-annotations \
 	  $(basename $@)Base.java $(basename $@)B.java $(basename $@)A.java $(basename $@)Output.java || true
 	if [ -f $(basename $@)Goal-backward.java ] ; then \
 	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
@@ -63,7 +63,7 @@ Imports%.diff:
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	../../main/sh/java-merge-driver.sh --only-java-imports \
+	../../main/sh/merge-driver.sh --only-java-imports \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
@@ -72,7 +72,7 @@ Imports%.diff:
 	fi
 
 	cp -f $(basename $@)B.java $(basename $@)Output.java
-	../../main/sh/java-merge-driver.sh --only-java-imports \
+	../../main/sh/merge-driver.sh --only-java-imports \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
 	if [ -f $(basename $@)Goal-backward.java ] ; then \
 	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
@@ -88,7 +88,7 @@ VersionNumbers%.diff:
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	../../main/sh/java-merge-driver.sh --only-version-numbers \
+	../../main/sh/merge-driver.sh --only-version-numbers \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
@@ -97,7 +97,7 @@ VersionNumbers%.diff:
 	fi
 
 	cp -f $(basename $@)B.java $(basename $@)Output.java
-	../../main/sh/java-merge-driver.sh --only-version-numbers \
+	../../main/sh/merge-driver.sh --only-version-numbers \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
 	if [ -f $(basename $@)Goal-backward.java ] ; then \
 	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
