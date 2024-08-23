@@ -132,7 +132,7 @@ for file in "${files[@]}" ; do
   basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
   if ! git show "$BASE_REV:$file" > "$basefile" ; then continue ; fi
   rightfile="$(mktemp -p /tmp "right-XXXXXX" --suffix "-$(basename "$file")")"
-  if ! git show "$RIGHT_REV:$file" > "$rightfile" ; then continue ; fi
+  if ! git show "$RIGHT_REV:$file" > "$rightfile" 2> /dev/null ; then continue ; fi
 
   command="export LOCAL='$leftfile'; export BASE='$basefile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
   if [ -n "$verbose" ] ; then

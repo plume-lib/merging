@@ -19,16 +19,12 @@ jobs:
         show-progress: false
 
     - name: Set up JDK
-      uses: actions/setup-java@v4
+      uses: graalvm/setup-graalvm@v1
       with:
-        distribution: 'temurin'
         java-version: ${{ matrix.java }}
+        distribution: 'graalvm'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        native-image-job-reports: 'true'
 
-    - name: ./gradlew build
-      run: ./gradlew build
-    - name: ./gradlew javadoc
-      run: ./gradlew javadoc
-    - name: ./gradlew requireJavadoc
-      run: ./gradlew requireJavadoc
-    - name: ./gradlew spotlessCheck
-      run: ./gradlew spotlessCheck
+    - name: ./gradlew nativeCompile check
+      run: ./gradlew nativeCompile check
