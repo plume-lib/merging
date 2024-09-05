@@ -13,7 +13,7 @@ plugins {
   id('net.ltgt.errorprone') version '4.0.1'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.43'
+  id 'org.checkerframework' version '0.6.44'
 
   // GraalVM native compilation
   id 'org.graalvm.buildtools.native' version '0.10.2'
