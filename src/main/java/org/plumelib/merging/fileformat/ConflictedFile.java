@@ -548,8 +548,7 @@ public class ConflictedFile {
    *
    * @param textLines the text
    */
-  public static record CommonLines(
-      List<String> textLines) implements ConflictElement {
+  public static record CommonLines(List<String> textLines) implements ConflictElement {
 
     /**
      * Creates a CommonLines record.
