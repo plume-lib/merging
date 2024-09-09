@@ -549,7 +549,6 @@ public class ConflictedFile {
    * @param textLines the text
    */
   public static record CommonLines(
-      /** The text. */
       List<String> textLines) implements ConflictElement {
 
     /**
