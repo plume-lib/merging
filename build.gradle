@@ -13,7 +13,7 @@ plugins {
   id('net.ltgt.errorprone') version '4.0.1'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.43'
+  id 'org.checkerframework' version '0.6.44'
 
   // GraalVM native compilation
   id 'org.graalvm.buildtools.native' version '0.10.2'
@@ -166,7 +166,7 @@ graalvmNative {
 // Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.30.0')
+  errorprone('com.google.errorprone:error_prone_core:2.31.0')
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
@@ -213,7 +213,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.46.0'
+  ext.checkerFrameworkVersion = '3.47.0'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
