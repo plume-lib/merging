@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# This script is a git re-merge tool.
 # This script is like `git mergetool`, with two differences:
 #  * It requires no user interaction (unless the merge tool does).
 #  * When passed the `--all` or `-a` command-line argument, this script runs a
