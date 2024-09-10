@@ -150,7 +150,7 @@ for file in "${files[@]}" ; do
   else
     if git \
          -c core.whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,-indent-with-non-tab,-tab-in-indent,-cr-at-eol \
-         diff --check --quiet ; then
+         diff --check --quiet "$file" ; then
       git add "$file"
     fi
   fi
