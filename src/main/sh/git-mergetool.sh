@@ -127,12 +127,16 @@ mergetool_command="$(git config --get mergetool."$tool".cmd)"
 mergetool_trustExitCode="$(git config --get mergetool."$tool".trustExitCode)"
 
 for file in "${files[@]}" ; do
+(
   # `git cat-file -e "$RIGHT_REV:$file"` sometimes doesn't work; I don't know why.  So use `git show`.
   leftfile="$(mktemp -p /tmp "left-XXXXXX" --suffix "-$(basename "$file")")"
+  # shellcheck disable=2106 # the group is the whole loop body
   if ! git show "$LEFT_REV:$file" > "$leftfile" ; then continue ; fi
   basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
+  # shellcheck disable=2106 # the group is the whole loop body
   if ! git show "$BASE_REV:$file" > "$basefile" ; then continue ; fi
   rightfile="$(mktemp -p /tmp "right-XXXXXX" --suffix "-$(basename "$file")")"
+  # shellcheck disable=2106 # the group is the whole loop body
   if ! git show "$RIGHT_REV:$file" > "$rightfile" 2> /dev/null ; then continue ; fi
 
   command="export LOCAL='$leftfile'; export BASE='$basefile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
@@ -158,4 +162,7 @@ for file in "${files[@]}" ; do
   if [ -z "$verbose" ] ; then
     rm -f "$leftfile" "$basefile" "$rightfile"
   fi
+) &
 done
+
+wait
