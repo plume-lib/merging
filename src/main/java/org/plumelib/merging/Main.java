@@ -126,9 +126,40 @@ public class Main implements Callable<Integer> {
    * @param args the command-line arguments
    */
   public static void main(String[] args) {
+    setJavaHome();
     // `execute()` invokes the `call()` method of the `Callable` class (which Main extends).
     int exitCode = new CommandLine(new Main()).execute(args);
     System.exit(exitCode);
+  }
+
+  /**
+   * Set the java.home property if it is not set. That is the case when running under GraalVM. See
+   * https://github.com/oracle/graal/issues/2835#issuecomment-1333308238.
+   *
+   * <p>This is needed by google-java-format. It doesn't actually use java.home, though it crashes
+   * if java.home is not set.
+   *
+   * <p>This particular code should never be called because of {@code
+   * --initialize-at-build-time=com.sun.tools.javac.file.Locations} when building. See
+   * https://github.com/oracle/graal/issues/2903#issuecomment-1046660582.
+   */
+  private static void setJavaHome() {
+    if (System.getProperty("java.home") == null) {
+      String home = System.getenv("GRAALVM_HOME");
+      if (home == null) {
+        home = System.getenv("JAVA_HOME");
+        if (home == null) {
+          home = System.getProperty("user.home");
+          if (home == null) {
+            home = System.getProperty("user.dir");
+            if (home == null) {
+              home = "/";
+            }
+          }
+        }
+      }
+      System.setProperty("java.home", home);
+    }
   }
 
   /**
@@ -287,9 +318,9 @@ public class Main implements Callable<Integer> {
     return ms;
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Utilities
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Utilities
+  //
 
   /** The merge mode: merge driver or merge tool. */
   public enum MergeMode {

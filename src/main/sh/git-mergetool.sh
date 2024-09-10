@@ -3,7 +3,7 @@
 # This script is like `git mergetool`, with two differences:
 #  * It requires no user interaction (unless the merge tool does).
 #  * When passed the `--all` or `-a` command-line argument, this script runs a
-#    git mergetool on every file that is different in all of base, left, and
+#    git mergetool on every file that is different in all of left, base, and
 #    right.  It does so even if the file has been cleanly merged and contains no
 #    merge conflict markers, and even if the merge completed and was committed.
 #    (That is, the script can be run either when a merge is in progress, or when
@@ -84,7 +84,7 @@ fi
 BASE_REV="$(git merge-base "$LEFT_REV" "$RIGHT_REV")"
 
 if [ -n "$verbose" ] ; then
-  echo "$0: BASE_REV ${BASE_REV} LEFT_REV ${LEFT_REV} RIGHT_REV ${RIGHT_REV}"
+  echo "$0: LEFT_REV ${LEFT_REV} BASE_REV ${BASE_REV} RIGHT_REV ${RIGHT_REV}"
 fi
 
 if [ ${#files[@]} -eq 0 ] ; then
@@ -127,14 +127,14 @@ mergetool_trustExitCode="$(git config --get mergetool."$tool".trustExitCode)"
 
 for file in "${files[@]}" ; do
   # `git cat-file -e "$RIGHT_REV:$file"` sometimes doesn't work; I don't know why.  So use `git show`.
-  basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
-  if ! git show "$BASE_REV:$file" > "$basefile" ; then continue ; fi
   leftfile="$(mktemp -p /tmp "left-XXXXXX" --suffix "-$(basename "$file")")"
   if ! git show "$LEFT_REV:$file" > "$leftfile" ; then continue ; fi
+  basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
+  if ! git show "$BASE_REV:$file" > "$basefile" ; then continue ; fi
   rightfile="$(mktemp -p /tmp "right-XXXXXX" --suffix "-$(basename "$file")")"
-  if ! git show "$RIGHT_REV:$file" > "$rightfile" ; then continue ; fi
+  if ! git show "$RIGHT_REV:$file" > "$rightfile" 2> /dev/null ; then continue ; fi
 
-  command="export BASE='$basefile'; export LOCAL='$leftfile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
+  command="export LOCAL='$leftfile'; export BASE='$basefile'; export REMOTE='$rightfile'; export MERGED='$file'; $mergetool_command"
   if [ -n "$verbose" ] ; then
     echo "$0: command = $command"
   fi
@@ -155,6 +155,6 @@ for file in "${files[@]}" ; do
   fi
 
   if [ -z "$verbose" ] ; then
-    rm -f "$basefile" "$leftfile" "$rightfile"
+    rm -f "$leftfile" "$basefile" "$rightfile"
   fi
 done

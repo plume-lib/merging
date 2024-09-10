@@ -13,7 +13,13 @@ plugins {
   id('net.ltgt.errorprone') version '4.0.1'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.43'
+  id 'org.checkerframework' version '0.6.44'
+
+  // GraalVM native compilation
+  id 'org.graalvm.buildtools.native' version '0.10.3'
+
+  // To show Gradle dependencies, run: ./gradlew SOMETASKNAME taskTree
+  id "com.dorongold.task-tree" version "4.0.0"
 }
 
 repositories {
@@ -126,10 +132,41 @@ application {
   mainClass = 'org.plumelib.merging.Main'
 }
 
-/// Error Prone linter
+graalvmNative {
+  binaries {
+    main {
+      imageName = "plumelib-merge"
+      mainClass = "org.plumelib.merging.Main"
+      buildArgs.add("-O4")
+    }
+    test {
+      buildArgs.add("-O0")
+    }
+  }
+  binaries.all {
+    buildArgs.add("--verbose")
+    // These arguments are from google-java-format's core/pom.xml.
+    buildArgs.add("-H:+UnlockExperimentalVMOptions")
+    buildArgs.add("-H:IncludeResourceBundles=com.sun.tools.javac.resources.compiler")
+    buildArgs.add("-H:IncludeResourceBundles=com.sun.tools.javac.resources.javac")
+    buildArgs.add("--no-fallback")
+    buildArgs.add("--initialize-at-build-time=com.sun.tools.javac.file.Locations")
+    buildArgs.add("-H:+ReportExceptionStackTraces")
+    buildArgs.add("-H:-UseContainerSupport")
+    buildArgs.add("-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
+    buildArgs.add("-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED")
+    buildArgs.add("-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED")
+    buildArgs.add("-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED")
+    buildArgs.add("-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED")
+    buildArgs.add("-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED")
+    buildArgs.add("-march=compatibility")
+  }
+}
+
+// Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.30.0')
+  errorprone('com.google.errorprone:error_prone_core:2.31.0')
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
@@ -145,7 +182,7 @@ tasks.withType(JavaCompile).configureEach {
   }
 }
 
-/// Checker Framework pluggable type-checking
+// Checker Framework pluggable type-checking
 
 apply plugin: 'org.checkerframework'
 
@@ -176,7 +213,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.46.0'
+  ext.checkerFrameworkVersion = '3.47.0'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
@@ -196,7 +233,7 @@ if (project.hasProperty('cfLocal')) {
   }
 }
 
-/// Javadoc
+// Javadoc
 
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -257,7 +294,7 @@ task requireJavadoc(type: JavaExec) {
 }
 check.dependsOn requireJavadoc
 
-/// Emacs support
+// Emacs support
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {

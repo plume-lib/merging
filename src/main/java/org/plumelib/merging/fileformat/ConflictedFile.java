@@ -147,9 +147,9 @@ public class ConflictedFile {
     this.path = path;
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// End of constructors
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // End of constructors
+  //
 
   /**
    * Returns the contents of the conflicted file, or null if the file cannot be parsed.
@@ -548,9 +548,7 @@ public class ConflictedFile {
    *
    * @param textLines the text
    */
-  public static record CommonLines(
-      /** The text. */
-      List<String> textLines) implements ConflictElement {
+  public static record CommonLines(List<String> textLines) implements ConflictElement {
 
     /**
      * Creates a CommonLines record.
@@ -630,9 +628,9 @@ public class ConflictedFile {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Parsing
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Parsing
+  //
 
   /** Parse a conflicted file, filling in the {@link #hunks} or {@link #parseError} field. */
   @SuppressWarnings({"allcheckers:purity", "lock"}) // pure from clients' point of view

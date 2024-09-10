@@ -25,7 +25,7 @@ favor of the larger version number.
 
 You can enable and disable each feature individually, or enable just one feature.
 These command-line arguments are supported by the merge driver
-`java-merge-driver.sh` and the merge tool `java-merge-tool.sh`.
+`merge-driver.sh` and the merge tool `merge-tool.sh`.
  * `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
  * `--java-annotations`, `--no-java-annotations`, `--only-java-annotations` [default: enabled]
  * `--java-imports`, `--no-java-imports`, `--only-java-imports` [default: enabled]
@@ -62,7 +62,10 @@ You can use the mergers in this repository in three ways.
 
 1. Clone this repository.
 
-2. In the top level of this repository, run: `./gradlew shadowJar`
+2. In the top level of this repository, run either `./gradlew
+nativeCompile` (if you are using GraalVM) or `./gradlew shadowJar` (if you
+are using any other JVM).  Using `nativeCompile` is recommended, because it
+produces a binary that runs much faster than Java `.class` files do.
 
 3. Put directory `.../merging/src/main/sh/` on your PATH,
 adjusting "..." according to where you cloned this repository.
@@ -79,29 +82,29 @@ driver for **every merge**.
 1. Run these commands:
 ```
 git config --global merge.conflictstyle diff3
-git config --global merge.merge-java.name "Merge Java files"
-git config --global merge.merge-java.driver 'java-merge-driver.sh %A %O %B'
+git config --global merge.plumelib-merge.name "Merge Java files"
+git config --global merge.plumelib-merge.driver 'merge-driver.sh %A %O %B'
 git config --global merge.merge-adjacent.name "Merge changes on adjacent lines"
-git config --global merge.merge-adjacent.driver 'java-merge-driver.sh --only-adjacent %A %O %B'
+git config --global merge.merge-adjacent.driver 'merge-driver.sh --only-adjacent %A %O %B'
 ```
 
 To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.
 
 You can define additional merge drivers that pass different sets of
-arguments, beyond the `merge-java` and `merge-adjacent` merge drivers
+arguments, beyond the `plumelib-merge` and `merge-adjacent` merge drivers
 defined below.
 
 2. In a gitattributes file, add:
 
 ```
-*.java merge=merge-java
+* merge=plumelib-merge
 ```
 
 or
 
 ```
-* merge=merge-adjacent
+*.java merge=merge-adjacent
 ```
 
 To enable the merge driver for a single repository, add the above text to
@@ -123,7 +126,7 @@ See [below](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 
 ```
 git merge [ARGS]
-git-mergetool.sh --all [--tool=merge-java]
+git-mergetool.sh --all [--tool=plumelib-merge]
 ```
 
 (You can omit the `--tool=...` command-line argument if you have only set
@@ -132,7 +135,7 @@ up one merge tool.)
 Or, **after a git merge that leaves conflicts**, run:
 
 ```
-git-mergetool.sh --all [--tool=merge-java]
+git-mergetool.sh --all [--tool=plumelib-merge]
 ```
 
 You can create a shell alias or a git alias that first runs `git merge`,
@@ -148,11 +151,11 @@ There is just one step for setup.
 ```
 git config --global merge.conflictstyle diff3
 git config --global mergetool.prompt false
-git config --global merge.tool merge-java
-git config --global mergetool.merge-java.cmd 'java-merge-tool.sh ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
-git config --global mergetool.merge-java.trustExitCode true
+git config --global merge.tool plumelib-merge
+git config --global mergetool.plumelib-merge.cmd 'merge-tool.sh ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
+git config --global mergetool.plumelib-merge.trustExitCode true
 git config --global merge.tool merge-adjacent
-git config --global mergetool.merge-adjacent.cmd 'java-merge-tool.sh --only-adjacent ${BASE} ${LOCAL} ${REMOTE} ${MERGED}'
+git config --global mergetool.merge-adjacent.cmd 'merge-tool.sh --only-adjacent ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
 git config --global mergetool.merge-adjacent.trustExitCode true
 ```
 
@@ -173,7 +176,7 @@ See [above](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 up one merge tool.)
 
 ```
-git mergetool [--tool=merge-java]
+git mergetool [--tool=plumelib-merge]
 ```
 or
 ```
@@ -247,15 +250,6 @@ other `git merge` functionality disabled!).  Therefore, the merge drivers
 in this repository (which first call `git merge-file`, then improve the
 results) may produce suboptimal results.  A (re-)merge tool lets you use
 `git merge`, then still use a merger to improve the results.
-
-
-## Limitations
-
-The mergers are relatively slow:  about 1/3 second per file that was
-modified in both versions to be merged.  Most merges involve few files that
-were modified in both of the versions being merged, so this is usually not
-a problem; but if many files are modified in both of the versions, the
-merge will be slow.
 
 
 ## License
