@@ -180,6 +180,7 @@ tasks.withType(JavaCompile).configureEach {
     // Don't complain about external library (which is included as source because it isn't at Maven Central).
     excludedPaths = '.*/diff_match_patch.java'
   }
+  options.errorprone.enabled = isJava17orHigher
 }
 
 // Checker Framework pluggable type-checking
