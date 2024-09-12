@@ -28,6 +28,12 @@ repositories {
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
+ext {
+  errorproneVersion = '2.32.0'
+  isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
+  isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
+}
+
 dependencies {
   implementation 'com.google.googlejavaformat:google-java-format:1.23.0'
   implementation 'org.plumelib:javac-parse:0.1.0'
@@ -166,7 +172,7 @@ graalvmNative {
 // Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.32.0')
+  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
@@ -180,6 +186,7 @@ tasks.withType(JavaCompile).configureEach {
     // Don't complain about external library (which is included as source because it isn't at Maven Central).
     excludedPaths = '.*/diff_match_patch.java'
   }
+  options.errorprone.enabled = isJava17orHigher
 }
 
 // Checker Framework pluggable type-checking
