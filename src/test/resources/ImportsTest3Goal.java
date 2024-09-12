@@ -1,7 +1,7 @@
 // Git merges cleanly. Version A removes an import, but version B introduces a use of the import.
 
-import java.io.File;
 import java.nio.file.Path;
+import java.io.File;
 
 public class ImportsTest {
 
