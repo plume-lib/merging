@@ -64,7 +64,7 @@ Imports%.diff:
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	../../main/sh/merge-driver.sh --only-java-imports --verbose \
+	../../main/sh/merge-driver.sh --only-java-imports \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \

@@ -11,8 +11,8 @@
 // the
 // imports.
 
-import java.io.File;
 import java.nio.file.Path;
+import java.io.File;
 
 public class ImportsTest {
 
