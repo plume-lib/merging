@@ -166,7 +166,7 @@ graalvmNative {
 // Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.32.0')
+  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
