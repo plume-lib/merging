@@ -192,6 +192,9 @@ public class JavaImportsMerger extends Merger {
   /**
    * For each diff in imports, insert the differing imports into the file.
    *
+   * <p>This results in a file that contains (nearly) every import from both parents. A subsequent
+   * pass will remove the unnecessary ones.
+   *
    * @param fileLines the lines of the file
    * @param diff3file the diffs
    * @return the lines of the file, after inserting more import statements
@@ -199,6 +202,8 @@ public class JavaImportsMerger extends Merger {
   List<String> insertRemovedImports(List<String> fileLines, Diff3File diff3file) {
 
     // Find the first and last import lines in the file.
+    // These are 1-based, so the first line in the file is line 1; therefore, these cannot be used
+    // for indexing into a list of lines.
     int firstImportLineInFile = -1;
     int lastImportLineInFile = -1;
     Set<String> importLinesInFile = new HashSet<>();
@@ -207,9 +212,9 @@ public class JavaImportsMerger extends Merger {
       if (JavaLibrary.isImportStatement(line)) {
         importLinesInFile.add(line);
         if (firstImportLineInFile == -1) {
-          firstImportLineInFile = i;
+          firstImportLineInFile = i + 1;
         }
-        lastImportLineInFile = i;
+        lastImportLineInFile = i + 1;
       }
     }
 
@@ -217,6 +222,7 @@ public class JavaImportsMerger extends Merger {
       System.out.printf("insertRemovedImports: diff3file=%s%n", diff3file);
     }
 
+    // TODO: Carefully document the value of this variable.
     int startLineOffset = 0;
     for (Diff3Hunk h : diff3file.contents()) {
       if (verbose) {
@@ -281,23 +287,27 @@ public class JavaImportsMerger extends Merger {
           break;
         case CHANGE:
           // Find the first line that is an import, and insert immediately after it.
-          int i;
           List<String> editLines = edit.lines();
-          int editLinesSize = editLines.size();
-          for (i = 0; i < editLinesSize; i++) {
-            if (JavaLibrary.isImportStatement(editLines.get(i))) {
-              break;
+          int importLine = JavaLibrary.firstImportStatement(editLines);
+          if (importLine != -1) {
+            startLine = edit.command().startLine() + importLine;
+          } else {
+            int packageLine = JavaLibrary.firstPackageStatement(editLines);
+            if (packageLine != -1) {
+              startLine = edit.command().startLine() + packageLine + 1;
+            } else {
+              int nonCommentLine = JavaLibrary.firstOutsideCommentLine(editLines);
+              startLine = edit.command().startLine() + nonCommentLine;
             }
           }
-          startLine = edit.command().startLine() + i;
           break;
         default:
           throw new Error("Unhandled kind: " + edit.command().kind());
       }
       if (verbose) {
         System.out.printf(
-            "old startLine = %s, startLineOffset = %s, new startLine = %s%n",
-            startLine, startLineOffset, startLine + startLineOffset);
+            "from case %s: old startLine = %s, startLineOffset = %s, new startLine = %s%n",
+            edit.command().kind(), startLine, startLineOffset, startLine + startLineOffset);
       }
       startLine += startLineOffset;
       if (startLine < 0 || startLine >= fileLines.size()) {
@@ -311,22 +321,25 @@ public class JavaImportsMerger extends Merger {
       }
       if (verbose) {
         System.out.printf(
-            "Before inserting import lines at %d (startLineOffset=%d): %s%n",
+            "Before inserting import lines at line %d (startLineOffset=%d): %s%n",
             startLine, startLineOffset, fileLines);
       }
       // TODO: I probably need to adjust lastImportLineInFile based on previous insertions.
-      startLine = Math.max(startLine, firstImportLineInFile - 1);
-      startLine = Math.min(startLine, lastImportLineInFile + 1);
-      if (verbose) {
-        System.out.printf("Adjusted startLine: %d%n", startLine);
+      if (firstImportLineInFile != -1 && lastImportLineInFile != -1) {
+        startLine = Math.max(startLine, firstImportLineInFile);
+        startLine = Math.min(startLine, lastImportLineInFile + 1);
+        if (verbose) {
+          System.out.printf("Adjusted startLine: %d%n", startLine);
+        }
       }
-      fileLines.addAll(startLine, importStatementsThatAreRemoved);
+      fileLines.addAll(startLine - 1, importStatementsThatAreRemoved);
       // TODO: Also adjust startLineOffset to account for the inserted lines?
       startLineOffset += h.lineChangeSize();
       if (verbose) {
         System.out.printf(
-            "After inserting import lines at %d (lineChangeSize=%d, startLineOffset=%d): %s%n",
-            startLine, h.lineChangeSize(), startLineOffset, fileLines);
+            "After inserting import lines at line %d (index %d)"
+                + " (lineChangeSize=%d, startLineOffset=%d): %s%n",
+            startLine, startLine - 1, h.lineChangeSize(), startLineOffset, fileLines);
       }
     }
 

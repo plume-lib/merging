@@ -4,7 +4,8 @@ test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff Adjacent
 
 test-annotations: AnnotationsTest1.diff
 
-test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff ImportsTest9.diff
+test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4.diff ImportsTest5.diff ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff ImportsTest9.diff ImportsTest10.diff \
+              ImportsTest11.diff ImportsTest12.diff
 
 test-version-numbers: VersionNumbersTest1.diff
 
@@ -63,7 +64,7 @@ Imports%.diff:
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
 	cp -f $(basename $@)A.java $(basename $@)Output.java
-	../../main/sh/merge-driver.sh --only-java-imports \
+	../../main/sh/merge-driver.sh --only-java-imports --verbose \
 	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
 	if [ -f $(basename $@)Goal-forward.java ] ; then \
 	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
