@@ -28,6 +28,12 @@ repositories {
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
+ext {
+  errorproneVersion = '2.32.0'
+  isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
+  isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
+}
+
 dependencies {
   implementation 'com.google.googlejavaformat:google-java-format:1.23.0'
   implementation 'org.plumelib:javac-parse:0.1.0'
