@@ -1,3 +1,5 @@
+// Both parents introduce a method at the same location.
+
 import java.io.File;
 import java.nio.file.Path;
 

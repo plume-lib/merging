@@ -1,4 +1,4 @@
-// Git merges cleanly. Version A removes an import, but version B introduces a use of the import.
+// Both parents introduce a method at the same location.
 
 import java.io.File;
 
