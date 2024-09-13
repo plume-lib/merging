@@ -57,8 +57,12 @@ public class AdjacentLinesMerger extends Merger {
 
     if (verbose) {
       System.out.printf("AdjacentLinesMerger: replacements = %s%n", replacements);
+      // System.out.printf("AdjacentLinesMerger: before replacement = %s%n", cf.lines());
     }
     List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
+    if (verbose) {
+      // System.out.printf("AdjacentLinesMerger: after replacement = %s%n", newLines);
+    }
     ConflictedFile result = new ConflictedFile(newLines, cf.path);
     return result;
   }
@@ -114,6 +118,9 @@ public class AdjacentLinesMerger extends Merger {
         return null;
       }
     }
+    if (verbose) {
+      System.out.printf("mergedWithAdjacent(%s) => %s%n", mc, result);
+    }
     return result;
   }
 
@@ -124,7 +131,7 @@ public class AdjacentLinesMerger extends Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
-  private static @Nullable List<String> mergedLinewise(MergeConflict mc) {
+  private @Nullable List<String> mergedLinewise(MergeConflict mc) {
     if (mc.base() == null) {
       Main.exitErroneously("need a 3-way diff");
       throw new Error("unreachable");
@@ -150,6 +157,9 @@ public class AdjacentLinesMerger extends Merger {
       } else {
         return null;
       }
+    }
+    if (verbose) {
+      System.out.printf("mergedLinewise(%s) => %s%n", mc, result);
     }
     return result;
   }
