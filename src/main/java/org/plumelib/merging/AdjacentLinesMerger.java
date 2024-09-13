@@ -42,9 +42,9 @@ public class AdjacentLinesMerger extends Merger {
         continue;
       }
       MergeConflict mc = (MergeConflict) ce;
-      List<String> merged = mergedWithAdjacent(mc);
+      List<String> merged = mergedSameLength(mc);
       if (merged == null) {
-        merged = mergedLinewise(mc);
+        merged = mergedWithAdjacent(mc);
       }
       if (merged != null) {
         replacements.add(Replacement.of(mc.start(), mc.end() - 1, merged));
@@ -131,7 +131,7 @@ public class AdjacentLinesMerger extends Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
-  private @Nullable List<String> mergedLinewise(MergeConflict mc) {
+  private @Nullable List<String> mergedSameLength(MergeConflict mc) {
     if (mc.base() == null) {
       Main.exitErroneously("need a 3-way diff");
       throw new Error("unreachable");
@@ -159,7 +159,7 @@ public class AdjacentLinesMerger extends Merger {
       }
     }
     if (verbose) {
-      System.out.printf("mergedLinewise(%s) => %s%n", mc, result);
+      System.out.printf("mergedSameLength(%s) => %s%n", mc, result);
     }
     return result;
   }
