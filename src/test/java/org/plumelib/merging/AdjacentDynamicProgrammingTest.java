@@ -49,6 +49,6 @@ public class AdjacentDynamicProgrammingTest {
     List<String> l2 = List.of("b", "d");
     List<String> l3 = List.of("a", "b", "c", "d");
     AdjacentDynamicProgramming adp = new AdjacentDynamicProgramming(l1, l2, l3);
-    assertEquals(List.of("a", "b", "d"), adp.compute());
+    assertEquals(List.of("a", "c", "d"), adp.compute());
   }
 }

@@ -1,6 +1,6 @@
 test: test-adjacent test-annotations test-imports test-version-numbers
 
-test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff AdjacentTest4.diff AdjacentTest5.diff
+test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff AdjacentTest4.diff AdjacentTest5.diff AdjacentTest6.diff 
 
 test-annotations: AnnotationsTest1.diff
 

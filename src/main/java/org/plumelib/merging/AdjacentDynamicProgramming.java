@@ -10,6 +10,14 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
 
+// TODO: I suspect a recursive implementation, rather than an iterative implementation that fills in
+// the whole table, would be more efficient because it would explore less of the space.
+
+// TODO: I could store, in the table, just the "move" (one of the 7 operations) rather than the
+// whole list.  The algorithm would reconstruct the list at the end.  This would save space, but it
+// would be harder to debug.  And it might not save all that much space, because most elements are
+// IMPOSSIBLE anyway.
+
 /** Uses dynamic programming to merge three texts. */
 public class AdjacentDynamicProgramming {
 
@@ -35,6 +43,9 @@ public class AdjacentDynamicProgramming {
   //  7. Consume    C, B;     c = b; the (partial) output is empty (A deleted)
   // As a heuristic to produce better merges, if a = c = b, the first case must be chosen and the
   // other 6 cases are forbidden.
+  // Also as a heuristic, there is no operation "insert line" (or "delete line") that matches one
+  // line in one text to zero lines in both other texts.  Permitting it leads to too many
+  // undesirable possibilities, and to ambiguity as well.
 
   // The data structure is a table with dimensions [ a.size()+1, b.size()+1, c.size()+1 ].
   // Each cell contains a list (or null, indicating that no solution is possible).
@@ -47,7 +58,7 @@ public class AdjacentDynamicProgramming {
   // The value of table[a.size(), b.size(), c.size()] is the merged output.
 
   /** If true, print diagnostic output. */
-  private static final boolean debug = true;
+  private static final boolean debug = false;
 
   /** The maximum table size that will be attempted. */
   private static int MAX_TABLE_SIZE = 10000000;
@@ -110,7 +121,7 @@ public class AdjacentDynamicProgramming {
   /**
    * Computes the merge of the three lists, by finding a correspondence between lines.
    *
-   * @return the merge of the three lists
+   * @return the merge of the three lists, or null if none can be found
    */
   public @Nullable List<String> compute() {
     if (table == null) {
@@ -120,7 +131,12 @@ public class AdjacentDynamicProgramming {
     if (debug) {
       System.out.println(tableToString());
     }
-    return table[aLen][cLen][bLen];
+    List<String> result = table[aLen][cLen][bLen];
+    if (result == IMPOSSIBLE) {
+      return null;
+    } else {
+      return result;
+    }
   }
 
   /** Fills in the table. */
@@ -162,48 +178,70 @@ public class AdjacentDynamicProgramming {
       table[0][0][iB] = IMPOSSIBLE;
     }
 
-    String firstA = a.get(0);
-    String firstC = b.get(0);
-    String firstB = c.get(0);
-    boolean firstSame = firstA.equals(firstC) && firstC.equals(firstB);
-
     // TODO: should the "one zero index" be handled in a uniform way?  Maybe...
 
     // one zero index
     for (int iC = 1; iC <= cLen; iC++) {
       for (int iB = 1; iB <= bLen; iB++) {
-        String cElt = c.get(iC - 1);
-        String bElt = b.get(iB - 1);
         if (table[0][iC][iB] != null) {
           throw new Error(String.format("Already computed: %d %d %d", 0, iC, iB));
         }
-        table[0][iC][iB] = cElt.equals(bElt) ? emptyList : IMPOSSIBLE;
+        if (iC != iB) {
+          table[0][iC][iB] = IMPOSSIBLE;
+          continue;
+        }
+        List<String> prev = table[0][iC - 1][iB - 1];
+        if (prev == IMPOSSIBLE) {
+          table[0][iC][iB] = IMPOSSIBLE;
+          continue;
+        }
+        String cElt = c.get(iC - 1);
+        String bElt = b.get(iB - 1);
+        table[0][iC][iB] = cElt.equals(bElt) ? prev : IMPOSSIBLE;
       }
     }
     for (int iA = 1; iA <= aLen; iA++) {
       for (int iB = 1; iB <= bLen; iB++) {
-        String aElt = a.get(iA - 1);
-        String bElt = b.get(iB - 1);
         if (table[iA][0][iB] != null) {
           throw new Error(String.format("Already computed: %d %d %d", iA, 0, iB));
         }
-        table[iA][0][iB] = aElt.equals(bElt) ? emptyList : IMPOSSIBLE;
+        if (iA != iB) {
+          table[iA][0][iB] = IMPOSSIBLE;
+          continue;
+        }
+        List<String> prev = table[iA - 1][0][iB - 1];
+        if (prev == IMPOSSIBLE) {
+          table[iA][0][iB] = IMPOSSIBLE;
+        }
+        String aElt = a.get(iA - 1);
+        String bElt = b.get(iB - 1);
+        table[iA][0][iB] = aElt.equals(bElt) ? concatenate(prev, aElt) : IMPOSSIBLE;
       }
     }
     for (int iA = 1; iA <= aLen; iA++) {
       for (int iC = 1; iC <= cLen; iC++) {
-        String aElt = a.get(iA - 1);
-        String cElt = c.get(iC - 1);
         if (table[iA][iC][0] != null) {
           throw new Error(String.format("Already computed: %d %d %d", iA, iC, 0));
         }
-        table[iA][iC][0] = aElt.equals(cElt) ? emptyList : IMPOSSIBLE;
+        if (iA != iC) {
+          table[iA][iC][0] = IMPOSSIBLE;
+          continue;
+        }
+        List<String> prev = table[iA - 1][iC - 1][0];
+        if (prev == IMPOSSIBLE) {
+          table[iA][iC][0] = IMPOSSIBLE;
+        }
+        String aElt = a.get(iA - 1);
+        String cElt = c.get(iC - 1);
+        table[iA][iC][0] = aElt.equals(cElt) ? prev : IMPOSSIBLE;
       }
     }
   }
 
   /**
    * Fill in the given element of the table.
+   *
+   * <p>Table indices are 1 larger than the corresponding list indices.
    *
    * @param iA the first index in the table
    * @param iC the second index in the table
@@ -212,11 +250,14 @@ public class AdjacentDynamicProgramming {
   // TODO: should this return a list instead of void?
   @RequiresNonNull("table")
   private void fillIn(int iA, int iC, int iB) {
+    if (debug) {
+      System.out.printf("fillIn(%d, %d, %d)%n", iA, iC, iB);
+    }
     if (table[iA][iC][iB] != null) {
       throw new Error(String.format("Already computed: %d %d %d", iA, iC, iB));
     }
 
-    if (!possibleIndices(iA - 1, iC - 1, iB - 1, aLen, cLen, bLen)) {
+    if (!possibleIndices(iA, iC, iB, aLen, cLen, bLen)) {
       table[iA][iC][iB] = IMPOSSIBLE;
       return;
     }
@@ -224,8 +265,8 @@ public class AdjacentDynamicProgramming {
     String aElt = a.get(iA - 1);
     String cElt = c.get(iC - 1);
     String bElt = b.get(iB - 1);
-    boolean acEqual = aElt.equals(bElt);
-    boolean cbEqual = bElt.equals(cElt);
+    boolean acEqual = aElt.equals(cElt);
+    boolean cbEqual = cElt.equals(bElt);
     boolean abEqual = aElt.equals(bElt);
 
     // Go through each of the 7 possibilities.
@@ -258,6 +299,16 @@ public class AdjacentDynamicProgramming {
     List<String> result2 = acEqual ? concatenate(prev, bElt) : IMPOSSIBLE;
     List<String> result3 = abEqual ? concatenate(prev, aElt) : IMPOSSIBLE;
     List<String> result4 = cbEqual ? concatenate(prev, aElt) : IMPOSSIBLE;
+
+    if (debug) {
+      System.out.printf("aElt=%s%n", aElt);
+      System.out.printf("cElt=%s%n", cElt);
+      System.out.printf("bElt=%s%n", bElt);
+      System.out.printf("prev=%s%n", pathToString(prev));
+      System.out.printf("result2=%s%n", pathToString(result2));
+      System.out.printf("result3=%s%n", pathToString(result3));
+      System.out.printf("result4=%s%n", pathToString(result4));
+    }
 
     List<String> result5 = acEqual ? prev5 : IMPOSSIBLE;
     List<String> result6 = abEqual ? concatenate(prev6, aElt) : IMPOSSIBLE;
@@ -362,6 +413,20 @@ public class AdjacentDynamicProgramming {
   }
 
   /**
+   * Formats IMPOSSIBLE as "-".
+   *
+   * @param lst a list
+   * @return its printed representation
+   */
+  private String pathToString(List<String> lst) {
+    if (lst == IMPOSSIBLE) {
+      return "-";
+    } else {
+      return lst.toString();
+    }
+  }
+
+  /**
    * Returns a string representation of the table.
    *
    * @return a string representation of the table
@@ -376,7 +441,7 @@ public class AdjacentDynamicProgramming {
         sb.append("iC=" + iC + ": ");
         StringJoiner sjB = new StringJoiner("; ");
         for (int iB = 0; iB <= bLen; iB++) {
-          sjB.add("iB=" + iB + ":" + table[iA][iC][iB]);
+          sjB.add("iB=" + iB + ":" + pathToString(table[iA][iC][iB]));
         }
         sb.append(sjB.toString() + lineSep);
       }
