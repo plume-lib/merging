@@ -441,7 +441,7 @@ public class Diff3File {
      * Parses a Diff3HunkSection.
      *
      * @param lines the lines to read from
-     * @param startLine the first line to read
+     * @param startLine the zero-based index in {@code lines} of the first line to read
      * @return the parsed Diff3HunkSection
      * @throws Diff3ParseException if the input is malformed
      */
@@ -506,6 +506,8 @@ public class Diff3File {
 
   /**
    * This is the command (append or change), without the associated text lines.
+   *
+   * <p>The line numbers use 1-based indexing, so the first line of the file is line 1.
    *
    * @param inputFile 1, 2, or 3
    * @param kind append or change
