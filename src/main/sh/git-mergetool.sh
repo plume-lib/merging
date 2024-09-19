@@ -126,6 +126,19 @@ fi
 mergetool_command="$(git config --get mergetool."$tool".cmd)"
 mergetool_trustExitCode="$(git config --get mergetool."$tool".trustExitCode)"
 
+function is_bin_in_path {
+  builtin type -P "$1" &> /dev/null
+}
+function beginswith() { case $2 in "$1"*) true;; *) false;; esac; }
+
+mergetool_command_first_word=${mergetool_command%% *}
+if beginswith "$mergetool_command_first_word" "/" || is_bin_in_path "$mergetool_command_first_word" ; then
+  : # OK
+else
+  echo "$0: WARNING: not in path: $mergetool_command_first_word"
+  echo "$0: WARNING: not in path: $mergetool_command_first_word" >&2
+fi
+
 for file in "${files[@]}" ; do
 (
   # `git cat-file -e "$RIGHT_REV:$file"` sometimes doesn't work; I don't know why.  So use `git show`.
