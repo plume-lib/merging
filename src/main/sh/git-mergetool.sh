@@ -139,16 +139,45 @@ else
   echo "$0: WARNING: not in path: $mergetool_command_first_word" >&2
 fi
 
+## Enable this for debugging.  Watch out, there will be filename collisions if
+## this script is being run multiple times in parallel.
+# deterministic_filename=YES
+
+# I tried to make this loop parallel by enclosing the body in "( ... ) &" and
+# adding "wait" after the loop, but that led to nondeterministic behavior.  One
+# problem might be that git operations running in parallel interfere with one
+# another, for example by creating lock files.
+
 for file in "${files[@]}" ; do
-(
+  if [ -n "$deterministic_filename" ] ; then
+    hash="$(echo "${file}" | sha256sum | cut -c1-8)"
+  fi
+
   # `git cat-file -e "$RIGHT_REV:$file"` sometimes doesn't work; I don't know why.  So use `git show`.
-  leftfile="$(mktemp -p /tmp "left-XXXXXX" --suffix "-$(basename "$file")")"
+  if [ -n "$deterministic_filename" ] ; then
+    leftfile="/tmp/left-$hash-$(basename "$file")"
+    touch "$leftfile"
+  else
+    leftfile="$(mktemp -p /tmp "left-XXXXXX" --suffix "-$(basename "$file")")"
+  fi
   # shellcheck disable=2106 # the group is the whole loop body
   if ! git show "$LEFT_REV:$file" > "$leftfile" ; then continue ; fi
-  basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
+
+  if [ -n "$deterministic_filename" ] ; then
+    basefile="/tmp/base-$hash-$(basename "$file")"
+    touch "$basefile"
+  else
+    basefile="$(mktemp -p /tmp "base-XXXXXX" --suffix "-$(basename "$file")")"
+  fi
   # shellcheck disable=2106 # the group is the whole loop body
   if ! git show "$BASE_REV:$file" > "$basefile" ; then continue ; fi
-  rightfile="$(mktemp -p /tmp "right-XXXXXX" --suffix "-$(basename "$file")")"
+
+  if [ -n "$deterministic_filename" ] ; then
+    rightfile="/tmp/right-$hash-$(basename "$file")"
+    touch "$rightfile"
+  else
+    rightfile="$(mktemp -p /tmp "right-XXXXXX" --suffix "-$(basename "$file")")"
+  fi
   # shellcheck disable=2106 # the group is the whole loop body
   if ! git show "$RIGHT_REV:$file" > "$rightfile" 2> /dev/null ; then continue ; fi
 
@@ -175,7 +204,4 @@ for file in "${files[@]}" ; do
   if [ -z "$verbose" ] ; then
     rm -f "$leftfile" "$basefile" "$rightfile"
   fi
-) &
 done
-
-wait
