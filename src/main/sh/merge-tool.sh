@@ -16,11 +16,15 @@ fi
 SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 ROOTDIR="${SCRIPTDIR}/../../.."
-JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
+# JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
 EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
-if [ ! -f "$JARFILE" ] ; then
-    (cd "$ROOTDIR" && ./gradlew shadowJar)
-fi
+
+## Gradle is potentially too expensive to run on every invocation of this script.
+# if [ -x "$EXECUTABLE" ] ; then
+#     (cd "$ROOTDIR" && ./gradlew nativeCompile)
+# else
+#     (cd "$ROOTDIR" && ./gradlew shadowJar)
+# fi
 
 # Can add to the below if desired.
 # TIMEFORMAT="%3R seconds" \
