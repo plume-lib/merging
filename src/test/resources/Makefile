@@ -132,3 +132,6 @@ Defaults%.diff: compile
 	  diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
 	fi
 
+
+jcardreader:
+	test-jcardreader.sh
