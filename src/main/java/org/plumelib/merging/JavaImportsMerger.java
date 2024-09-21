@@ -44,6 +44,7 @@ public class JavaImportsMerger extends Merger {
    */
   public JavaImportsMerger(boolean verbose) {
     super(verbose, true);
+    verbose = true;
   }
 
   @Override
