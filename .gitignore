@@ -5,6 +5,8 @@ AdjacentTest*Output.java
 AdjacentTest*.diff
 AnnotationsTest*Output.java
 AnnotationsTest*.diff
+DefaultsTest*Output.java
+DefaultsTest*.diff
 ImportsTest*Output.java
 ImportsTest*.diff
 VersionNumbersTest*Output.java
