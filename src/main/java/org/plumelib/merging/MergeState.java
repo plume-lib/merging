@@ -38,7 +38,10 @@ public class MergeState {
   /** The merged file. */
   private @MonotonicNonNull ConflictedFile conflictedFile;
 
-  /** True if the merged file contains a conflict when this MergeState was constructed. */
+  /**
+   * True if the merged file contains a conflict when this MergeState was constructed, according to
+   * the code that created the MergeState.
+   */
   private boolean hasConflictInitially;
 
   /**

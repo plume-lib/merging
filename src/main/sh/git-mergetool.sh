@@ -59,6 +59,11 @@ if [ -n "$verbose" ] ; then
   set -x
 fi
 
+if [ ${#files[@]} -ne 0 ] && [ "$all" = "YES" ] ; then
+  echo "$0: Supplied both --all and file names:" "${files[@]}"
+  exit 2
+fi
+
 toplevel=$(git rev-parse --show-toplevel)
 merge_head_file="$toplevel/.git/MERGE_HEAD"
 if [ -f "$merge_head_file" ] ; then
@@ -88,17 +93,25 @@ if [ -n "$verbose" ] ; then
   echo "$0: LEFT_REV ${LEFT_REV} BASE_REV ${BASE_REV} RIGHT_REV ${RIGHT_REV}"
 fi
 
-if [ ${#files[@]} -eq 0 ] ; then
-  # `files` is empty.
-  if [ "$all" = "YES" ] ; then
-    readarray -t files < \
-      <(comm -12 <(comm -12 <(git diff --name-only "${BASE_REV}..${LEFT_REV}" | sort) \
-                            <(git diff --name-only "${BASE_REV}..${RIGHT_REV}" | sort)) \
-                 <(git diff --name-only "${LEFT_REV}..${RIGHT_REV}" | sort))
-  else
-    # TODO: Does this handle filenames with spaces? How should core.quotePath be set?
-    mapfile -t files < <(git -c core.quotePath=false diff --name-only --diff-filter=U)
-  fi
+if [ ${#files[@]} -eq 0 ] && [ "$all" = "YES" ] ; then
+  # The caller provided no files on the command line.
+  # We cannot use
+  #    mapfile -t files < <(git -c core.quotePath=false diff --name-only --diff-filter=U)
+  # because if git merge already made a commit, it will return nothing rather than all changed files.
+  readarray -t files < \
+    <(comm -12 <(comm -12 <(git diff --name-only "${BASE_REV}..${LEFT_REV}" | sort) \
+                          <(git diff --name-only "${BASE_REV}..${RIGHT_REV}" | sort)) \
+               <(git diff --name-only "${LEFT_REV}..${RIGHT_REV}" | sort))
+  # For debugging the above line.
+  # if [ -n "$verbose" ] ; then
+  #   echo "base to left:"
+  #   git diff --name-only "${BASE_REV}..${LEFT_REV}" | sort
+  #   echo "base to right:"
+  #   git diff --name-only "${BASE_REV}..${RIGHT_REV}" | sort
+  #   echo "left to right:"
+  #   git diff --name-only "${LEFT_REV}..${RIGHT_REV}" | sort
+  #   echo "end of two-way diffs."
+  # fi
 fi
 
 if [ ${#files[@]} -eq 0 ] ; then
