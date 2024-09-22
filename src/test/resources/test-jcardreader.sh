@@ -2,7 +2,8 @@
 
 set -e
 
-SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
+# The directory with the plume-lib merging scripts.
+SHDIR="$(cd "$(dirname "$0")"/../../../src/main/sh && pwd -P)"
 
 tmpdir=$(mktemp -d)
 cd "$tmpdir"
@@ -16,9 +17,9 @@ git config --local merge.conflictstyle diff3
 git config --local mergetool.prompt false
 git config --local merge.tool plumelib-merge
 # shellcheck disable=2016 # quoted expressions
-git config --local mergetool.plumelib-merge.cmd "${SCRIPTDIR}"'merge-tool.sh ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
+git config --local mergetool.plumelib-merge.cmd "${SHDIR}"/'merge-tool.sh --verbose ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
 git config --local mergetool.plumelib-merge.trustExitCode true
 
-"$SCRIPTDIR"/../../main/sh/git-mergetool.sh
+"$SHDIR"/git-mergetool.sh --verbose --all
 
 echo "$tmpdir"/ez-vcard/src/test/java/ezvcard/io/json/JCardReaderTest.java
