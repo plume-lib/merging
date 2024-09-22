@@ -77,13 +77,7 @@ public class JavaImportsMerger extends Merger {
       System.out.printf("mergeState=%s%n", mergeState);
     }
     forbiddenImports.addAll(renamedImports(baseContents, leftContents));
-    if (verbose) {
-      System.out.println("forbiddenImports base to left =" + forbiddenImports);
-    }
     forbiddenImports.addAll(renamedImports(baseContents, rightContents));
-    if (verbose) {
-      System.out.println("+ forbiddenImports base to right =" + forbiddenImports);
-    }
 
     // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
@@ -479,9 +473,6 @@ public class JavaImportsMerger extends Merger {
     // This implementation is hacky in that it works textually instead of parsing the Java code.
     // So, it will not handle bizarrely formatted code.
     LinkedList<Diff> diffs = DmpLibrary.diffByLines(javaCode1, javaCode2);
-    if (verbose) {
-      System.out.printf("changedImports: diffs = %s%n", diffs);
-    }
     List<String> deleted = new ArrayList<>();
     List<String> inserted = new ArrayList<>();
     for (Diff diff : diffs) {
@@ -511,11 +502,7 @@ public class JavaImportsMerger extends Merger {
     intersection.retainAll(inserted);
     deleted.removeAll(intersection);
     inserted.removeAll(intersection);
-    IPair<List<String>, List<String>> result = IPair.of(deleted, inserted);
-    if (verbose) {
-      System.out.printf("changedImports => %s%n", result);
-    }
-    return result;
+    return IPair.of(deleted, inserted);
   }
 
   /**
