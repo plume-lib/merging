@@ -79,11 +79,11 @@ public class JavaImportsMerger extends Merger {
     }
     forbiddenImports.addAll(renamedImports(baseContents, leftContents));
     if (verbose) {
-      System.out.println("forbiddenImports1=" + forbiddenImports);
+      System.out.println("forbiddenImports base to left =" + forbiddenImports);
     }
     forbiddenImports.addAll(renamedImports(baseContents, rightContents));
     if (verbose) {
-      System.out.println("forbiddenImports2=" + forbiddenImports);
+      System.out.println("+ forbiddenImports base to right =" + forbiddenImports);
     }
 
     // Wherever git produced a conflict, replace it by a CommonLines.
@@ -528,8 +528,10 @@ public class JavaImportsMerger extends Merger {
     if (deleted.isEmpty() || inserted.isEmpty()) {
       return Collections.emptyList();
     }
-    // System.out.printf("deleted imports =  %s%n", deleted);
-    // System.out.printf("inserted imports = %s%n", inserted);
+    if (verbose) {
+      System.out.printf("deleted imports =  %s%n", deleted);
+      System.out.printf("inserted imports = %s%n", inserted);
+    }
     Set<String> insertedIdentifiers =
         new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
