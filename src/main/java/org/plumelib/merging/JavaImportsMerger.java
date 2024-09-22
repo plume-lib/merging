@@ -78,7 +78,13 @@ public class JavaImportsMerger extends Merger {
       System.out.printf("mergeState=%s%n", mergeState);
     }
     forbiddenImports.addAll(renamedImports(baseContents, leftContents));
+    if (verbose) {
+      System.out.println("forbiddenImports1=" + forbiddenImports);
+    }
     forbiddenImports.addAll(renamedImports(baseContents, rightContents));
+    if (verbose) {
+      System.out.println("forbiddenImports2=" + forbiddenImports);
+    }
 
     // Wherever git produced a conflict, replace it by a CommonLines.
     List<CommonLines> cls = new ArrayList<>();
