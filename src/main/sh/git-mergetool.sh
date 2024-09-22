@@ -145,7 +145,12 @@ function is_bin_in_path {
 function beginswith() { case $2 in "$1"*) true;; *) false;; esac; }
 
 mergetool_command_first_word=${mergetool_command%% *}
-if beginswith "$mergetool_command_first_word" "/" || is_bin_in_path "$mergetool_command_first_word" ; then
+if beginswith "$mergetool_command_first_word" "/" ; then
+  if [ ! -f $mergetool_command_first_word ] ; then
+    echo "$0: WARNING: file does not exist: $mergetool_command_first_word"
+    echo "$0: WARNING: file does not exist: $mergetool_command_first_word" >&2
+  fi
+elif is_bin_in_path "$mergetool_command_first_word" ; then
   : # OK
 else
   echo "$0: WARNING: not in path: $mergetool_command_first_word"
