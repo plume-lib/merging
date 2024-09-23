@@ -54,7 +54,7 @@ done
 
 if [ -n "$verbose" ] ; then
   echo "entered $0"
-  echo "arguments: $*"
+  echo "files:" "${files[@]}"
   # Show commands as they are executed.
   set -x
 fi
@@ -103,15 +103,15 @@ if [ ${#files[@]} -eq 0 ] && [ "$all" = "YES" ] ; then
                           <(git diff --name-only "${BASE_REV}..${RIGHT_REV}" | sort)) \
                <(git diff --name-only "${LEFT_REV}..${RIGHT_REV}" | sort))
   # For debugging the above line.
-  # if [ -n "$verbose" ] ; then
-  #   echo "base to left:"
-  #   git diff --name-only "${BASE_REV}..${LEFT_REV}" | sort
-  #   echo "base to right:"
-  #   git diff --name-only "${BASE_REV}..${RIGHT_REV}" | sort
-  #   echo "left to right:"
-  #   git diff --name-only "${LEFT_REV}..${RIGHT_REV}" | sort
-  #   echo "end of two-way diffs."
-  # fi
+  if [ -n "$verbose" ] ; then
+    echo "base to left:"
+    git diff --name-only "${BASE_REV}..${LEFT_REV}" | sort
+    echo "base to right:"
+    git diff --name-only "${BASE_REV}..${RIGHT_REV}" | sort
+    echo "left to right:"
+    git diff --name-only "${LEFT_REV}..${RIGHT_REV}" | sort
+    echo "end of two-way diffs."
+  fi
 fi
 
 if [ ${#files[@]} -eq 0 ] ; then
