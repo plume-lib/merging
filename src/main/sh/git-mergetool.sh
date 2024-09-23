@@ -43,7 +43,7 @@ while [ "$#" -gt 0 ]; do
       ;;
     -*)
       echo "Unknown option $1"
-      exit 1
+      exit 2
       ;;
     *)
        files+=("$1");
@@ -70,21 +70,21 @@ if [ -f "$merge_head_file" ] ; then
   # A merge is in progress.
   if [ "$(wc -l <"$merge_head_file")" -ge 2 ] ; then
     echo "git-mergetool.sh: Can't handle octopus merge."
-    exit 1
+    exit 2
   fi
   LEFT_REV="$(git rev-parse HEAD)"
   RIGHT_REV="$(cat .git/MERGE_HEAD)"
 elif git rev-parse HEAD^3 >/dev/null 2>/dev/null ; then
   # An octopus merge (i.e., with more than 2 parents) has just occurred.
   echo "git-mergetool.sh: Can't handle octopus merge."
-  exit 1
+  exit 2
 elif git rev-parse HEAD^2 >/dev/null 2>/dev/null ; then
   # A merge with 2 parents has just occurred.
   LEFT_REV="$(git rev-parse HEAD^1)"
   RIGHT_REV="$(git rev-parse HEAD^2)"
 else
   echo "$0: Not in or at a merge."
-  exit 1
+  exit 2
 fi
 
 BASE_REV="$(git merge-base "$LEFT_REV" "$RIGHT_REV")"
@@ -133,7 +133,7 @@ if [ -z "${tool}" ] ; then
   tool="$(git config --get merge.tool)"
   if [ -z "${tool}" ] ; then
     echo "No mergetool specified with --tool or configured with \"git config\""
-    exit 1
+    exit 2
   fi
 fi
 mergetool_command="$(git config --get mergetool."$tool".cmd)"
