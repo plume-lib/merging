@@ -35,7 +35,7 @@ ext {
 }
 
 dependencies {
-  implementation 'com.google.googlejavaformat:google-java-format:1.23.0'
+  implementation 'com.google.googlejavaformat:google-java-format:1.24.0'
   implementation 'org.plumelib:javac-parse:0.1.0'
   implementation 'org.plumelib:plume-util:1.10.0-SNAPSHOT'
 
