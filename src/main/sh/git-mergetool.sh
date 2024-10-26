@@ -54,7 +54,7 @@ done
 
 if [ -n "$verbose" ] ; then
   echo "entered $0"
-  echo "arguments: $*"
+  echo "files:" "${files[@]}"
   # Show commands as they are executed.
   set -x
 fi
