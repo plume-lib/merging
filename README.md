@@ -14,14 +14,17 @@ considers edits to different, adjacent lines to be a conflict.
 * [Java annotations](README-java-annotations.md):  This resolves conflicts in
 favor of retaining a Java annotation, when the only textual difference is in
 annotations.
+We are not aware of any real-world examples where this merger makes a mistake.
 
 * [Java imports](README-java-imports.md):  This handles conflicts in `import`
 statements, keeping all the necessary imports.  It also prevents a merge from
 removing a needed `import` statement, even if the merge would be clean.  It does
 nothing if the file's conflicts contain anything other than import statements.
+We are not aware of any real-world examples where this merger makes a mistake.
 
 * [Version numbers](README-version-numbers.md):  This resolves conflicts in
 favor of the larger version number.
+We are not aware of any real-world examples where this merger makes a mistake.
 
 You can enable and disable each feature individually, or enable just one feature.
 These command-line arguments are supported by the merge driver

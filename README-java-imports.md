@@ -20,6 +20,8 @@ If the only conflicts are in import statements, or there are no conflicts, then:
 comments, then you should first resolve those other conflicts, then run the Java
 imports merger as a merge tool.)
 
+We are not aware of any real-world examples where this merger makes a mistake.
+
 ## Example
 
 Here is an example:

@@ -5,6 +5,8 @@ If both edits increase the version number from the base, then the merger
 chooses the greater of the version numbers.
 A version number is dot-separated numbers, with at least one dot.
 
+We are not aware of any real-world examples where this merger makes a mistake.
+
 ## Example
 
 Suppose that git merge yields a conflict like the following:
