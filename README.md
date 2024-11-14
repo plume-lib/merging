@@ -1,8 +1,8 @@
 # Plume-lib merging:  merge drivers and merge tools
 
-This project contains git merge drivers and git merge tools.  (See
-[below](#git-merge-terminology) for definitions of "merge driver" and
-"merge tool".)
+This project contains merging algorithms.  You can configure Git to use
+these tools instead of its default merge heuristics, or you can use these
+tools to improve Git's merges after it runs.
 
 
 ## Features
@@ -45,9 +45,15 @@ command-line arguments.
 You can use the mergers in this repository in three ways.
 
  * Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most
-   convenient, because you don't have to remember to issue any commands.
+   convenient, because you don't have to remember to issue any commands
+   and they are automatically used for `git merge`, `git revert`, `git
+   rebase`, `git cherry-pick`, etc.
 
- * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) leads
+ * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) means
+   to keep Git's original behavior and manually invoke them to improve the
+   merge (whither Git produced a conflict or not
+
+leads
    to the best merge results; see
    [below](#why-to-use-a-re-merge-tool-rather-than-a-merge-driver) for an
    explanation.
@@ -204,6 +210,8 @@ eliminates the need for user interaction.
 
 ## Git merge terminology
 
+Here is a brief explanation of Git merge terminology.
+
 A **merge driver** is _automatically called_ during `git merge` whenever no
 two of {base,version1,version2} are the same.  It writes a merged file, which
 may or may not contain conflict markers.  The merge drivers in this
@@ -236,11 +244,11 @@ A re-merge tool differs from a merge tool in the following ways:
 
 A **merger** is either a merge tool or a merge driver.
 
-A **merge strategy** works on internal git data structures, deciding what
+A git **merge strategy** works on internal git data structures, deciding what
 text to hand to a merge driver.  (For example, it detects renames.)
 However, if two of {version1,version2,base} are the same, then the merge
 strategy makes a decision and the merge driver is never called.  This
-repository does not include a merge strategy; the ones built into git are
+repository does not include a git merge strategy; the ones built into git are
 adequate.
 
 
@@ -253,6 +261,10 @@ other `git merge` functionality disabled!).  Therefore, the merge drivers
 in this repository (which first call `git merge-file`, then improve the
 results) may produce suboptimal results.  A (re-)merge tool lets you use
 `git merge`, then still use a merger to improve the results.
+
+Another reason to use a re-merge tool is that sometimes Git produces a
+clean merge (no conflicts), but the merge is incorrect -- say, the imports
+are not properly updated.  A re-merge tool can correct these problems.
 
 
 ## License
