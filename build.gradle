@@ -221,7 +221,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.48.3'
+  ext.checkerFrameworkVersion = '3.48.4'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
