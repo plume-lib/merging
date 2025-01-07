@@ -379,9 +379,9 @@ public class AdjacentDynamicProgramming {
       if (result == IMPOSSIBLE) {
         result = elt;
       } else if (elt == IMPOSSIBLE) {
-        continue;
+        // nothing to do
       } else if (result.equals(elt)) {
-        continue;
+        // nothing to do
       } else {
         System.out.println(tableToString());
         @SuppressWarnings("varargs")

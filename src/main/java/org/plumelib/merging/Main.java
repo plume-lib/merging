@@ -217,6 +217,12 @@ public class Main implements Callable<Integer> {
       java_imports = false;
       version_numbers = true;
     }
+
+    if (verbose) {
+      System.out.printf(
+          "Configuration: adjacent=%s; java_annotations=%s; java_imports=%s; version_numbers=%s.%n",
+          adjacent, java_annotations, java_imports, version_numbers);
+    }
   }
 
   @Override
@@ -227,6 +233,7 @@ public class Main implements Callable<Integer> {
     MergeState ms =
         switch (command) {
           case driver -> mergeStateForDriver();
+            // Pass "true" for `hasConflictInitially` to make sure work happens.
           case tool -> new MergeState(leftPath, basePath, rightPath, mergedPath, true);
         };
 
@@ -284,7 +291,9 @@ public class Main implements Callable<Integer> {
     // Make a copy of the file that will be overwritten, for passing to external tools.
     try {
       File leftFileSaved = File.createTempFile("leftBeforeOverwriting-", ".bak");
-      leftFileSaved.deleteOnExit();
+      if (!verbose) {
+        leftFileSaved.deleteOnExit();
+      }
       leftFileSavedPath = leftFileSaved.toPath();
       // REPLACE_EXISTING is needed because createTempFile creates an empty file.
       Files.copy(leftPath, leftFileSavedPath, StandardCopyOption.REPLACE_EXISTING);

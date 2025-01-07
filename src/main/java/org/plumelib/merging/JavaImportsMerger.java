@@ -469,12 +469,12 @@ public class JavaImportsMerger extends Merger {
    * @param javaCode2 the second Java program
    * @return the deleted and changed imports, each as a list of dotted identifiers
    */
-  static IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
+  IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
     // This implementation is hacky in that it works textually instead of parsing the Java code.
     // So, it will not handle bizarrely formatted code.
     LinkedList<Diff> diffs = DmpLibrary.diffByLines(javaCode1, javaCode2);
-    List<String> inserted = new ArrayList<>();
     List<String> deleted = new ArrayList<>();
+    List<String> inserted = new ArrayList<>();
     for (Diff diff : diffs) {
       switch (diff.operation) {
         case INSERT -> {
@@ -514,15 +514,17 @@ public class JavaImportsMerger extends Merger {
    * @param javaCode2 the second Java program
    * @return the renamed imports, as a list of dotted identifiers (for their old names)
    */
-  static List<String> renamedImports(String javaCode1, String javaCode2) {
+  List<String> renamedImports(String javaCode1, String javaCode2) {
     IPair<List<String>, List<String>> changedImports = changedImports(javaCode1, javaCode2);
     List<String> deleted = changedImports.first;
     List<String> inserted = changedImports.second;
     if (deleted.isEmpty() || inserted.isEmpty()) {
       return Collections.emptyList();
     }
-    // System.out.printf("deleted imports =  %s%n", deleted);
-    // System.out.printf("inserted imports = %s%n", inserted);
+    if (verbose) {
+      System.out.printf("deleted imports =  %s%n", deleted);
+      System.out.printf("inserted imports = %s%n", inserted);
+    }
     Set<String> insertedIdentifiers =
         new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
