@@ -233,7 +233,7 @@ public class Main implements Callable<Integer> {
     MergeState ms =
         switch (command) {
           case driver -> mergeStateForDriver();
-            // Pass "true" for `hasConflictInitially` to make sure work happens.
+          // Pass "true" for `hasConflictInitially` to make sure work happens.
           case tool -> new MergeState(leftPath, basePath, rightPath, mergedPath, true);
         };
 
