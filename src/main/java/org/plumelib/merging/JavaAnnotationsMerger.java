@@ -87,7 +87,7 @@ public class JavaAnnotationsMerger extends Merger {
     StringBuilder result = new StringBuilder();
     for (Diff diff : diffs) {
       switch (diff.operation) {
-          // DELETE means it was inserted in the right edit.
+        // DELETE means it was inserted in the right edit.
         case INSERT:
         case DELETE:
           if (isJavaAnnotations(diff.text)) {
