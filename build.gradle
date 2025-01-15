@@ -7,7 +7,7 @@ plugins {
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Requires JDK 11 or higher; the plugin crashes under JDK 8.
-  id 'com.diffplug.spotless' version '7.0.1'
+  id 'com.diffplug.spotless' version '7.0.2'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '4.1.0'
