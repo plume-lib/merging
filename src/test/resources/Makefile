@@ -9,6 +9,9 @@ test-imports: ImportsTest1.diff ImportsTest2.diff ImportsTest3.diff ImportsTest4
               ImportsTest6.diff ImportsTest7.diff ImportsTest8.diff ImportsTest9.diff ImportsTest10.diff \
               ImportsTest11.diff ImportsTest12.diff ImportsTest13.diff
 
+# This test is not yet enabled.  It is a test for an insert-insert conflict.
+test-insertion: InsertionTest4.diff
+
 test-version-numbers: VersionNumbersTest1.diff
 
 test-defaults: DefaultsTest14.diff
@@ -85,8 +88,30 @@ Imports%.diff: compile
 	  diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
 	fi
 
-VersionNumbers%.diff: compile
+Insertion%.diff: compile
+	cp -f $(basename $@)A.java $(basename $@).git-merge
+	git merge-file --diff3 \
+	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
 
+	cp -f $(basename $@)A.java $(basename $@)Output.java
+	../../main/sh/java-merge-driver.sh \
+	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)B.java || true
+	if [ -f $(basename $@)Goal-forward.java ] ; then \
+	  diff -u $(basename $@)Goal-forward.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
+	else \
+	  diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-forward.diff ; \
+	fi
+
+	cp -f $(basename $@)B.java $(basename $@)Output.java
+	../../main/sh/java-merge-driver.sh \
+	  $(basename $@)Output.java $(basename $@)Base.java $(basename $@)A.java || true
+	if [ -f $(basename $@)Goal-backward.java ] ; then \
+	  diff -u $(basename $@)Goal-backward.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
+	else \
+	  diff -u $(basename $@)Goal.java $(basename $@)Output.java > $(basename $@)-backward.diff ; \
+	fi
+
+VersionNumbers%.diff: compile
 	cp -f $(basename $@)A.java $(basename $@).git-merge
 	git merge-file --diff3 \
 	  $(basename $@).git-merge $(basename $@)Base.java $(basename $@)B.java || true
