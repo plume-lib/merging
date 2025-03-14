@@ -16,7 +16,7 @@ plugins {
   id 'org.checkerframework' version '0.6.52'
 
   // GraalVM native compilation
-  id 'org.graalvm.buildtools.native' version '0.10.5'
+  id 'org.graalvm.buildtools.native' version '0.10.6'
 
   // To show Gradle dependencies, run: ./gradlew SOMETASKNAME taskTree
   id "com.dorongold.task-tree" version "4.0.1"
