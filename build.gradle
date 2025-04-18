@@ -10,7 +10,7 @@ plugins {
   id 'com.diffplug.spotless' version '7.0.3'
 
   // Error Prone linter
-  id('net.ltgt.errorprone') version '4.1.0'
+  id('net.ltgt.errorprone') version '4.2.0'
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.53'
