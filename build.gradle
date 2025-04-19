@@ -183,6 +183,8 @@ tasks.withType(JavaCompile).configureEach {
     disable('ReferenceEquality') // Use Interning Checker instead.
     // disable('StringSplitter') // Obscure case isn't likely.
     disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
+    disable('StatementSwitchToExpressionSwitch') // requires Java 12 or later
+    disable('StringConcatToTextBlock') // requires Java 15 or later
     disable('PatternMatchingInstanceof') // requires Java 16 or later
     // Don't complain about external library (which is included as source because it isn't at Maven Central).
     excludedPaths = '.*/diff_match_patch.java'
