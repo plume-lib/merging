@@ -13,9 +13,9 @@ if [ -n "$VERBOSE" ] ; then
   echo "$0:" "$@"
 fi
 
-SCRIPTDIR="$(cd "$(dirname "$0")" && pwd -P)"
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
 
-ROOTDIR="${SCRIPTDIR}/../../.."
+ROOTDIR="${SCRIPT_DIR}/../../.."
 # JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
 EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
 
@@ -46,7 +46,7 @@ elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != 
     --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-    -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
+    -cp "${SCRIPT_DIR}/../../../build/libs/merging-all.jar" \
     org.plumelib.merging.Main driver \
     "$@"
   result=$?
@@ -58,7 +58,7 @@ else
     --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-    -cp "${SCRIPTDIR}/../../../build/libs/merging-all.jar" \
+    -cp "${SCRIPT_DIR}/../../../build/libs/merging-all.jar" \
     org.plumelib.merging.Main driver \
     "$@"
   result=$?
