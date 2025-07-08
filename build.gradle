@@ -36,7 +36,7 @@ ext {
 
 dependencies {
   implementation 'com.google.googlejavaformat:google-java-format:1.27.0'
-  implementation 'org.plumelib:javac-parse:0.1.0'
+  implementation 'org.plumelib:javac-parse:0.2.0'
   implementation 'org.plumelib:plume-util:1.11.0'
 
   annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
