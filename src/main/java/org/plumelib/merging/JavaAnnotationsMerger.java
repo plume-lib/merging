@@ -185,7 +185,7 @@ public class JavaAnnotationsMerger extends Merger {
     // Use this diagnostic to determine which strings are still getting parsed.
     // Perhaps write regular expressions for them to improve performance.
     // System.out.printf("isJavaAnnotations(%s) about to parse: %s%n", origText, classText);
-    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(classText);
+    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(classText).getCompilationUnit();
 
     if (mergedCU == null) {
       return false;
@@ -193,7 +193,8 @@ public class JavaAnnotationsMerger extends Merger {
 
     if (annotationStartPattern.matcher(text).find()) {
       String classTextAnnoOnly = "class MyClass {" + text + ";" + "}";
-      JCCompilationUnit annoOnlyCU = JavacParse.parseJavaCode(classTextAnnoOnly);
+      JCCompilationUnit annoOnlyCU =
+          JavacParse.parseJavaCode(classTextAnnoOnly).getCompilationUnit();
       if (annoOnlyCU != null) {
         // The argument parses all on its own, so it is not an annotation (despite the fact that it
         // parses when followed by " String varname;").
