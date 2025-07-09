@@ -175,10 +175,10 @@ public class Main implements Callable<Integer> {
     }
 
     // "--adjacent" defaults to false, so it was set by picocli.  Likewise for "--only-*".
-    java_annotations = java_annotations_optional.orElse(Boolean.TRUE);
-    java_imports = java_imports_optional.orElse(Boolean.TRUE);
-    version_numbers = version_numbers_optional.orElse(Boolean.TRUE);
-    git_merge_file = git_merge_file_optional.orElse(Boolean.TRUE);
+    java_annotations = java_annotations_optional.orElse(true);
+    java_imports = java_imports_optional.orElse(true);
+    version_numbers = version_numbers_optional.orElse(true);
+    git_merge_file = git_merge_file_optional.orElse(true);
 
     if ((only_adjacent ? 1 : 0)
             + (only_java_annotations ? 1 : 0)
