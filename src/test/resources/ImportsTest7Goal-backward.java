@@ -45,7 +45,7 @@ import tech.tablesaw.columns.strings.IntDictionaryMap;
 import tech.tablesaw.columns.strings.LookupTableWrapper;
 import tech.tablesaw.columns.strings.ShortDictionaryMap;
 
-/** Data about a specific column used in it's persistence. */
+/** Data about a specific column used in it's persistence */
 @Beta
 public class ColumnMetadata {
 

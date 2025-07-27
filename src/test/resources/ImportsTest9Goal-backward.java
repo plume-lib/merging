@@ -83,7 +83,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 ||||||| BASE
-/** A column that contains boolean values. */
+/** A column that contains boolean values */
 public class BooleanColumn extends AbstractColumn<BooleanColumn, Boolean>
     implements BooleanFilterSpec<Selection>,
         BooleanMapUtils,
@@ -91,7 +91,7 @@ public class BooleanColumn extends AbstractColumn<BooleanColumn, Boolean>
         BooleanFillers<BooleanColumn>,
         BooleanFilters {
 =======
-/** A column in a base table that contains float values. */
+/** A column in a base table that contains float values */
 public class BooleanColumn extends AbstractColumn<Boolean>
     implements BooleanMapUtils, CategoricalColumn<Boolean>, BooleanFillers<BooleanColumn> {
 >>>>>>> THEIRS
@@ -99,7 +99,7 @@ public class BooleanColumn extends AbstractColumn<Boolean>
 <<<<<<< OURS
 import static com.google.common.base.Preconditions.checkArgument;
 
-/** A column in a base table that contains float values. */
+/** A column in a base table that contains float values */
 public class BooleanColumn extends AbstractColumn<Boolean>
     implements BooleanMapUtils, CategoricalColumn<Boolean>, BooleanFillers<BooleanColumn>, BooleanFilters {
 
@@ -107,7 +107,7 @@ public class BooleanColumn extends AbstractColumn<Boolean>
 
   private ByteArrayList data;
 ||||||| BASE
-  /** The data held by this column. */
+  /** The data held by this column */
   // protected ByteArrayList data;
   BooleanData data;
 =======
@@ -135,7 +135,7 @@ public class BooleanColumn extends AbstractColumn<Boolean>
    * @deprecated Use BooleanColumnType.isMissingValue(byte) instead
    */
 ||||||| BASE
-  /** Returns {@code true} if b is the missing value indicator for this column type. */
+  /** Returns {@code true} if b is the missing value indicator for this column type */
 =======
   /** @deprecated Use BooleanColumnType.isMissingValue(byte) instead */
 >>>>>>> THEIRS
@@ -308,7 +308,7 @@ public class BooleanColumn extends AbstractColumn<Boolean>
     return table;
   }
 
-  /** Returns the count of missing values in this column. */
+  /** Returns the count of missing values in this column */
   @Override
   public int countMissing() {
     int count = 0;
@@ -438,10 +438,10 @@ public class BooleanColumn extends AbstractColumn<Boolean>
   }
 
   /**
-   * Returns the value in row i as a Boolean.
+   * Returns the value in row i as a Boolean
    *
    * @param i the row number
-   * @return a Boolean object (may be null)
+   * @return A Boolean object (may be null)
    */
   @Override
   public Boolean get(int i) {
@@ -489,19 +489,19 @@ public class BooleanColumn extends AbstractColumn<Boolean>
     return count;
   }
 
-  /** Returns the proportion of non-missing row elements that contain true. */
+  /** Returns the proportion of non-missing row elements that contain true */
   public double proportionTrue() {
     double n = size() - countMissing();
     double trueCount = countTrue();
     return trueCount / n;
   }
 
-  /** Returns the proportion of non-missing row elements that contain true. */
+  /** Returns the proportion of non-missing row elements that contain true */
   public double proportionFalse() {
     return 1.0 - proportionTrue();
   }
 
-  /** Returns true if the column contains any true values, and false otherwise. */
+  /** Returns true if the column contains any true values, and false otherwise */
   public boolean any() {
     return countTrue() > 0;
   }
@@ -514,7 +514,7 @@ public class BooleanColumn extends AbstractColumn<Boolean>
     return countTrue() == size();
   }
 
-  /** Returns true if the column contains no true values, and false otherwise. */
+  /** Returns true if the column contains no true values, and false otherwise */
   public boolean none() {
     return countTrue() == 0;
   }

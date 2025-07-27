@@ -29,7 +29,7 @@ public class MessagePacket extends InformationField implements Serializable {
     private String targetCallsign ="";
     private boolean isAck = false;
     private boolean isRej = false;
-
+    
     public MessagePacket( byte[] bodyBytes, String destCall ) {
         super(bodyBytes);
         String message = new String(bodyBytes);
@@ -63,7 +63,7 @@ public class MessagePacket extends InformationField implements Serializable {
 		this.messageBody = messageBody.substring(0, 3);
         }
     }
-
+    
     public MessagePacket(String targetCallsign, String messageBody, String messageNumber) {
     	this.messageBody = messageBody;
     	this.targetCallsign = targetCallsign;
@@ -73,9 +73,9 @@ public class MessagePacket extends InformationField implements Serializable {
     	super.setDataTypeIdentifier(':');
     	super.type=APRSTypes.T_MESSAGE;
     }
-
-    /** Returns the messageBody.
-@return the messageBody
+    
+    /**
+     * @return the messageBody
      */
     public String getMessageBody() {
         return this.messageBody;
@@ -88,8 +88,8 @@ public class MessagePacket extends InformationField implements Serializable {
         this.messageBody = messageBody;
     }
 
-    /** Returns the messageNumber.
-@return the messageNumber
+    /**
+     * @return the messageNumber
      */
     public String getMessageNumber() {
         return messageNumber;
@@ -102,8 +102,8 @@ public class MessagePacket extends InformationField implements Serializable {
         this.messageNumber = messageNumber;
     }
 
-    /** Returns the targetCallsign.
-@return the targetCallsign
+    /**
+     * @return the targetCallsign
      */
     public String getTargetCallsign() {
         return targetCallsign;
