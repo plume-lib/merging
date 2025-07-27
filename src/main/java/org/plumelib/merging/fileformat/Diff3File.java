@@ -240,7 +240,7 @@ public class Diff3File {
       }
 
       /**
-       * Return a ThreeSections with the same contents as the receiver, but with the sections in
+       * Returns a ThreeSections with the same contents as the receiver, but with the sections in
        * order.
        *
        * @return a ThreeSections with the sections in order
@@ -316,7 +316,7 @@ public class Diff3File {
       }
 
       /**
-       * Return a new ThreeSections, with each section's lines filled in.
+       * Returns a new ThreeSections, with each section's lines filled in.
        *
        * @param kind the kind of diff3 hunk that the three sections belong in
        * @return a ThreeSections with each sections line's filled in
@@ -648,7 +648,7 @@ public class Diff3File {
     static final long serialVersionUID = 20240331;
 
     /**
-     * Creates a Diff3ParseException3
+     * Creates a Diff3ParseException3.
      *
      * @param message the descriptive message
      */
@@ -657,7 +657,7 @@ public class Diff3File {
     }
 
     /**
-     * Creates a Diff3ParseException3
+     * Creates a Diff3ParseException3.
      *
      * @param message the descriptive message
      * @param cause the underlying exception
