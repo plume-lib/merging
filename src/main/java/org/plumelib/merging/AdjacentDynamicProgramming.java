@@ -368,7 +368,7 @@ public class AdjacentDynamicProgramming {
    * Returns the unique element of the list that is not IMPOSSIBLE. Returns IMPOSSIBLE if all
    * elements of the list are IMPOSSIBLE.
    *
-   * @param args elements that might or might not be IMPOSSIBLE.
+   * @param args elements that might or might not be IMPOSSIBLE
    * @return the unique element of the list that is not IMPOSSIBLE, or IMPOSSIBLE
    */
   @RequiresNonNull("table")

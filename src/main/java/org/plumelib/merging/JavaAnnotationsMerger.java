@@ -210,7 +210,7 @@ public class JavaAnnotationsMerger extends Merger {
   //
 
   /**
-   * Groups the regex in a non-capturing group
+   * Groups the regex in a non-capturing group.
    *
    * @param regex a regex
    * @return the regex, in non-capturing group

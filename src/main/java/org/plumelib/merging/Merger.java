@@ -18,7 +18,7 @@ abstract class Merger {
   /**
    * Creates a Merger.
    *
-   * @param verbose if true, print diagnostics for debugging.
+   * @param verbose if true, print diagnostics for debugging
    */
   public Merger(boolean verbose) {
     this(verbose, false);
@@ -27,7 +27,7 @@ abstract class Merger {
   /**
    * Creates a Merger.
    *
-   * @param verbose if true, print diagnostics for debugging.
+   * @param verbose if true, print diagnostics for debugging
    * @param alwaysRun if true, run the merger even if there are no conflicts
    */
   public Merger(boolean verbose, boolean alwaysRun) {

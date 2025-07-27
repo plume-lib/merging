@@ -127,7 +127,7 @@ public abstract class RDiff {
   }
 
   /**
-   * Return a pair of RDiffs that are together equivalent to this one. The first one's before and
+   * Returns a pair of RDiffs that are together equivalent to this one. The first one's before and
    * after texts match the given pattern, or are the empty string.
    *
    * @param p a pattern that matches text that should be in the first part. It must be of the form
@@ -166,7 +166,7 @@ public abstract class RDiff {
   }
 
   /**
-   * Return a pair of RDiffs that are together equivalent to this one. The second one's before and
+   * Returns a pair of RDiffs that are together equivalent to this one. The second one's before and
    * after texts match the given pattern, or are the empty string.
    *
    * @param p a pattern that matches characters that should be in the second part. It must be of the
@@ -287,7 +287,7 @@ public abstract class RDiff {
     String text;
 
     /**
-     * Creates an insertion operation
+     * Creates an insertion operation.
      *
      * @param text the text being inserted
      */
