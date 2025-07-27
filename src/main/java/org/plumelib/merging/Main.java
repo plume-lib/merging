@@ -25,7 +25,7 @@ public class Main implements Callable<Integer> {
   /** Creates a Main. */
   public Main() {}
 
-  /** If true, run as a merge driver or a merge tool. */
+  /** Whether to run as a merge driver or a merge tool. */
   @Parameters(index = "0", description = "\"driver\" or \"tool\"")
   MergeMode command;
 
