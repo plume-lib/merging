@@ -83,23 +83,23 @@ test {
       '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
     ]
   }
-}
-test {
+
   testLogging {
     // TODO: What about "ignored"?  There is no such event: https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLogEvent.html
     events "passed", "skipped", "failed", "standardOut", "standardError"
+  }
+
+  testLogging {
+    outputs.upToDateWhen{false}
+    showStandardStreams = true
+    events "failed"
+    exceptionFormat = "full"
   }
 }
 
 tasks.named('test') {
   // Use JUnit Platform for unit tests.
   useJUnitPlatform()
-}
-test {
-  testLogging {
-    outputs.upToDateWhen {false}
-    showStandardStreams = true
-  }
 }
 
 task runMakefileTests(type: Exec, description: 'Run tests defined in Makefile') {
