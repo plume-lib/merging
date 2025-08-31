@@ -278,7 +278,7 @@ javadoc {
 }
 check.dependsOn javadoc
 
-tasks.register("javadocWeb", Javadoc) {
+tasks.register('javadocWeb', Javadoc) {
   description = 'Upload API documentation to website.'
   source = sourceSets.main.allJava
   destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
@@ -298,7 +298,7 @@ configurations {
 dependencies {
   requireJavadoc 'org.plumelib:require-javadoc:2.0.0'
 }
-tasks.register("requireJavadoc", JavaExec) {
+tasks.register('requireJavadoc', JavaExec) {
   description = 'Ensures that Javadoc documentation exists.'
   mainClass = 'org.plumelib.javadoc.RequireJavadoc'
   classpath = configurations.requireJavadoc
@@ -319,7 +319,7 @@ check.dependsOn requireJavadoc
 // Emacs support
 
 /* Make Emacs TAGS table */
-tasks.register("tags", Exec) {
+tasks.register('tags', Exec) {
   description = 'Run etags to create an Emacs TAGS table'
   commandLine 'bash', '-c', "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags"
 }
