@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [ '17', '21', '24' ]
+        java: [ '17', '21', '24', '25-ea' ]
 
     steps:
     - name: Check out code

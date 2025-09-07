@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [ '17', '21', '24' ]
+        java: [ '17', '21', '24', '25-ea' ]
 
     steps:
     - name: Check out code
@@ -23,6 +23,8 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
+        check-latest: true
+        cache: 'gradle'
 
     - name: ./gradlew build
       run: ./gradlew build
