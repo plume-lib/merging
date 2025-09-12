@@ -544,7 +544,7 @@ public class JavaImportsMerger extends Merger {
    * @return the last of the dotted identifiers
    */
   private static String lastIdentifier(String dottedIdentifiers) {
-    int dotPos = dottedIdentifiers.lastIndexOf(".");
+    int dotPos = dottedIdentifiers.lastIndexOf('.');
     if (dotPos == -1) {
       return dottedIdentifiers;
     } else {
