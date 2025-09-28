@@ -9,7 +9,7 @@ We are not aware of any real-world examples where this merger makes a mistake.
 
 Suppose that a git merge yielded a conflict in one of your `.java` files:
 
-```
+```diff-fenced
 <<<<<<< OURS
   private long foo(byte[] bytes, @NonNegative int length) {
 ||||||| BASE
@@ -21,7 +21,7 @@ Suppose that a git merge yielded a conflict in one of your `.java` files:
 
 The Java annotation merger would resolve the conflict as:
 
-```
+```output
   private long foo(byte[] bytes, @NonNegative int length) {
 ```
 

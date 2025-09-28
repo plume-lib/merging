@@ -11,7 +11,7 @@ We are not aware of any real-world examples where this merger makes a mistake.
 
 Suppose that git merge yields a conflict like the following:
 
-```
+```diff-fenced
   // Checker Framework pluggable type-checking
 <<<<<<< OURS
   id 'org.checkerframework' version '0.6.38'
@@ -25,7 +25,7 @@ Suppose that git merge yields a conflict like the following:
 
 The version-numbers merger would resolve the conflict as:
 
-```
+```gradle
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.39'
 }
@@ -35,7 +35,7 @@ The version-numbers merger would resolve the conflict as:
 
 Given this conflict:
 
-```
+```diff-fenced
   // Checker Framework pluggable type-checking
 <<<<<<< OURS
   id 'org.checkerframework' version '0.5.99'
@@ -49,7 +49,7 @@ Given this conflict:
 
 The version-numbers merger would resolve the conflict as:
 
-```
+```gradle
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.02'
 }

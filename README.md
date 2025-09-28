@@ -4,7 +4,6 @@ This project contains merging algorithms.  You can configure Git to use
 these tools instead of its default merge heuristics, or you can use these
 tools to improve Git's merges after it runs.
 
-
 ## Features
 
 * [Adjacent lines](README-adjacent-lines.md): This resolves conflicts when
@@ -29,27 +28,29 @@ We are not aware of any real-world examples where this merger makes a mistake.
 You can enable and disable each feature individually, or enable just one feature.
 These command-line arguments are supported by the merge driver
 `merge-driver.sh` and the merge tool `merge-tool.sh`.
- * `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
- * `--java-annotations`, `--no-java-annotations`, `--only-java-annotations` [default: enabled]
- * `--java-imports`, `--no-java-imports`, `--only-java-imports` [default: enabled]
- * `--version-numbers`, `--no-version-numbers`, `--only-version-numbers` [default: enabled]
+
+* `--adjacent`, `--no-adjacent`, `--only-adjacent` [default: disabled]
+* `--java-annotations`, `--no-java-annotations`, `--only-java-annotations`
+  [default: enabled]
+* `--java-imports`, `--no-java-imports`, `--only-java-imports` [default: enabled]
+* `--version-numbers`, `--no-version-numbers`, `--only-version-numbers`
+  [default: enabled]
 
 Unfortunately, git does not permit the user to specify command-line
 arguments to be passed to a merge driver or merge tool.  See below for how
 to define different merge drivers and merge tools that pass different
 command-line arguments.
 
-
 ## How to use
 
 You can use the mergers in this repository in three ways.
 
- * Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most
+* Using them as [**merge drivers**](#how-to-use-as-a-merge-driver) is most
    convenient, because you don't have to remember to issue any commands
    and they are automatically used for `git merge`, `git revert`, `git
    rebase`, `git cherry-pick`, etc.
 
- * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) means
+* Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) means
    to keep Git's original behavior and manually invoke them to improve the
    merge (whither Git produced a conflict or not
 
@@ -58,10 +59,9 @@ leads
    [below](#why-to-use-a-re-merge-tool-rather-than-a-merge-driver) for an
    explanation.
 
- * Using them as [**merge tools**](#how-to-use-as-a-merge-tool) is not
+* Using them as [**merge tools**](#how-to-use-as-a-merge-tool) is not
    recommended, because a merge tool requires too much user interaction for
    what should be an automated process.
-
 
 ### Common setup
 
@@ -82,37 +82,39 @@ adjusting "..." according to where you cloned this repository.
 After changing one of your dotfiles to set PATH, you may need to log out
 and log back in again to have the change take effect.
 
-
 ### How to use as a merge driver
 
 After performing the following steps, git will automatically use the merge
 driver for **every merge**.
 
 1. Run these commands:
-```
-git config --global merge.conflictstyle diff3
-git config --global merge.plumelib-merge.name "Merge Java files"
-git config --global merge.plumelib-merge.driver 'merge-driver.sh %A %O %B'
-git config --global merge.merge-adjacent.name "Merge changes on adjacent lines"
-git config --global merge.merge-adjacent.driver 'merge-driver.sh --only-adjacent %A %O %B'
-```
 
-To take effect only for one repository, replace `--global` by `--local` and run
-the commands within the repository.
+   <!-- markdownlint-disable MD013 --><!-- long lines -->
+   ```sh
+   git config --global merge.conflictstyle diff3
+   git config --global merge.plumelib-merge.name "Merge Java files"
+   git config --global merge.plumelib-merge.driver 'merge-driver.sh %A %O %B'
+   git config --global merge.merge-adjacent.name "Merge changes on adjacent lines"
+   git config --global merge.merge-adjacent.driver 'merge-driver.sh --only-adjacent %A %O %B'
+   ```
+   <!-- markdownlint-enable MD013 --><!-- long lines -->
 
-You can define additional merge drivers that pass different sets of
-arguments, beyond the `plumelib-merge` and `merge-adjacent` merge drivers
-defined below.
+   To take effect only for one repository, replace `--global` by `--local` and run
+   the commands within the repository.
+
+   You can define additional merge drivers that pass different sets of
+   arguments, beyond the `plumelib-merge` and `merge-adjacent` merge drivers
+   defined below.
 
 2. In a gitattributes file, add:
 
-```
+```gitattributes
 * merge=plumelib-merge
 ```
 
 or
 
-```
+```gitattributes
 *.java merge=merge-adjacent
 ```
 
@@ -126,14 +128,13 @@ default `$XDG_CONFIG_HOME/git/attributes`.  You can change the user-level
 file to be `~/.gitattributes` by running the following command, once ever
 per computer:  `git config --global core.attributesfile '~/.gitattributes'`
 
-
 ### How to use as a re-merge tool
 
 See [below](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 
 **To perform a merge**, run:
 
-```
+```sh
 git merge [ARGS]
 git-mergetool.sh --all [--tool=plumelib-merge]
 ```
@@ -143,13 +144,12 @@ up one merge tool.)
 
 Or, **after a git merge that leaves conflicts**, run:
 
-```
+```sh
 git-mergetool.sh --all [--tool=plumelib-merge]
 ```
 
 You can create a shell alias or a git alias that first runs `git merge`,
 then runs `git-mergetool.sh --all`.
-
 
 #### Setup for use as a merge tool or re-merge-tool
 
@@ -157,7 +157,8 @@ There is just one step for setup.
 
 1. Run the following commands to edit your `~/.gitconfig` file.
 
-```
+<!-- markdownlint-disable MD013 --><!-- long lines -->
+```sh
 git config --global merge.conflictstyle diff3
 git config --global mergetool.prompt false
 git config --global merge.tool plumelib-merge
@@ -167,6 +168,7 @@ git config --global merge.tool merge-adjacent
 git config --global mergetool.merge-adjacent.cmd 'merge-tool.sh --only-adjacent ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
 git config --global mergetool.merge-adjacent.trustExitCode true
 ```
+<!-- markdownlint-enable MD013 --><!-- long lines -->
 
 To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.
@@ -174,7 +176,6 @@ the commands within the repository.
 You may wish to set up just one merge tool (not two as shown above), so
 that you do not have to pass the `--tool=` command-line argument to
 `git-mergetool.sh` and `git mergetool`.
-
 
 ### How to use as a merge tool
 
@@ -184,11 +185,13 @@ See [above](#setup-for-use-as-a-merge-tool-or-re-merge-tool) for setup.
 (You can omit the `--tool=...` command-line argument if you have only set
 up one merge tool.)
 
-```
+```sh
 git mergetool [--tool=plumelib-merge]
 ```
+
 or
-```
+
+```sh
 git mergetool [--tool=merge-adjacent]
 ```
 
@@ -196,17 +199,16 @@ A fundamental limitation of `git mergetool` is that it requires user
 interaction in two scenarios (even with the `-y` and `--no-prompt`
 command-line arguments!):
 
- * Whenever a file was not perfectly merged, you need to type `y` to
+* Whenever a file was not perfectly merged, you need to type `y` to
    continue.  You should choose "y" because the merge tool might have made
    some improvements even if it didn't resolve every conflict, and also
    because you wish to run it on the rest of the files in the repository.
 
- * Whenever there is a merge-delete conflict, you need to choose among
+* Whenever there is a merge-delete conflict, you need to choose among
    "Use (m)odified or (d)eleted file, or (a)bort?".
 
 Instead of `git mergetool`, you can run `git-mergetool.sh`, which
 eliminates the need for user interaction.
-
 
 ## Git merge terminology
 
@@ -231,10 +233,10 @@ A **re-merge tool** is _called manually_ by the programmer
 (via `git-mergetool.sh`).
 A re-merge tool differs from a merge tool in the following ways:
 
- * It not require user interaction.  (By contrast, a regular git merge tool
+* It not require user interaction.  (By contrast, a regular git merge tool
    requires you to press a key for every file that gets merged.)
 
- * With the `--all` command-line argument, it is run on every file that
+* With the `--all` command-line argument, it is run on every file that
    differed between the two versions being merged -- even ones for which
    the merge driver produced a clean merge.  This feature is is only
    necessary for mergers that may re-introduce lines that were removed in a
@@ -251,7 +253,6 @@ strategy makes a decision and the merge driver is never called.  This
 repository does not include a git merge strategy; the ones built into git are
 adequate.
 
-
 ## Why to use a (re-)merge tool rather than a merge driver
 
 You may wish to use a merger in this repository as a re-merge tool, rather
@@ -265,7 +266,6 @@ results) may produce suboptimal results.  A (re-)merge tool lets you use
 Another reason to use a re-merge tool is that sometimes Git produces a
 clean merge (no conflicts), but the merge is incorrect -- say, the imports
 are not properly updated.  A re-merge tool can correct these problems.
-
 
 ## License
 

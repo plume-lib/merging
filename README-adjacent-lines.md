@@ -8,7 +8,7 @@ resolved.
 
 Suppose that git merge yields a conflict like the following:
 
-```
+```diff-fenced
 a
 <<<<<<< OURS
 bleft1
@@ -26,7 +26,7 @@ d
 
 The adjacent-lines merger would resolve the conflict as:
 
-```
+```output
 a
 bleft1
 bleft2
