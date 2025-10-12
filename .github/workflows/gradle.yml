@@ -12,25 +12,25 @@ jobs:
         java: ['17', '21', '24', '25']
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: 1
-        show-progress: false
+      - name: Check out code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          show-progress: false
 
-    - name: Set up JDK
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'temurin'
-        java-version: ${{ matrix.java }}
-        check-latest: true
-        cache: 'gradle'
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+          cache: 'gradle'
 
-    - name: ./gradlew build
-      run: ./gradlew build
-    - name: ./gradlew javadoc
-      run: ./gradlew javadoc
-    - name: ./gradlew requireJavadoc
-      run: ./gradlew requireJavadoc
-    - name: ./gradlew spotlessCheck
-      run: ./gradlew spotlessCheck
+      - name: ./gradlew build
+        run: ./gradlew build
+      - name: ./gradlew javadoc
+        run: ./gradlew javadoc
+      - name: ./gradlew requireJavadoc
+        run: ./gradlew requireJavadoc
+      - name: ./gradlew spotlessCheck
+        run: ./gradlew spotlessCheck

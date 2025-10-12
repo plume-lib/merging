@@ -12,19 +12,19 @@ jobs:
         java: ['17', '21', '24', '25']
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: 1
-        show-progress: false
+      - name: Check out code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          show-progress: false
 
-    - name: Set up JDK
-      uses: graalvm/setup-graalvm@v1
-      with:
-        java-version: ${{ matrix.java }}
-        distribution: 'graalvm'
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        native-image-job-reports: 'true'
+      - name: Set up JDK
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
 
-    - name: ./gradlew nativeCompile check
-      run: ./gradlew nativeCompile check
+      - name: ./gradlew nativeCompile check
+        run: ./gradlew nativeCompile check
