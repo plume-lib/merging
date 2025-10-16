@@ -324,5 +324,5 @@ check.dependsOn requireJavadoc
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
-  commandLine "bash", "-c", "find src/ \\( -name "*.java" -o -name "*.sh" \\) | sort | xargs etags"
+  commandLine "bash", "-c", "find src/ \\( -name '*.java' -o -name "*.sh" \\) | sort | xargs etags"
 }
