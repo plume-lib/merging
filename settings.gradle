@@ -6,8 +6,8 @@ buildscript {
 
 plugins {
   // Apply the foojay-resolver plugin to allow automatic download of JDKs
-  id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+  id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 // Project name is read-only in build scripts, and defaults to directory name.
-rootProject.name = 'merging'
+rootProject.name = "merging"

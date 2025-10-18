@@ -1,25 +1,25 @@
 plugins {
-  id "java"
-  id "application" // this project includes multiple programs, not just one.
+  id("java")
+  id("application") // this project includes multiple programs, not just one.
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id "com.gradleup.shadow" version "9.2.2"
+  id("com.gradleup.shadow").version("9.2.2")
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Requires JDK 11 or higher; the plugin crashes under JDK 8.
-  id "com.diffplug.spotless" version "8.0.0"
+  id("com.diffplug.spotless").version("8.0.0")
 
   // Error Prone linter
-  id("net.ltgt.errorprone") version "4.3.0"
+  id("net.ltgt.errorprone").version("4.3.0")
 
   // Checker Framework pluggable type-checking
-  id "org.checkerframework" version "0.6.60"
+  id("org.checkerframework").version("0.6.60")
 
   // GraalVM native compilation
-  id "org.graalvm.buildtools.native" version "0.11.2"
+  id("org.graalvm.buildtools.native").version("0.11.2")
 
   // To show Gradle dependencies, run: ./gradlew SOMETASKNAME taskTree
-  id "com.dorongold.task-tree" version "4.0.1"
+  id("com.dorongold.task-tree").version("4.0.1")
 }
 
 repositories {
@@ -36,12 +36,12 @@ ext {
 }
 
 dependencies {
-  implementation "com.google.googlejavaformat:google-java-format:1.30.0"
-  implementation "org.plumelib:javac-parse:0.2.0"
-  implementation "org.plumelib:plume-util:1.11.0"
+  implementation("com.google.googlejavaformat:google-java-format:1.30.0")
+  implementation("org.plumelib:javac-parse:0.2.0")
+  implementation("org.plumelib:plume-util:1.11.0")
 
-  annotationProcessor "info.picocli:picocli-codegen:4.7.7"
-  implementation "info.picocli:picocli:4.7.7"
+  annotationProcessor("info.picocli:picocli-codegen:4.7.7")
+  implementation("info.picocli:picocli:4.7.7")
 
   testImplementation("org.junit.jupiter:junit-jupiter:6.0.0")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -87,13 +87,13 @@ test {
 
   testLogging {
     // TODO: What about "ignored"?  There is no such event: https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLogEvent.html
-    events "passed", "skipped", "failed", "standardOut", "standardError"
+    events("passed", "skipped", "failed", "standardOut", "standardError")
   }
 
   testLogging {
     outputs.upToDateWhen{false}
     showStandardStreams = true
-    events "failed"
+    events("failed")
     exceptionFormat = "full"
   }
 }
@@ -106,16 +106,16 @@ tasks.named("test") {
 tasks.register("runMakefileTests", Exec) {
   description = "Run tests defined in Makefile."
   group = "Verification"
-  commandLine "make", "-C", file("src/test/resources").absolutePath
+  commandLine("make", "-C", file("src/test/resources").absolutePath)
 }
-check.dependsOn runMakefileTests
+check.dependsOn(runMakefileTests)
 // The "test" task runs the JUnit tests, whose failure is more informative than system tests.
 runMakefileTests.mustRunAfter(test)
 
 spotless {
   format "misc", {
     // define the files to apply `misc` to
-    target "*.md", ".gitignore"
+    target("*.md", ".gitignore")
 
     // define the steps to apply to those files
     trimTrailingWhitespace()
@@ -130,7 +130,7 @@ spotless {
     formatAnnotations()
   }
   groovyGradle {
-    target "**/*.gradle"
+    target("**/*.gradle")
     greclipse()  // which formatter Spotless should use to format .gradle files.
     leadingTabsToSpaces(2)
     trimTrailingWhitespace()
@@ -230,9 +230,9 @@ if (false) {
   // TODO: Change the above test to false when CF is released.
   ext.checkerFrameworkVersion = "3.51.1"
   dependencies {
-    compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
-    testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
-    checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
+    compileOnly("org.checkerframework:checker-qual:${checkerFrameworkVersion}")
+    testCompileOnly("org.checkerframework:checker-qual:${checkerFrameworkVersion}")
+    checkerFramework("org.checkerframework:checker:${checkerFrameworkVersion}")
   }
   configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, "minutes"
@@ -242,9 +242,9 @@ if (false) {
 if (project.hasProperty("cfLocal")) {
   def cfHome = String.valueOf(System.getenv("CHECKERFRAMEWORK"))
   dependencies {
-    compileOnly files(cfHome + "/checker/dist/checker-qual.jar")
-    testCompileOnly files(cfHome + "/checker/dist/checker-qual.jar")
-    checkerFramework files(cfHome + "/checker/dist/checker.jar")
+    compileOnly(files(cfHome + "/checker/dist/checker-qual.jar"))
+    testCompileOnly(files(cfHome + "/checker/dist/checker-qual.jar"))
+    checkerFramework(files(cfHome + "/checker/dist/checker.jar"))
   }
 }
 
@@ -279,7 +279,7 @@ javadoc {
     }
   }
 }
-check.dependsOn javadoc
+check.dependsOn(javadoc)
 
 tasks.register("javadocWeb", Javadoc) {
   description = "Upload API documentation to website."
@@ -299,13 +299,13 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:2.0.0"
+  requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
 tasks.register("requireJavadoc", JavaExec) {
   description = "Ensures that Javadoc documentation exists."
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args "src/main/java"
+  args("src/main/java")
   jvmArgs += [
     "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
@@ -317,12 +317,12 @@ tasks.register("requireJavadoc", JavaExec) {
     "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
   ]
 }
-check.dependsOn requireJavadoc
+check.dependsOn(requireJavadoc)
 
 // Emacs support
 
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
-  commandLine "bash", "-c", "find src/ \\( -name '*.java' -o -name "*.sh" \\) | sort | xargs etags"
+  commandLine("bash", "-c", "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags")
 }
