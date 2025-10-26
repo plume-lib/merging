@@ -6,11 +6,15 @@ plugins {
   id("com.gradleup.shadow").version("9.2.2")
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  // Requires JDK 11 or higher; the plugin crashes under JDK 8.
+  // Version 8.0.0 and later requires Java 17+.
   id("com.diffplug.spotless").version("8.0.0")
 
   // Error Prone linter
   id("net.ltgt.errorprone").version("4.3.0") apply false
+
+  // TODO: reinstate when all PMD warnings have been addressed.
+  // // PMD linter
+  // id("pmd")
 
   // Checker Framework pluggable type-checking
   id("org.checkerframework").version("0.6.60")
@@ -173,20 +177,29 @@ graalvmNative {
 
 // Error Prone linter
 
+tasks.withType(JavaCompile).configureEach {
+  options.forkOptions.jvmArgs += "-Xmx6g"
+  options.compilerArgs << "-Werror"
+  // "-processing" avoids javac warning "No processor claimed any of these annotations".
+  // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
+  if (isJava21orHigher) {
+    options.compilerArgs << "-Xlint:all,-processing,-options,-this-escape"
+  } else {
+    options.compilerArgs << "-Xlint:all,-processing,-options"
+  }
+  // // Only needed when debugging.
+  // options.compilerArgs << "-g"
+}
 if (isJava21orHigher) {
   apply plugin: "net.ltgt.errorprone"
   dependencies {
     errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
   }
   tasks.withType(JavaCompile).configureEach {
-    // "-processing" avoids javac warning "No processor claimed any of these annotations".
-    options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
-    // Only needed when debugging.
-    options.compilerArgs << "-g"
     options.errorprone {
       disable("ReferenceEquality") // Use Interning Checker instead.
       // disable("StringSplitter") // Obscure case isn't likely.
-      disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod
+      disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod.
       disable("StatementSwitchToExpressionSwitch") // requires Java 12 or later
       disable("StringConcatToTextBlock") // requires Java 15 or later
       disable("PatternMatchingInstanceof") // requires Java 16 or later
@@ -195,6 +208,18 @@ if (isJava21orHigher) {
     }
   }
 }
+
+// TODO: reinstate when all PMD warnings have been addressed.
+// // PMD linter
+//
+// pmd {
+//   toolVersion = "7.17.0"
+//   ruleSetFiles =(files("${rootDir}/.pmd-ruleset.xml"))
+//   consoleOutput = true
+//   ignoreFailures = false
+//   incrementalAnalysis = true
+// }
+
 
 // Checker Framework pluggable type-checking
 
@@ -218,6 +243,8 @@ checkerFramework {
   ]
   extraJavacArgs = [
     "-Werror",
+    "-Aversion",
+    // "-verbose",
     "-AcheckPurityAnnotations",
     "-ArequirePrefixInWarningSuppressions",
     "-AwarnRedundantAnnotations",
@@ -302,6 +329,7 @@ dependencies {
   requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
 tasks.register("requireJavadoc", JavaExec) {
+  group = "Documentation"
   description = "Ensures that Javadoc documentation exists."
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
