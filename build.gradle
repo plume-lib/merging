@@ -10,7 +10,7 @@ plugins {
   id("com.diffplug.spotless").version("8.0.0")
 
   // Error Prone linter
-  id("net.ltgt.errorprone").version("4.3.0")
+  id("net.ltgt.errorprone").version("4.3.0") apply false
 
   // TODO: reinstate when all PMD warnings have been addressed.
   // // PMD linter
@@ -34,7 +34,7 @@ repositories {
 }
 
 ext {
-  errorproneVersion = "2.42.0"
+  errorproneVersion = "2.43.0"
   isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
   isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
 }
