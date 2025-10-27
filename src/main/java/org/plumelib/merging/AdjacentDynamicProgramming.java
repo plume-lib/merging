@@ -61,14 +61,13 @@ public class AdjacentDynamicProgramming {
   private static final boolean debug = false;
 
   /** The maximum table size that will be attempted. */
-  private static int MAX_TABLE_SIZE = 10000000;
+  private static int MAX_TABLE_SIZE = 10_000_000;
 
   /** Indicates that a given table entry is unreachable. */
   @SuppressWarnings("interning:assignment") // unique assignment
-  private @InternedDistinct List<String> IMPOSSIBLE = new ArrayList<String>(1);
-
-  /** An empty list. */
-  private List<String> emptyList = new ArrayList<String>(0);
+  // Cannot use `Collections.singletonList("IMPOSSIBLE")` because that isn't of type ArrayList,
+  // which is the only thing that can be inserted into `table`.
+  private @InternedDistinct List<String> IMPOSSIBLE = new ArrayList<>(1);
 
   /** The first parent. */
   List<String> a;
@@ -156,7 +155,7 @@ public class AdjacentDynamicProgramming {
   @RequiresNonNull("table")
   private void fillInZeroes() {
     // three zero indices
-    table[0][0][0] = emptyList;
+    table[0][0][0] = new ArrayList<>(0);
 
     // two zero indices
     for (int iA = 1; iA <= aLen; iA++) {
@@ -406,7 +405,7 @@ public class AdjacentDynamicProgramming {
     if (lst == IMPOSSIBLE) {
       return IMPOSSIBLE;
     }
-    List<String> result = new ArrayList<String>(lst.size() + 1);
+    List<String> result = new ArrayList<>(lst.size() + 1);
     result.addAll(lst);
     result.add(elt);
     return result;
@@ -436,14 +435,14 @@ public class AdjacentDynamicProgramming {
     String lineSep = System.lineSeparator();
     StringBuilder sb = new StringBuilder();
     for (int iA = 0; iA <= aLen; iA++) {
-      sb.append("iA=" + iA + ":" + lineSep);
+      sb.append("iA=").append(iA).append(':').append(lineSep);
       for (int iC = 0; iC <= cLen; iC++) {
-        sb.append("iC=" + iC + ": ");
+        sb.append("iC=").append(iC).append(": ");
         StringJoiner sjB = new StringJoiner("; ");
         for (int iB = 0; iB <= bLen; iB++) {
           sjB.add("iB=" + iB + ":" + pathToString(table[iA][iC][iB]));
         }
-        sb.append(sjB.toString() + lineSep);
+        sb.append(sjB).append(lineSep);
       }
     }
     return sb.toString();

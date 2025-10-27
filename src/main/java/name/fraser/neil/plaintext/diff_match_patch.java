@@ -41,6 +41,7 @@ import org.plumelib.util.StringsPlume;
  * Class containing the diff, match and patch methods.
  * Also contains the behaviour settings.
  */
+@SuppressWarnings("PMD")
 public class diff_match_patch {
 
   /** Creates a diff_match_patch. */
