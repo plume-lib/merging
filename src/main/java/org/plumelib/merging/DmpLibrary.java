@@ -15,8 +15,7 @@ public final class DmpLibrary {
   }
 
   /** A diff_match_patch for which context is 0; that is, Patch_Margin is 0. */
-  @SuppressWarnings("PMD.AvoidProtectedFieldInFinalClass") // avoid access outside the package
-  protected static diff_match_patch dmp;
+  static diff_match_patch dmp;
 
   static {
     dmp = new diff_match_patch();
