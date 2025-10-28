@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /** This class contains static methods related to calling git. */
-public class GitLibrary {
+public final class GitLibrary {
 
   /** If true, output diagnostics. */
   private static boolean verbose = false;

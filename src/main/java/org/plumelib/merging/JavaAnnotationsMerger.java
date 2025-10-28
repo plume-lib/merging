@@ -153,7 +153,7 @@ public class JavaAnnotationsMerger extends Merger {
     // the unit tests).
     final boolean useRegex = true;
 
-    String declText = null;
+    String declText;
     // The test for " this" must precede the test for "@", because both can be true.
     if (text.endsWith(" this") || text.endsWith(" this,")) {
       if (useRegex && thisPattern.matcher(text).matches()) {

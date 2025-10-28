@@ -16,9 +16,11 @@ import picocli.CommandLine.Parameters;
 
 /** Acts as a git merge driver or merge tool. */
 @SuppressWarnings({
-  "nullness:initialization.fields.uninitialized",
-  "initializedfields:contracts.postcondition"
-}) // picocli initializes w/reflection
+  "nullness:initialization.fields.uninitialized", // picocli initializes w/reflection
+  "initializedfields:contracts.postcondition", // picocli initializes w/reflection
+  "PMD.ShortClassName",
+  "PMD.TooManyFields"
+})
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
 public class Main implements Callable<Integer> {
 
@@ -143,6 +145,7 @@ public class Main implements Callable<Integer> {
    * --initialize-at-build-time=com.sun.tools.javac.file.Locations} when building. See
    * https://github.com/oracle/graal/issues/2903#issuecomment-1046660582.
    */
+  @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
   private static void setJavaHome() {
     if (System.getProperty("java.home") == null) {
       String home = System.getenv("GRAALVM_HOME");
@@ -298,7 +301,7 @@ public class Main implements Callable<Integer> {
       // REPLACE_EXISTING is needed because createTempFile creates an empty file.
       Files.copy(leftPath, leftFileSavedPath, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      Main.exitErroneously(
+      exitErroneously(
           "Problem copying " + leftPath + " to " + leftFileSavedPath + ": " + e.getMessage());
       throw new Error("unreachable");
     }

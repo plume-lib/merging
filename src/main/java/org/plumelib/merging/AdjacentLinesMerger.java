@@ -77,6 +77,7 @@ public class AdjacentLinesMerger extends Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
+  @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
     String baseJoined = mc.baseJoined();
     if (baseJoined == null) {
@@ -134,6 +135,7 @@ public class AdjacentLinesMerger extends Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
+  @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable List<String> mergedSameLength(MergeConflict mc) {
     if (mc.base() == null) {
       Main.exitErroneously("need a 3-way diff");

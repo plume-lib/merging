@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 import org.plumelib.util.CollectionsPlume;
 
 /** This class contains static methods related to Java code. */
-public class JavaLibrary {
+public final class JavaLibrary {
 
   /** Do not instantiate. */
   private JavaLibrary() {
@@ -76,7 +76,7 @@ public class JavaLibrary {
   public static int firstPackageStatement(List<String> lines) {
     int linesSize = lines.size();
     for (int i = 0; i < linesSize; i++) {
-      if (JavaLibrary.isPackageStatement(lines.get(i))) {
+      if (isPackageStatement(lines.get(i))) {
         return i;
       }
     }
@@ -108,7 +108,7 @@ public class JavaLibrary {
   public static int firstImportStatement(List<String> lines) {
     int linesSize = lines.size();
     for (int i = 0; i < linesSize; i++) {
-      if (JavaLibrary.isImportStatement(lines.get(i))) {
+      if (isImportStatement(lines.get(i))) {
         return i;
       }
     }

@@ -7,7 +7,7 @@ import name.fraser.neil.plaintext.diff_match_patch.LinesToCharsResult;
 import name.fraser.neil.plaintext.diff_match_patch.Patch;
 
 /** This class contains static methods for use with diff_match_patch. */
-public class DmpLibrary {
+public final class DmpLibrary {
 
   /** Do not instantiate. */
   private DmpLibrary() {
@@ -15,7 +15,7 @@ public class DmpLibrary {
   }
 
   /** A diff_match_patch for which context is 0; that is, Patch_Margin is 0. */
-  protected static diff_match_patch dmp;
+  static diff_match_patch dmp;
 
   static {
     dmp = new diff_match_patch();

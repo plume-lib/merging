@@ -279,7 +279,7 @@ public class ConflictedFile {
       if (fileContents != null) {
         lines = StringsPlume.splitLinesRetainSeparators(fileContents);
       } else if (hunks != null) {
-        lines = new ArrayList<String>();
+        lines = new ArrayList<>();
         for (ConflictElement ce : hunks) {
           lines.addAll(ce.toLines());
         }
@@ -334,7 +334,7 @@ public class ConflictedFile {
 
   /** A single merge conflict (part of a conflicted file). */
   // This cannot be a Java record because I don't want the default constructor to be public.
-  public static class MergeConflict implements ConflictElement {
+  public static final class MergeConflict implements ConflictElement {
     /**
      * The base text. Empty string means empty. Null means unknown -- that is, the merge conflict is
      * in diff style rather than diff3 style.
@@ -655,7 +655,7 @@ public class ConflictedFile {
         // Create a CommonLines for the text up to the conflict start marker.
         if (i > lastConflictEnder + 1) {
           List<String> commonText = lines.subList(lastConflictEnder + 1, i);
-          if (commonText.size() != 0) {
+          if (!commonText.isEmpty()) {
             result.add(new CommonLines(commonText));
           }
         }
@@ -710,7 +710,7 @@ public class ConflictedFile {
           }
         }
         // We have read the left conflict text, and the base conflict text if any.
-        @SuppressWarnings("interning:not.interned")
+        @SuppressWarnings({"interning:not.interned", "PMD.UseEqualsToCompareStrings"})
         boolean sameLine = (line == lines.get(i));
         assert sameLine;
         assert line.startsWith("======")

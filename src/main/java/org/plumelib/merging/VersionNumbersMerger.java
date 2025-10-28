@@ -73,6 +73,7 @@ public class VersionNumbersMerger extends Merger {
    * @param mc the merge conflict
    * @return the merged differences or null
    */
+  @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable String mergedWithVersionNumbers(MergeConflict mc) {
     List<String> baseLines = mc.base();
     if (baseLines == null) {

@@ -24,7 +24,7 @@ import org.plumelib.util.IPair;
  * <p>For documentation of the file format, see
  * https://www.gnu.org/software/diffutils/manual/diffutils.html#Comparing-Three-Files.
  */
-public class Diff3File {
+public final class Diff3File {
 
   /** If true, output diagnostic information for debugging. */
   private static final boolean verbose = false;
@@ -171,6 +171,7 @@ public class Diff3File {
      * @return the first line following the hunk
      * @throws Diff3ParseException if the input is malformed
      */
+    @SuppressWarnings("PMD.AvoidThrowingNewInstanceOfSameException") // false positive warning
     public static int parse(List<String> lines, int start, List<Diff3Hunk> sink)
         throws Diff3ParseException {
       if (verbose) {
@@ -635,7 +636,7 @@ public class Diff3File {
               (eMessage == null ? "" : (": " + eMessage + " ")), leftPath, basePath, rightPath));
     }
 
-    Diff3File diff3file = Diff3File.parseFileContents(diff3Output, leftPath.toString());
+    Diff3File diff3file = parseFileContents(diff3Output, leftPath.toString());
     return diff3file;
   }
 

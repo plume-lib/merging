@@ -21,7 +21,11 @@ import org.plumelib.util.StringsPlume;
  * <p>By contrast, the edit operations of {@code diff} and of {@link diff_match_patch} are "insert",
  * "delete", and "equal".
  */
-@SuppressWarnings({"index:argument", "lowerbound:argument"})
+@SuppressWarnings({
+  "index:argument",
+  "lowerbound:argument",
+  "PMD.UnnecessaryFullyQualifiedName" // for RDiff.of
+})
 public abstract class RDiff {
 
   /** Creates a new RDiff. */
@@ -87,7 +91,8 @@ public abstract class RDiff {
 
     if (prev != null) {
       result.add(RDiff.of(prev.text, ""));
-      prev = null;
+      // `prev` is now dead, so no need to set it to null.
+      // prev = null;
     }
 
     return result;
@@ -242,7 +247,7 @@ public abstract class RDiff {
   }
 
   /** A replacement operation. */
-  public static class Replace extends RDiff {
+  public static final class Replace extends RDiff {
     /** The text being replaced. */
     String before;
 
@@ -282,7 +287,7 @@ public abstract class RDiff {
 
   // TODO: Is this needed, or can it be represented by a "replace" with "" as its pre-text?
   /** An insertion operation. */
-  public static class Insert extends RDiff {
+  public static final class Insert extends RDiff {
     /** The text being inserted. */
     String text;
 
@@ -312,7 +317,7 @@ public abstract class RDiff {
   }
 
   /** An equality operation. */
-  public static class Equal extends RDiff {
+  public static final class Equal extends RDiff {
     /** The text that is unchanged. */
     String text;
 
@@ -362,7 +367,8 @@ public abstract class RDiff {
 
   // TODO: Is NoOp necessary?  Experimentally remove it to find out.
   /** A no-op operation, which transforms "" into "". */
-  public static @Interned class NoOp extends RDiff {
+  @SuppressWarnings("PMD.ShortClassName")
+  @Interned public static final class NoOp extends RDiff {
 
     /** The no-op operation. */
     @SuppressWarnings("interning:interned.object.creation") // create the singleton object

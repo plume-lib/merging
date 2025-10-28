@@ -58,7 +58,9 @@ abstract class Merger {
     if (verbose) {
       System.out.printf(
           "%s: conflicted file before resolving (size %s)=%s%n",
-          this.getClass().getSimpleName(), (hunks == null ? "null" : ("" + hunks.size())), cf);
+          this.getClass().getSimpleName(),
+          (hunks == null ? "null" : Integer.toString(hunks.size())),
+          cf);
     }
     if (hunks == null) {
       String message =
