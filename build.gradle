@@ -16,7 +16,7 @@ plugins {
   id("pmd")
 
   // Checker Framework pluggable type-checking
-  id("org.checkerframework").version("0.6.60")
+  id("org.checkerframework").version("0.6.61")
 
   // GraalVM native compilation
   id("org.graalvm.buildtools.native").version("0.11.2")
