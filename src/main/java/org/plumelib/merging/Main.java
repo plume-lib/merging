@@ -145,7 +145,6 @@ public class Main implements Callable<Integer> {
    * --initialize-at-build-time=com.sun.tools.javac.file.Locations} when building. See
    * https://github.com/oracle/graal/issues/2903#issuecomment-1046660582.
    */
-  @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
   private static void setJavaHome() {
     if (System.getProperty("java.home") == null) {
       String home = System.getenv("GRAALVM_HOME");
