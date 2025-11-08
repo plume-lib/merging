@@ -145,7 +145,6 @@
 
     <!-- design rules -->
     <rule ref="category/java/design.xml/AbstractClassWithoutAnyMethod" />
-    <rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts" />
     <rule ref="category/java/design.xml/AvoidRethrowingException" />
     <rule ref="category/java/design.xml/AvoidThrowingNewInstanceOfSameException" />
     <rule ref="category/java/design.xml/AvoidThrowingNullPointerException" />
@@ -180,6 +179,7 @@
     
     <!-- design rules we are not using
     <rule ref="category/java/design.xml/AvoidCatchingGenericException" />
+    <rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts" />
     <rule ref="category/java/design.xml/AvoidThrowingRawExceptionTypes" />
     <rule ref="category/java/design.xml/CognitiveComplexity" />
     <rule ref="category/java/design.xml/CouplingBetweenObjects" />
@@ -216,7 +216,6 @@
     <rule ref="category/java/errorprone.xml/AvoidAssertAsIdentifier" />
     <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
     <rule ref="category/java/errorprone.xml/AvoidCallingFinalize" />
-    <rule ref="category/java/errorprone.xml/AvoidCatchingNPE" />
     <rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor" />
     <rule ref="category/java/errorprone.xml/AvoidEnumAsIdentifier" />
     <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingTypeName" />
