@@ -20,9 +20,6 @@ plugins {
 
   // GraalVM native compilation
   id("org.graalvm.buildtools.native").version("0.11.2")
-
-  // To show Gradle dependencies, run: ./gradlew SOMETASKNAME taskTree
-  id("com.dorongold.task-tree").version("4.0.1")
 }
 
 repositories {
@@ -196,12 +193,15 @@ if (isJava21orHigher) {
   }
   tasks.withType(JavaCompile).configureEach {
     options.errorprone {
-      disable("ReferenceEquality") // Use Interning Checker instead.
-      // disable("StringSplitter") // Obscure case isn't likely.
       disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod.
+      disable("DoNotCallSuggester") // Suggests use of an Error Prone annotation.
+      disable("EffectivelyPrivate") // Loses information about the abstraction.
+      disable("ExtendsObject")  // Incorrect when using the Checker Framework.
+      disable("InlineMeSuggester") // Using `@InlineMe` requires clients to declare a dependency on error_prone_annotations.
+      disable("PatternMatchingInstanceof") // requires Java 16 or later
+      disable("ReferenceEquality") // Use Interning Checker instead.
       disable("StatementSwitchToExpressionSwitch") // requires Java 12 or later
       disable("StringConcatToTextBlock") // requires Java 15 or later
-      disable("PatternMatchingInstanceof") // requires Java 16 or later
       // Don't complain about external library (which is included as source because it isn't at Maven Central).
       excludedPaths = ".*/diff_match_patch.java"
     }
@@ -262,7 +262,7 @@ if (false) {
     checkerFramework("org.checkerframework:checker:${checkerFrameworkVersion}")
   }
   configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, "minutes"
+    resolutionStrategy.cacheChangingModulesFor(0, "minutes")
   }
 }
 // To use a locally-built Checker Framework, run gradle with "-PcfLocal".
@@ -310,6 +310,9 @@ check.dependsOn(javadoc)
 
 tasks.register("javadocWeb", Javadoc) {
   description = "Upload API documentation to website."
+  dependsOn(javadocWebUpload, javadocWebChgrp, javadocWebChmod)
+}
+tasks.register("javadocWebUpload", Javadoc) {
   source = sourceSets.main.allJava
   destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
   classpath = project.sourceSets.main.compileClasspath
@@ -321,6 +324,18 @@ tasks.register("javadocWeb", Javadoc) {
     }
   }
 }
+// Set permissions
+tasks.register("javadocWebChgrp", Exec) {
+  commandLine("chgrp", "-R",  "plse_www", "/cse/web/research/plumelib/${project.name}/api")
+  ignoreExitValue = true
+}
+javadocWebChgrp.mustRunAfter("javadocWebUpload")
+tasks.register("javadocWebChmod", Exec) {
+  commandLine("chmod", "-R",  "g+w", "/cse/web/research/plumelib/${project.name}/api")
+  ignoreExitValue = true
+}
+javadocWebChmod.mustRunAfter("javadocWebUpload")
+
 
 configurations {
   requireJavadoc

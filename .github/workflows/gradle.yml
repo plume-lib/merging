@@ -12,12 +12,10 @@ jobs:
         java: ['17', '21', '25']
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 1
           show-progress: false
-
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -25,12 +23,7 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'gradle'
-
+      - name: java -version
+        run: java -version
       - name: ./gradlew build
         run: ./gradlew build
-      - name: ./gradlew javadoc
-        run: ./gradlew javadoc
-      - name: ./gradlew requireJavadoc
-        run: ./gradlew requireJavadoc
-      - name: ./gradlew spotlessCheck
-        run: ./gradlew spotlessCheck
