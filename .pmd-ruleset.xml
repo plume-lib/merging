@@ -214,7 +214,6 @@
     <!-- error prone rules -->
     <rule ref="category/java/errorprone.xml/AssignmentToNonFinalStatic" />
     <rule ref="category/java/errorprone.xml/AvoidAssertAsIdentifier" />
-    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
     <rule ref="category/java/errorprone.xml/AvoidCallingFinalize" />
     <rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor" />
     <rule ref="category/java/errorprone.xml/AvoidEnumAsIdentifier" />
@@ -294,6 +293,8 @@
     <!-- error prone rules that seem to be broken
     <rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals" />
       False positive in OptionsDoclet.
+    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
+      Triggers for `return` as well as for branches within the method.
     -->
 
     <!-- error prone rules we are not using
