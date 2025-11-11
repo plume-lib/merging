@@ -308,7 +308,7 @@ javadoc {
 }
 check.dependsOn(javadoc)
 
-tasks.register("javadocWeb", Javadoc) {
+tasks.register("javadocWeb", DefaultTask) {
   description = "Upload API documentation to website."
   dependsOn(javadocWebUpload, javadocWebChgrp, javadocWebChmod)
 }
