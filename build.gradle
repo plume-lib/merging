@@ -15,6 +15,9 @@ plugins {
   // PMD linter
   id("pmd")
 
+  // code coverage
+  id("jacoco")
+
   // Checker Framework pluggable type-checking
   id("org.checkerframework").version("0.6.61")
 
@@ -111,6 +114,19 @@ tasks.register("runMakefileTests", Exec) {
 check.dependsOn(runMakefileTests)
 // The "test" task runs the JUnit tests, whose failure is more informative than system tests.
 runMakefileTests.mustRunAfter(test)
+
+jacocoTestReport {
+  reports {
+    xml.required = false
+    csv.required = true // Output is written to build/reports/jacoco/test/jacocoTestReport.csv
+    html.required = true // Output is written to build/reports/jacoco/test/html/index.html
+  }
+}
+// Two possible configurations:
+// Configuration A: report is always generated after tests run.
+test.finalizedBy(jacocoTestReport)
+// Configuration B: user must run `jacocoTestReport` explicitly.
+// jacocoTestReport.dependsOn(test)
 
 spotless {
   format "misc", {
