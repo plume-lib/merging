@@ -175,7 +175,7 @@ public final class Diff3File {
     public static int parse(List<String> lines, int start, List<Diff3Hunk> sink)
         throws Diff3ParseException {
       if (verbose) {
-        System.out.printf("Starting to parse hunk starting at line " + start + ".%n");
+        System.out.printf("Starting to parse hunk starting at line %d.%n", start);
         System.out.flush();
       }
 
