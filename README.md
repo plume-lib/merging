@@ -89,7 +89,6 @@ driver for **every merge**.
 
 1. Run these commands:
 
-   <!-- markdownlint-disable MD013 --><!-- long lines -->
    ```sh
    git config --global merge.conflictstyle diff3
    git config --global merge.plumelib-merge.name "Merge Java files"
@@ -97,7 +96,6 @@ driver for **every merge**.
    git config --global merge.merge-adjacent.name "Merge changes on adjacent lines"
    git config --global merge.merge-adjacent.driver 'merge-driver.sh --only-adjacent %A %O %B'
    ```
-   <!-- markdownlint-enable MD013 --><!-- long lines -->
 
    To take effect only for one repository, replace `--global` by `--local` and run
    the commands within the repository.
@@ -157,7 +155,6 @@ There is just one step for setup.
 
 1. Run the following commands to edit your `~/.gitconfig` file.
 
-<!-- markdownlint-disable MD013 --><!-- long lines -->
 ```sh
 git config --global merge.conflictstyle diff3
 git config --global mergetool.prompt false
@@ -168,7 +165,6 @@ git config --global merge.tool merge-adjacent
 git config --global mergetool.merge-adjacent.cmd 'merge-tool.sh --only-adjacent ${LOCAL} ${BASE} ${REMOTE} ${MERGED}'
 git config --global mergetool.merge-adjacent.trustExitCode true
 ```
-<!-- markdownlint-enable MD013 --><!-- long lines -->
 
 To take effect only for one repository, replace `--global` by `--local` and run
 the commands within the repository.

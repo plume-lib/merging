@@ -5,11 +5,11 @@
 # The merge tool overwrites the merged file with a better merge result.
 # Command-line flags such as `--verbose` can be passed before the filenames.
 
-if [ "$1" = "--verbose" ] ; then
+if [ "$1" = "--verbose" ]; then
   VERBOSE=1
 fi
 
-if [ -n "$VERBOSE" ] ; then
+if [ -n "$VERBOSE" ]; then
   echo "$0:" "$@"
 fi
 
@@ -30,16 +30,16 @@ EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
 # TIMEFORMAT="%3R seconds" \
 # time \
 
-if [ -x "$EXECUTABLE" ] ; then
-  if [ -n "$VERBOSE" ] ; then
+if [ -x "$EXECUTABLE" ]; then
+  if [ -n "$VERBOSE" ]; then
     echo "running executable $EXECUTABLE"
   fi
   "$EXECUTABLE" tool "$@"
   result=$?
-elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] &&  [ "$JAVA_HOME" != "$JAVA17_HOME" ] ; then
+elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA17_HOME" ]; then
   # JAVA_HOME is set, and JAVA17_HOME is set, and they differ.
   JAVA_HOME="$JAVA17_HOME" \
-  "$JAVA17_HOME"/bin/java \
+    "$JAVA17_HOME"/bin/java \
     --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
@@ -64,7 +64,7 @@ else
   result=$?
 fi
 
-if [ -n "$VERBOSE" ] ; then
+if [ -n "$VERBOSE" ]; then
   echo "Result $result for merge-tool.sh:" "$@"
 fi
 

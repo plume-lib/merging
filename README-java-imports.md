@@ -26,7 +26,6 @@ We are not aware of any real-world examples where this merger makes a mistake.
 
 Here is an example:
 
-<!-- markdownlint-disable MD013 --><!-- long lines -->
 ```example
 BASE:          EDIT 1:         EDIT 2:        Remarks (not in either edit):
 
@@ -41,7 +40,6 @@ import I.i;                                   neither edit needs "I"
 import J.j;    import J.j;    import J.j;     neither edit needs "J", but neither removed it
 import K.k;    import K.k;    import K.k;
 ```
-<!-- markdownlint-enable MD013 --><!-- long lines -->
 
 `merge-imports` merges the above edits in the way a programmer would want:
 retain "B", "C", and "E", but do not retain "G", "I", or "J".
