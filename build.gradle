@@ -193,14 +193,11 @@ tasks.withType(JavaCompile).configureEach {
   options.forkOptions.jvmArgs += "-Xmx6g"
   options.compilerArgs << "-Werror"
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
   if (isJava21orHigher) {
-    options.compilerArgs << "-Xlint:all,-processing,-options,-this-escape"
+    options.compilerArgs << "-Xlint:all,-processing,-this-escape"
   } else {
-    options.compilerArgs << "-Xlint:all,-processing,-options"
+    options.compilerArgs << "-Xlint:all,-processing"
   }
-  // // Only needed when debugging.
-  // options.compilerArgs << "-g"
 }
 if (isJava21orHigher) {
   apply plugin: "net.ltgt.errorprone"
@@ -359,12 +356,13 @@ configurations {
 dependencies {
   requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
-tasks.register("requireJavadoc", JavaExec) {
+def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
   group = "Documentation"
   description = "Ensures that Javadoc documentation exists."
+  inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args("src/main/java")
+  args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()})
   jvmArgs += [
     "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
