@@ -290,8 +290,11 @@ if (project.hasProperty("cfLocal")) {
 
 // Javadoc
 
-// Turn Javadoc warnings into errors.
+tasks.withType(Javadoc) {
+  options.noTimestamp = true
+}
 javadoc {
+  // Turn Javadoc warnings into errors.
   options.addStringOption("Xwerror", "-Xdoclint:all")
   options.addStringOption("private", "-quiet")
   options.addStringOption("source", "17")
