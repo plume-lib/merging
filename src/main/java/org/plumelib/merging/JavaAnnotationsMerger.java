@@ -1,6 +1,6 @@
 package org.plumelib.merging;
 
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.source.tree.ClassTree;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -185,17 +185,16 @@ public class JavaAnnotationsMerger extends Merger {
     // Use this diagnostic to determine which strings are still getting parsed.
     // Perhaps write regular expressions for them to improve performance.
     // System.out.printf("isJavaAnnotations(%s) about to parse: %s%n", origText, classText);
-    JCCompilationUnit mergedCU = JavacParse.parseJavaCode(classText).getCompilationUnit();
+    ClassTree mergedCT = JavacParse.parseTypeDeclaration(classText).getTree();
 
-    if (mergedCU == null) {
+    if (mergedCT == null) {
       return false;
     }
 
     if (annotationStartPattern.matcher(text).find()) {
       String classTextAnnoOnly = "class MyClass {" + text + ";" + "}";
-      JCCompilationUnit annoOnlyCU =
-          JavacParse.parseJavaCode(classTextAnnoOnly).getCompilationUnit();
-      if (annoOnlyCU != null) {
+      ClassTree annoOnlyCT = JavacParse.parseTypeDeclaration(classTextAnnoOnly).getTree();
+      if (annoOnlyCT != null) {
         // The argument parses all on its own, so it is not an annotation (despite the fact that it
         // parses when followed by " String varname;").
         return false;
