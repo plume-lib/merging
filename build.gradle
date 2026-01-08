@@ -3,7 +3,7 @@ plugins {
   id("application") // this project includes multiple programs, not just one.
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id("com.gradleup.shadow").version("9.3.0")
+  id("com.gradleup.shadow").version("9.3.1")
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Version 8.0.0 and later requires Java 17+.
