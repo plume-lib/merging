@@ -10,7 +10,7 @@ plugins {
   id("com.diffplug.spotless").version("8.1.0")
 
   // Error Prone linter
-  id("net.ltgt.errorprone").version("4.3.0") apply false
+  id("net.ltgt.errorprone").version("4.4.0") apply false
 
   // PMD linter
   id("pmd")
