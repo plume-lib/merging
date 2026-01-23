@@ -7,7 +7,7 @@ plugins {
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Version 8.0.0 and later requires Java 17+.
-  id("com.diffplug.spotless").version("8.1.0")
+  id("com.diffplug.spotless").version("8.2.0")
 
   // Error Prone linter
   id("net.ltgt.errorprone").version("4.4.0") apply false
