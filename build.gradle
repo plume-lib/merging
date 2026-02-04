@@ -19,7 +19,7 @@ plugins {
   id("jacoco")
 
   // Checker Framework pluggable type-checking
-  id("org.checkerframework").version("0.6.61")
+  id("org.checkerframework").version("1.0.2")
 
   // GraalVM native compilation
   id("org.graalvm.buildtools.native").version("0.11.4")
