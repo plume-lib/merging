@@ -3,6 +3,7 @@ package org.plumelib.merging;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,7 +98,7 @@ public class JavaImportsMergerTest {
     try {
       Files.copy(pathA, pathOutput, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      throw new Error("Problem copying " + pathA + " to " + pathOutput, e);
+      throw new UncheckedIOException("Problem copying " + pathA + " to " + pathOutput, e);
     }
     MergeState ms = new MergeState(pathA, pathBase, pathB, pathOutput, true);
     JavaImportsMerger jim = new JavaImportsMerger(false);
@@ -108,7 +109,7 @@ public class JavaImportsMergerTest {
           Files.mismatch(pathGoal, pathOutput),
           "Mismatch between " + pathGoal + " and " + pathOutput);
     } catch (IOException e) {
-      throw new Error("Problem comparing " + pathGoal + " to " + pathOutput, e);
+      throw new UncheckedIOException("Problem comparing " + pathGoal + " to " + pathOutput, e);
     }
   }
 
