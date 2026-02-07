@@ -26,7 +26,7 @@ public class Diff3FileTest {
         return FilesPlume.streamString(is);
       }
     } catch (IOException e) {
-      throw new Error(e);
+      throw new UncheckedIOException(e);
     }
   }
 

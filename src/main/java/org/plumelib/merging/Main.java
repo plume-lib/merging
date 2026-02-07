@@ -302,7 +302,7 @@ public class Main implements Callable<Integer> {
     } catch (IOException e) {
       exitErroneously(
           "Problem copying " + leftPath + " to " + leftFileSavedPath + ": " + e.getMessage());
-      throw new Error("unreachable");
+      throw new UncheckedIOException("unreachable");
     }
 
     int gitMergeFileExitCode;

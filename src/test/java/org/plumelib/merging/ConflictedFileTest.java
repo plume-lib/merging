@@ -28,7 +28,7 @@ public class ConflictedFileTest {
         return FilesPlume.streamString(is);
       }
     } catch (IOException e) {
-      throw new Error(e);
+      throw new UncheckedIOException(e);
     }
   }
 
