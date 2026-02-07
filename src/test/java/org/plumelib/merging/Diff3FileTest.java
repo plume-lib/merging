@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import org.junit.jupiter.api.Test;
 import org.plumelib.merging.fileformat.Diff3File;
 import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
