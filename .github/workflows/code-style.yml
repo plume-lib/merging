@@ -1,0 +1,22 @@
+name: Check code style
+
+on: [push, pull_request]   # yamllint disable-line rule:truthy
+
+jobs:
+  style-check:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          show-progress: false
+      - name: Install tools
+      - run: |
+          sudo apt-get -qqy install shfmt
+          npm install --quiet markdownlint-cli2 --global
+      - name: make showvars
+        run: make showvars
+      - name: make style-check
+        run: make style-check
