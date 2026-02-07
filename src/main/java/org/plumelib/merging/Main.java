@@ -2,7 +2,6 @@ package org.plumelib.merging;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -303,7 +302,7 @@ public class Main implements Callable<Integer> {
     } catch (IOException e) {
       exitErroneously(
           "Problem copying " + leftPath + " to " + leftFileSavedPath + ": " + e.getMessage());
-      throw new UncheckedIOException("unreachable");
+      throw new Error("unreachable");
     }
 
     int gitMergeFileExitCode;
