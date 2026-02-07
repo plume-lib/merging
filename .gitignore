@@ -1,4 +1,5 @@
 .gradle
+.plume-scripts
 build
 
 AdjacentTest*Output.java
