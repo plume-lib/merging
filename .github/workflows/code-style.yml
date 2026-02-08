@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 1
           show-progress: false
       - name: Install tools
-      - run: |
+        run: |
           sudo apt-get -qqy install shfmt
           npm install --quiet markdownlint-cli2 --global
       - name: make showvars
