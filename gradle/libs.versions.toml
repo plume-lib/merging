@@ -1,3 +1,9 @@
+[versions]
+
+checker-framework = "3.54.0"
 
 [libraries]
-checker = "org.checkerframework:checker:3.54.0"
+
+checker-framework = { module = "org.checkerframework:checker", version.ref = "checker-framework" }
+
+checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
