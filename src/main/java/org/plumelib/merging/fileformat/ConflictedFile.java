@@ -180,8 +180,8 @@ public class ConflictedFile {
     }
     List<MergeConflict> result = new ArrayList<>((hunks.size() + 1) / 2);
     for (ConflictElement ce : hunks) {
-      if (ce instanceof MergeConflict) {
-        result.add((MergeConflict) ce);
+      if (ce instanceof MergeConflict mc) {
+        result.add(mc);
       }
     }
     return result;

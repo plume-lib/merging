@@ -1,6 +1,6 @@
 buildscript {
-  if (JavaVersion.current() < JavaVersion.VERSION_17) {
-    throw new Error("Use Java 17 or later.")
+  if (JavaVersion.current() < JavaVersion.VERSION_21) {
+    throw new Error("Use Java 21 or later.")
   }
 }
 

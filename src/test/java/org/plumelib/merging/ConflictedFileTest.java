@@ -134,6 +134,7 @@ public class ConflictedFileTest {
     }
 
     {
+      @SuppressWarnings("StringConcatToTextBlock") // TODO
       ConflictedFile cf7 =
           new ConflictedFile(
               "<<<<<<< ImportsTest2Output.java\n"
