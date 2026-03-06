@@ -32,7 +32,7 @@ junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.r
 
 junit-platform-console = { module = "org.junit.platform:junit-platform-console" }
 
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-jupiter" }
 
 junit-platform-native = "org.graalvm.buildtools:junit-platform-native:0.11.5"
 
