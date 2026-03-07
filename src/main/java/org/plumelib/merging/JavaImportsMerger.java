@@ -83,17 +83,14 @@ public class JavaImportsMerger extends Merger {
     List<CommonLines> cls = new ArrayList<>();
     assert cf.hunks() != null : "@AssumeAssertion(nullness): precondition of resolveConflicts";
     for (ConflictElement ce : cf.hunks()) {
-      CommonLines cl;
-      if (ce instanceof CommonLines) {
-        cl = (CommonLines) ce;
-      } else if (ce instanceof MergeConflict) {
-        cl = mergeImportsCommentwise((MergeConflict) ce);
-        if (verbose) {
-          System.out.printf("merged commentwise = %s%n", cl);
-        }
-      } else {
-        throw new Error("what ConflictElement? " + ce.getClass() + " " + ce);
-      }
+      CommonLines cl =
+          switch (ce) {
+            case CommonLines cl1 -> cl1;
+            case MergeConflict mc -> mergeImportsCommentwise(mc);
+            default -> {
+              throw new Error("what ConflictElement? " + ce.getClass() + " " + ce);
+            }
+          };
       cls.add(cl);
     }
 
@@ -259,22 +256,19 @@ public class JavaImportsMerger extends Merger {
       // the startLineOffset).
       Diff3HunkSection edit;
       switch (h.kind()) {
-        case ONE_DIFFERS:
-          edit = h.section1();
-          break;
-        case THREE_DIFFERS:
-          edit = h.section3();
-          break;
-        case TWO_DIFFERS:
+        case ONE_DIFFERS -> edit = h.section1();
+        case THREE_DIFFERS -> edit = h.section3();
+        case TWO_DIFFERS -> {
           // no change to startLineOffset;
           continue;
-        case THREE_WAY:
+        }
+        case THREE_WAY -> {
           // A 3-way conflict must be from an import statement, but each such conflict has already
           // been solved by being unioned, above.
           startLineOffset += h.lineChangeSize();
           continue;
-        default:
-          throw new Error("Unhandled kind: " + h.kind());
+        }
+        default -> throw new Error("Unhandled kind: " + h.kind());
       }
       if (verbose) {
         System.out.printf("edit=%s%n", edit);
@@ -282,10 +276,8 @@ public class JavaImportsMerger extends Merger {
 
       int startLine;
       switch (edit.command().kind()) {
-        case APPEND:
-          startLine = edit.command().startLine();
-          break;
-        case CHANGE:
+        case APPEND -> startLine = edit.command().startLine();
+        case CHANGE -> {
           // Find the first line that is an import, and insert immediately after it.
           List<String> editLines = edit.lines();
           int importLine = JavaLibrary.firstImportStatement(editLines);
@@ -300,9 +292,10 @@ public class JavaImportsMerger extends Merger {
               startLine = edit.command().startLine() + nonCommentLine;
             }
           }
-          break;
-        default:
+        }
+        default -> {
           throw new Error("Unhandled kind: " + edit.command().kind());
+        }
       }
       if (verbose) {
         System.out.printf(
