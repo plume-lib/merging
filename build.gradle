@@ -43,17 +43,18 @@ dependencies {
   testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-// Don't use a toolchain because it uses `--release`, which is incompatible with `--add-exports`.
 java {
   toolchain {
     // Always compile using Java 21, but test using various Java versions.
     languageVersion = JavaLanguageVersion.of(21)
   }
 }
-tasks.withType(JavaCompile).configureEach {
-  // Set the language level and byte code to 21.
-  options.release = 21
-}
+// Don't use --release because it is incompatible with --add-exports.
+// When making a release, it is essential to use the lowest possible Java version.
+// tasks.withType(JavaCompile).configureEach {
+//   // Set the language level and byte code to 21.
+//   options.release = 21
+// }
 
 compileJava {
   options.compilerArgs += "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"
