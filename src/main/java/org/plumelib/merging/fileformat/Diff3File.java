@@ -255,45 +255,24 @@ public final class Diff3File {
         Diff3HunkSection thisSection;
         thisSection = section1();
         switch (thisSection.command().inputFile()) {
-          case 1:
-            newSection1 = thisSection;
-            break;
-          case 2:
-            newSection2 = thisSection;
-            break;
-          case 3:
-            newSection3 = thisSection;
-            break;
-          default:
-            throw new Error();
+          case 1 -> newSection1 = thisSection;
+          case 2 -> newSection2 = thisSection;
+          case 3 -> newSection3 = thisSection;
+          default -> throw new Error();
         }
         thisSection = section2();
         switch (thisSection.command().inputFile()) {
-          case 1:
-            newSection1 = thisSection;
-            break;
-          case 2:
-            newSection2 = thisSection;
-            break;
-          case 3:
-            newSection3 = thisSection;
-            break;
-          default:
-            throw new Error();
+          case 1 -> newSection1 = thisSection;
+          case 2 -> newSection2 = thisSection;
+          case 3 -> newSection3 = thisSection;
+          default -> throw new Error();
         }
         thisSection = section3();
         switch (thisSection.command().inputFile()) {
-          case 1:
-            newSection1 = thisSection;
-            break;
-          case 2:
-            newSection2 = thisSection;
-            break;
-          case 3:
-            newSection3 = thisSection;
-            break;
-          default:
-            throw new Error();
+          case 1 -> newSection1 = thisSection;
+          case 2 -> newSection2 = thisSection;
+          case 3 -> newSection3 = thisSection;
+          default -> throw new Error();
         }
 
         if (newSection1 == null) {
@@ -333,7 +312,7 @@ public final class Diff3File {
         List<String> lines3 = section3.lines();
 
         switch (kind) {
-          case ONE_DIFFERS:
+          case ONE_DIFFERS -> {
             assert lines2.isEmpty() || lines3.isEmpty();
             if (lines2.isEmpty() && !lines3.isEmpty()) {
               return new ThreeSections(
@@ -344,7 +323,8 @@ public final class Diff3File {
             } else {
               return this;
             }
-          case TWO_DIFFERS:
+          }
+          case TWO_DIFFERS -> {
             assert lines1.isEmpty() || lines3.isEmpty();
             if (lines1.isEmpty() && !lines3.isEmpty()) {
               return new ThreeSections(
@@ -355,7 +335,8 @@ public final class Diff3File {
             } else {
               return this;
             }
-          case THREE_DIFFERS:
+          }
+          case THREE_DIFFERS -> {
             assert lines1.isEmpty() || lines2.isEmpty();
             if (lines1.isEmpty() && !lines2.isEmpty()) {
               return new ThreeSections(
@@ -366,8 +347,8 @@ public final class Diff3File {
             } else {
               return this;
             }
-          default:
-            throw new Error();
+          }
+          default -> throw new Error();
         }
       }
     }
@@ -380,18 +361,15 @@ public final class Diff3File {
      */
     public int lineChangeSize() {
       int lengthDifference = section1().lines().size() - section3().lines().size();
-      switch (kind()) {
-        case ONE_DIFFERS:
-          return lengthDifference;
-        case TWO_DIFFERS:
-          return 0;
-        case THREE_DIFFERS:
-          return -lengthDifference;
-        case THREE_WAY:
-          return lengthDifference;
-        default:
+      return switch (kind()) {
+        case ONE_DIFFERS -> lengthDifference;
+        case TWO_DIFFERS -> 0;
+        case THREE_DIFFERS -> -lengthDifference;
+        case THREE_WAY -> lengthDifference;
+        default -> {
           throw new Error();
-      }
+        }
+      };
     }
   }
 
@@ -415,18 +393,15 @@ public final class Diff3File {
      */
     public static Diff3HunkKind fromHunkHeader(String header) throws Diff3ParseException {
       header = header.stripTrailing();
-      switch (header) {
-        case "====":
-          return THREE_WAY;
-        case "====1":
-          return ONE_DIFFERS;
-        case "====2":
-          return TWO_DIFFERS;
-        case "====3":
-          return THREE_DIFFERS;
-        default:
+      return switch (header) {
+        case "====" -> THREE_WAY;
+        case "====1" -> ONE_DIFFERS;
+        case "====2" -> TWO_DIFFERS;
+        case "====3" -> THREE_DIFFERS;
+        default -> {
           throw new Diff3ParseException("Bad diff3 hunk header: " + header);
-      }
+        }
+      };
     }
   }
 

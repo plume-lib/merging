@@ -36,10 +36,10 @@ if [ -x "$EXECUTABLE" ]; then
   fi
   "$EXECUTABLE" tool "$@"
   result=$?
-elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA17_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA17_HOME" ]; then
-  # JAVA_HOME is set, and JAVA17_HOME is set, and they differ.
-  JAVA_HOME="$JAVA17_HOME" \
-    "$JAVA17_HOME"/bin/java \
+elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA21_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA21_HOME" ]; then
+  # JAVA_HOME is set, and JAVA21_HOME is set, and they differ.
+  JAVA_HOME="$JAVA21_HOME" \
+    "$JAVA21_HOME"/bin/java \
     --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
     --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \

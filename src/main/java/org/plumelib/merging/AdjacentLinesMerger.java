@@ -38,10 +38,9 @@ public class AdjacentLinesMerger extends Merger {
     List<Replacement<String>> replacements = new ArrayList<>();
 
     for (ConflictElement ce : hunks) {
-      if (!(ce instanceof MergeConflict)) {
+      if (!(ce instanceof MergeConflict mc)) {
         continue;
       }
-      MergeConflict mc = (MergeConflict) ce;
       List<String> merged = mergedSameLength(mc);
       if (merged == null && mc.base() != null) {
         merged = new AdjacentDynamicProgramming(mc.left(), mc.base(), mc.right()).compute();

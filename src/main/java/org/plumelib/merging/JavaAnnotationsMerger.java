@@ -88,19 +88,15 @@ public class JavaAnnotationsMerger extends Merger {
     for (Diff diff : diffs) {
       switch (diff.operation) {
         // DELETE means it was inserted in the right edit.
-        case INSERT:
-        case DELETE:
+        case INSERT, DELETE -> {
           if (isJavaAnnotations(diff.text)) {
             result.append(diff.text);
           } else {
             return null;
           }
-          break;
-        case EQUAL:
-          result.append(diff.text);
-          break;
-        default:
-          throw new Error("unexpected operation " + diff.operation);
+        }
+        case EQUAL -> result.append(diff.text);
+        default -> throw new Error("unexpected operation " + diff.operation);
       }
     }
     return result.toString();
