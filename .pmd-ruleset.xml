@@ -239,7 +239,6 @@
     <rule ref="category/java/errorprone.xml/CloneMethodMustBePublic" />
     <rule ref="category/java/errorprone.xml/CloneMethodMustImplementCloneable" />
     <rule ref="category/java/errorprone.xml/CloneMethodReturnTypeMustMatchClassName" />
-    <rule ref="category/java/errorprone.xml/CloseResource" />
     <rule ref="category/java/errorprone.xml/CollectionTypeMismatch" />
     <rule ref="category/java/errorprone.xml/ComparisonWithNaN" />
     <rule ref="category/java/errorprone.xml/ConfusingArgumentToVarargsMethod" />
@@ -305,6 +304,8 @@
       False positive in OptionsDoclet.
     <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
       Triggers for `return` as well as for branches within the method.
+    <rule ref="category/java/errorprone.xml/CloseResource" />
+      CloseResource ought to warn only when the RHS is "new ..."
     -->
 
     <!-- error prone rules we are not using
@@ -353,7 +354,6 @@
     <rule ref="category/java/performance.xml/StringToString" />
     <rule ref="category/java/performance.xml/TooFewBranchesForSwitch" />
     <rule ref="category/java/performance.xml/UseArrayListInsteadOfVector" />
-    <rule ref="category/java/performance.xml/UseArraysAsList" />
     <rule ref="category/java/performance.xml/UseIndexOfChar" />
     <rule ref="category/java/performance.xml/UseIOStreamsWithApacheCommonsFileItem" />
     <rule ref="category/java/performance.xml/UselessStringValueOf" />
@@ -367,6 +367,11 @@
     <rule ref="category/java/performance.xml/RedundantFieldInitializer" />  Explicit initializers are better style
     <rule ref="category/java/performance.xml/UseStringBufferForStringAppends" />
      -->
+
+    <!-- performance rules that are broken
+    <rule ref="category/java/performance.xml/UseArraysAsList" />
+      Warns when appending to an existing list; should only warn when adding to a new empty list.
+    -->
 
     <!-- security rules -->
     <rule ref="category/java/security.xml/HardCodedCryptoKey" />
