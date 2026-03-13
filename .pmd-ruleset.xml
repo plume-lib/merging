@@ -161,7 +161,6 @@
     <rule ref="category/java/design.xml/SignatureDeclareThrowsException" />
     <rule ref="category/java/design.xml/SimplifiedTernary" />
     <rule ref="category/java/design.xml/SimplifyBooleanExpressions" />
-    <rule ref="category/java/design.xml/SimplifyBooleanReturns" />
     <rule ref="category/java/design.xml/SimplifyConditional" />
     <rule ref="category/java/design.xml/SwitchDensity" />
     <rule ref="category/java/design.xml/TooManyFields" />
@@ -195,6 +194,8 @@
     <rule ref="category/java/design.xml/LoosePackageCoupling" />
     <rule ref="category/java/design.xml/NcssCount" />
     <rule ref="category/java/design.xml/NPathComplexity" />
+    <rule ref="category/java/design.xml/SimplifyBooleanReturns" />
+      Suggests too-clever boolean expressions to replace simpler code.
     <rule ref="category/java/design.xml/TooManyMethods" />
     -->
 
