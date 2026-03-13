@@ -261,30 +261,21 @@ public class AdjacentDynamicProgramming {
       return;
     }
 
+    // Go through each of the 7 possibilities.
+    List<String> prev = table[iA - 1][iC - 1][iB - 1];
+    List<String> prev5 = table[iA - 1][iC - 1][iB];
+    List<String> prev6 = table[iA - 1][iC][iB - 1];
+    List<String> prev7 = table[iA][iC - 1][iB - 1];
+    if (prev == null || prev5 == null || prev6 == null || prev7 == null) {
+      throw new Error();
+    }
+
     String aElt = a.get(iA - 1);
     String cElt = c.get(iC - 1);
     String bElt = b.get(iB - 1);
     boolean acEqual = aElt.equals(cElt);
     boolean cbEqual = cElt.equals(bElt);
     boolean abEqual = aElt.equals(bElt);
-
-    // Go through each of the 7 possibilities.
-    List<String> prev = table[iA - 1][iC - 1][iB - 1];
-    List<String> prev5 = table[iA - 1][iC - 1][iB];
-    List<String> prev6 = table[iA - 1][iC][iB - 1];
-    List<String> prev7 = table[iA][iC - 1][iB - 1];
-    if (prev == null) {
-      throw new Error();
-    }
-    if (prev5 == null) {
-      throw new Error();
-    }
-    if (prev6 == null) {
-      throw new Error();
-    }
-    if (prev7 == null) {
-      throw new Error();
-    }
 
     // Case 1
     if (acEqual && cbEqual && prev != IMPOSSIBLE) {
@@ -334,6 +325,7 @@ public class AdjacentDynamicProgramming {
    * @param len3 a length
    * @return true if lists of the given lengths have a possibility of being aligned by the algorithm
    */
+  @SuppressWarnings("PMD.SimplifyBooleanReturns")
   static boolean possibleLengths(int len1, int len2, int len3) {
     if (len1 > len2 + len3) {
       return false;

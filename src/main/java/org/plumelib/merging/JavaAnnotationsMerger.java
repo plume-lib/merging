@@ -113,6 +113,7 @@ public class JavaAnnotationsMerger extends Merger {
    * @param text a string
    * @return true if the given text is a Java comment, plus optional comments and whitespace
    */
+  @SuppressWarnings("PMD.SimplifyBooleanReturns")
   protected static boolean isComment(String text) {
     text = text.strip();
     if (text.isEmpty()) {
