@@ -106,7 +106,6 @@
     <rule ref="category/java/codestyle.xml/UnnecessarySemicolon" />
     <rule ref="category/java/codestyle.xml/UseDiamondOperator" />
     <rule ref="category/java/codestyle.xml/UseExplicitTypes" />
-    <rule ref="category/java/codestyle.xml/UselessParentheses" />
     <rule ref="category/java/codestyle.xml/UselessQualifiedThis" />
     <rule ref="category/java/codestyle.xml/UseShortArrayInitializer" />
     <rule ref="category/java/codestyle.xml/UseUnderscoresInNumericLiterals" />
@@ -139,6 +138,9 @@
     <rule ref="category/java/codestyle.xml/TypeParameterNamingConventions" />
     <rule ref="category/java/codestyle.xml/UnnecessaryModifier" />
       Redundant `public` can be useful.
+    <rule ref="category/java/codestyle.xml/UselessParentheses" />
+      Redundant parens can be helpful, for example to emphasize
+      subexpressions in string concatenation.
     <rule ref="category/java/codestyle.xml/VariableCanBeInlined" />
       Naming a value can improve readability.
      -->
@@ -334,7 +336,6 @@
     <rule ref="category/java/performance.xml/AvoidArrayLoops" />
     <rule ref="category/java/performance.xml/AvoidCalendarDateCreation" />
     <rule ref="category/java/performance.xml/AvoidFileStream" />
-    <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops" />
     <rule ref="category/java/performance.xml/BigIntegerInstantiation" />
     <rule ref="category/java/performance.xml/ConsecutiveLiteralAppends" />
     <rule ref="category/java/performance.xml/InefficientEmptyStringCheck" />
@@ -352,6 +353,8 @@
     <rule ref="category/java/performance.xml/UseStringBufferLength" />
 
     <!-- performance rules we are not using
+    <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops" />
+      Blanket prohibition on `new` in loops is too broad.
     <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse" />
       It's not clear this helps, and "fluent" appends are harder to read.
     <rule ref="category/java/performance.xml/RedundantFieldInitializer" />  Explicit initializers are better style
