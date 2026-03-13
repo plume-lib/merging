@@ -325,7 +325,6 @@ public class AdjacentDynamicProgramming {
    * @param len3 a length
    * @return true if lists of the given lengths have a possibility of being aligned by the algorithm
    */
-  @SuppressWarnings("PMD.SimplifyBooleanReturns")
   static boolean possibleLengths(int len1, int len2, int len3) {
     if (len1 > len2 + len3) {
       return false;
