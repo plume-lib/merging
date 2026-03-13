@@ -201,7 +201,6 @@
 
     <!-- documentation rules -->
     <rule ref="category/java/documentation.xml/CommentContent" />
-    <rule ref="category/java/documentation.xml/CommentRequired" />
     <rule ref="category/java/documentation.xml/UncommentedEmptyMethodBody" />
 
     <!-- documentation rules that seem to be broken
@@ -210,12 +209,19 @@
     -->
 
     <!-- documentation rules we are not using
+    <rule ref="category/java/documentation.xml/CommentRequired" />
+      A good rule, but too disruptive to apply without lint-diff.
     <rule ref="category/java/documentation.xml/CommentSize" />
     <rule ref="category/java/documentation.xml/UncommentedEmptyConstructor" />
      -->
 
     <!-- error prone rules -->
-    <rule ref="category/java/errorprone.xml/AssignmentInOperand" />
+    <rule ref="category/java/errorprone.xml/AssignmentInOperand">
+        <properties>
+            <property name="allowIncrementDecrement" value="true" />
+              <!-- permit "i++" -->
+        </properties>
+    </rule>
     <rule ref="category/java/errorprone.xml/AssignmentToNonFinalStatic" />
     <rule ref="category/java/errorprone.xml/AvoidAssertAsIdentifier" />
     <rule ref="category/java/errorprone.xml/AvoidCallingFinalize" />
