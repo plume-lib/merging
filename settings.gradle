@@ -1,6 +1,6 @@
 buildscript {
   if (JavaVersion.current() < JavaVersion.VERSION_21) {
-    throw new Error("Use Java 21 or later.")
+    throw new GradleException("Use Java 21 or later.")
   }
 }
 
