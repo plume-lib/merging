@@ -1,3 +1,47 @@
+[plugins]
+
+com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.4.0" }
+
+com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.4.0" }
+
+net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
+
+org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
+
+org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "0.11.5" }
+
+[versions]
+
+checker-framework = "3.54.0"
+
+junit-jupiter = "6.0.3"
 
 [libraries]
-checker = "org.checkerframework:checker:3.54.0"
+
+checker-framework = { module = "org.checkerframework:checker", version.ref = "checker-framework" }
+
+checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
+
+error-prone-core = "com.google.errorprone:error_prone_core:2.48.0"
+
+google-java-format = "com.google.googlejavaformat:google-java-format:1.35.0"
+
+javac-parse = "org.plumelib:javac-parse:0.9.0"
+
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit-jupiter" }
+
+junit-platform-console = { module = "org.junit.platform:junit-platform-console" }
+
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-jupiter" }
+
+junit-platform-native = "org.graalvm.buildtools:junit-platform-native:0.11.5"
+
+junit-platform-reporting = { module = "org.junit.platform:junit-platform-reporting" }
+
+picocli = "info.picocli:picocli:4.7.7"
+
+picocli-codegen = "info.picocli:picocli-codegen:4.7.7"
+
+plume-util = "org.plumelib:plume-util:1.14.0"
+
+require-javadoc = "org.plumelib:require-javadoc:2.0.0"
