@@ -26,7 +26,7 @@ import org.plumelib.util.StringsPlume;
   "lowerbound:argument",
   "PMD.UnnecessaryFullyQualifiedName" // for RDiff.of
 })
-public abstract class RDiff {
+public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Equal, RDiff.NoOp {
 
   /** Creates a new RDiff. */
   private RDiff() {}

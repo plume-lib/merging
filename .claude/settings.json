@@ -4,17 +4,18 @@
   },
   "permissions": {
     "allow": [
-      "WebFetch(domain:checkerframework.org)",
-      "Bash(mkdir:*)",
       "Bash(./gradlew:*)",
+      "Bash(./x.py check:*)",
       "Bash(java:*)",
       "Bash(javac:*)",
       "Bash(javap:*)",
-      "Bash(ls)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
       "Bash(timeout 300 ./gradlew:*)",
+      "Bash(wc:*)",
       "Edit(./**)",
-      "Bash(./x.py check:*)",
-      "Read(//scratch/mernst/**)"
+      "Read(//scratch/mernst/**)",
+      "WebFetch(domain:checkerframework.org)"
     ],
     "deny": [],
     "ask": []

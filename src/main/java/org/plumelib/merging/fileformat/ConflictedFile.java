@@ -315,7 +315,7 @@ public class ConflictedFile {
   }
 
   /** One element of a conflicted file: either {@link MergeConflict} or {@link CommonLines}. */
-  public static interface ConflictElement {
+  public static sealed interface ConflictElement permits MergeConflict, CommonLines {
     /**
      * Returns the lines in the confict-file representation of this.
      *
