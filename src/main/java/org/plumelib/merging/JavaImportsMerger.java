@@ -87,9 +87,6 @@ public class JavaImportsMerger extends Merger {
           switch (ce) {
             case CommonLines cl1 -> cl1;
             case MergeConflict mc -> mergeImportsCommentwise(mc);
-            default -> {
-              throw new Error("what ConflictElement? " + ce.getClass() + " " + ce);
-            }
           };
       cls.add(cl);
     }

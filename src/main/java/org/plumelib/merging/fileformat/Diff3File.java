@@ -366,9 +366,6 @@ public final class Diff3File {
         case TWO_DIFFERS -> 0;
         case THREE_DIFFERS -> -lengthDifference;
         case THREE_WAY -> lengthDifference;
-        default -> {
-          throw new Error();
-        }
       };
     }
   }
