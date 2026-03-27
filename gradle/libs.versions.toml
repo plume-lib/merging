@@ -24,7 +24,7 @@ checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "ch
 
 error-prone-core = "com.google.errorprone:error_prone_core:2.48.0"
 
-google-java-format = "com.google.googlejavaformat:google-java-format:1.33.0"
+google-java-format = "com.google.googlejavaformat:google-java-format:1.35.0"
 
 javac-parse = "org.plumelib:javac-parse:0.9.0"
 
