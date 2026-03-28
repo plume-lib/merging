@@ -8,7 +8,7 @@ net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
 
 org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
 
-org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "0.11.5" }
+org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.0.0" }
 
 [versions]
 
