@@ -110,7 +110,7 @@ public class JavaImportsMerger extends Merger {
       mergedFileContentsLines = insertRemovedImports(CommonLines.toLines(cls), diff3file);
     } catch (Throwable t) {
       System.out.printf(
-          "Problem with conflicted file (hasTrivalConflict=%s):%n", cf.hasTrivalConflict());
+          "Problem with conflicted file (hasTrivialConflict=%s):%n", cf.hasTrivialConflict());
       System.out.println("On disk:");
       System.out.println(FilesPlume.readString(cf.path));
       System.out.println("In data structure:");
@@ -353,7 +353,7 @@ public class JavaImportsMerger extends Merger {
     List<String> leftLines = mc.left();
     List<String> rightLines = mc.right();
     int leftLen = leftLines.size();
-    int rightLen = leftLines.size();
+    int rightLen = rightLines.size();
     if (leftLen > rightLen
         && CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
       return new CommonLines(leftLines);

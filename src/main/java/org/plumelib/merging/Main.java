@@ -287,7 +287,7 @@ public class Main implements Callable<Integer> {
    *
    * @return the MergeState that should be used for a merge driver
    */
-  MergeState mergeStateForDriver() {
+  private MergeState mergeStateForDriver() {
     Path leftFileSavedPath = Path.of("not yet initialized");
 
     // Make a copy of the file that will be overwritten, for passing to external tools.
@@ -324,9 +324,8 @@ public class Main implements Callable<Integer> {
     ConflictedFile cf = new ConflictedFile(leftPath);
     cf.hunks();
 
-    MergeState ms =
-        new MergeState(leftFileSavedPath, basePath, rightPath, leftPath, gitMergeFileExitCode != 0);
-    return ms;
+    return new MergeState(
+        leftFileSavedPath, basePath, rightPath, leftPath, gitMergeFileExitCode != 0);
   }
 
   // //////////////////////////////////////////////////////////////////////
