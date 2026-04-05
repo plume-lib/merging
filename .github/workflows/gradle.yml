@@ -25,5 +25,7 @@ jobs:
           cache: 'gradle'
       - name: java -version
         run: java -version
+      - name: Warm up Gradle cache
+        run: ./gradlew spotlessCheck > /dev/null 2>&1 || (sleep 60 && true)
       - name: ./gradlew build
         run: ./gradlew build

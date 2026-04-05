@@ -16,10 +16,10 @@
       "Bash(javap:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(mkdir:*)",
       "Bash(python3 -m json.tool)",
       "Bash(timeout 300 ./gradlew:*)",
       "Bash(wc:*)",
+      "Bash(xargs cat:*)",
       "Edit(./**)",
       "Read(//home/mernst/research/types/checker-framework-fork*/**)",
       "Read(//scratch/**)",
@@ -28,5 +28,6 @@
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }
