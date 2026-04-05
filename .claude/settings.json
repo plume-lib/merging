@@ -17,7 +17,7 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(mkdir:*)",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
       "Bash(timeout 300 ./gradlew:*)",
       "Bash(wc:*)",
       "Edit(./**)",
