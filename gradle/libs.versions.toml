@@ -22,7 +22,7 @@ checker-framework = { module = "org.checkerframework:checker", version.ref = "ch
 
 checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
 
-error-prone-core = "com.google.errorprone:error_prone_core:2.48.0"
+error-prone-core = "com.google.errorprone:error_prone_core:2.49.0"
 
 google-java-format = "com.google.googlejavaformat:google-java-format:1.33.0"
 
