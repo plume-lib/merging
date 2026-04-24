@@ -34,7 +34,7 @@ junit-platform-console = { module = "org.junit.platform:junit-platform-console" 
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-jupiter" }
 
-junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.0.0"
+junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.1.0"
 
 junit-platform-reporting = { module = "org.junit.platform:junit-platform-reporting" }
 
