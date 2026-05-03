@@ -16,7 +16,7 @@ If the only conflicts are in import statements, or there are no conflicts, then:
 * Remove all unneeded imports.  A needed import is one that is used somewhere
    in the Java file.
 
-(If there are conflicts beyound import statements, such as in code or in
+(If there are conflicts beyond import statements, such as in code or in
 comments, then you should first resolve those other conflicts, then run the Java
 imports merger as a merge tool.)
 

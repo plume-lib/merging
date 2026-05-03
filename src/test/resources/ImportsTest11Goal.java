@@ -50,7 +50,7 @@ public class APRSPacketTests {
 			}
 
 			@Test
-			@DisplayName("Then it should have a correct lattitude and longitude")
+			@DisplayName("Then it should have a correct latitude and longitude")
 			public void thenHasPosition() {
 				Collection<APRSData> dataFields = packet2.getAprsInformation().getAprsData().values();
 				for ( APRSData dataField : dataFields ) {
