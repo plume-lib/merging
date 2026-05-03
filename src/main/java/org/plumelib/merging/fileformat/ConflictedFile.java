@@ -22,7 +22,7 @@ import org.plumelib.util.StringsPlume;
 /**
  * Represents a file that may contain conflict markers.
  *
- * <p>It is either erroneous (unparseable), or it is a sequence of ConflictElement objects.
+ * <p>It is either erroneous (unparsable), or it is a sequence of ConflictElement objects.
  *
  * <p>There are two general forms of conflicted sections of a file:
  *

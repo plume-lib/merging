@@ -2478,7 +2478,7 @@ public class diff_match_patch {
   }
 
   /**
-   * Unescape selected chars for compatability with JavaScript's encodeURI.
+   * Unescape selected chars for compatibility with JavaScript's encodeURI.
    * In speed critical applications this could be dropped since the
    * receiving application will certainly decode these fine.
    * Note that this function is case-sensitive.  Thus "%3f" would not be

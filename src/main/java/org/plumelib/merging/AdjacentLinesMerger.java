@@ -31,7 +31,7 @@ public class AdjacentLinesMerger extends Merger {
 
     List<ConflictElement> hunks = cf.hunks();
     if (hunks == null) {
-      Main.exitErroneously("Unparseable file " + cf.path);
+      Main.exitErroneously("Unparsable file " + cf.path);
       throw new Error("unreachable");
     }
 
