@@ -146,9 +146,7 @@ public class VersionNumbersMerger extends Merger {
         List<RDiff> versionNumberMerged = versionNumberMerge(nextRDiff, rdiff);
         if (versionNumberMerged != null) {
           int size = versionNumberMerged.size() - 1;
-          for (int i = 0; i < size; i++) {
-            result.add(versionNumberMerged.get(i));
-          }
+          result.addAll(versionNumberMerged.subList(0, size));
           nextRDiff = versionNumberMerged.get(size);
         } else {
           result.add(nextRDiff);

@@ -8,11 +8,11 @@ net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
 
 org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
 
-org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.0.0" }
+org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.0" }
 
 [versions]
 
-checker-framework = "3.54.0"
+checker-framework = "4.1.0"
 
 junit-jupiter = "6.0.3"
 
@@ -22,7 +22,7 @@ checker-framework = { module = "org.checkerframework:checker", version.ref = "ch
 
 checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
 
-error-prone-core = "com.google.errorprone:error_prone_core:2.48.0"
+error-prone-core = "com.google.errorprone:error_prone_core:2.49.0"
 
 google-java-format = "com.google.googlejavaformat:google-java-format:1.33.0"
 
@@ -34,7 +34,7 @@ junit-platform-console = { module = "org.junit.platform:junit-platform-console" 
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-jupiter" }
 
-junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.0.0"
+junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.1.0"
 
 junit-platform-reporting = { module = "org.junit.platform:junit-platform-reporting" }
 

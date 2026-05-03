@@ -80,7 +80,7 @@ public class ConflictedFile {
   private boolean hasConflict = false;
 
   /** True if the file had trivial conflicts that were resolved. */
-  private boolean hasTrivalConflict = false;
+  private boolean hasTrivialConflict = false;
 
   /**
    * Parse a conflicted file.
@@ -244,8 +244,8 @@ public class ConflictedFile {
    * @return true if this file contained a "trivial" conflict
    */
   @Pure
-  public boolean hasTrivalConflict() {
-    return hasTrivalConflict;
+  public boolean hasTrivialConflict() {
+    return hasTrivialConflict;
   }
 
   /**
@@ -304,8 +304,8 @@ public class ConflictedFile {
           + "hasConflict="
           + hasConflict
           + ";"
-          + "hasTrivalConflict="
-          + hasTrivalConflict
+          + "hasTrivialConflict="
+          + hasTrivialConflict
           + ";"
           + hunks.toString()
           + "}";
@@ -737,7 +737,7 @@ public class ConflictedFile {
         }
         ConflictElement ce = MergeConflict.of(base, left, right, conflictStart, i + 1);
         if (ce instanceof CommonLines) {
-          hasTrivalConflict = true;
+          hasTrivialConflict = true;
         }
         result.add(ce);
         lastConflictEnder = i;
@@ -749,7 +749,7 @@ public class ConflictedFile {
         result.add(new CommonLines(lastCommon));
       }
       hunks = result;
-      if (hasTrivalConflict) {
+      if (hasTrivialConflict) {
         resetLinesAndFileContents();
       }
     } catch (Throwable e) {
