@@ -106,7 +106,7 @@ public class VersionNumbersMerger extends Merger {
       // }
 
       String pre = d1.preText();
-      assert d1.preText().equals(d2.preText());
+      assert pre.equals(d2.preText());
       String post1 = d1.postText();
       String post2 = d2.postText();
 
