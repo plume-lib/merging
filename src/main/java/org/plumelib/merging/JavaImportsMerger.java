@@ -362,8 +362,8 @@ public class JavaImportsMerger extends Merger {
       return new CommonLines(rightLines);
     }
 
-    List<String> leftComments = JavaLibrary.commentLines(mc.left());
-    assert leftComments.equals(JavaLibrary.commentLines(mc.right()));
+    List<String> leftComments = JavaLibrary.commentLines(leftLines);
+    assert leftComments.equals(JavaLibrary.commentLines(rightLines));
 
     List<String> result = new ArrayList<>();
 
@@ -426,16 +426,18 @@ public class JavaImportsMerger extends Merger {
     assert !leftLines.isEmpty() : "leftLines=" + leftLines + ", rightLines=" + rightLines;
     assert !rightLines.isEmpty() : "leftLines=" + leftLines + ", rightLines=" + rightLines;
     // If non-null, the empty first line.
+    String leftFirst = leftLines.get(0);
+    String rightFirst = rightLines.get(0);
     String firstLineEmpty =
-        JavaLibrary.isBlankLine(leftLines.get(0))
-            ? leftLines.get(0)
-            : (JavaLibrary.isBlankLine(rightLines.get(0)) ? rightLines.get(0) : null);
+        JavaLibrary.isBlankLine(leftFirst)
+            ? leftFirst
+            : (JavaLibrary.isBlankLine(rightFirst) ? rightFirst : null);
+    String leftLast = leftLines.get(leftLines.size() - 1);
+    String rightLast = rightLines.get(rightLines.size() - 1);
     String lastLineEmpty =
-        JavaLibrary.isBlankLine(leftLines.get(leftLines.size() - 1))
-            ? leftLines.get(leftLines.size() - 1)
-            : (JavaLibrary.isBlankLine(rightLines.get(rightLines.size() - 1))
-                ? rightLines.get(rightLines.size() - 1)
-                : null);
+        JavaLibrary.isBlankLine(leftLast)
+            ? leftLast
+            : (JavaLibrary.isBlankLine(rightLast) ? rightLast : null);
     SortedSet<String> imports = new TreeSet<>();
     imports.addAll(leftLines);
     imports.addAll(rightLines);
