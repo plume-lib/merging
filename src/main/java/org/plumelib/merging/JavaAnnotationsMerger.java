@@ -152,6 +152,7 @@ public class JavaAnnotationsMerger extends Merger {
     final boolean useRegex = true;
 
     String declText;
+    boolean startsWithAnnotation = annotationStartPattern.matcher(text).find();
     // The test for " this" must precede the test for "@", because both can be true.
     if (text.endsWith(" this") || text.endsWith(" this,")) {
       if (useRegex && thisPattern.matcher(text).matches()) {
@@ -169,7 +170,7 @@ public class JavaAnnotationsMerger extends Merger {
       return false;
     } else if (text.endsWith(";")) {
       return false;
-    } else if (annotationStartPattern.matcher(text).find()) {
+    } else if (startsWithAnnotation) {
       if (useRegex && annotationsPattern.matcher(text).matches()) {
         return true;
       } else {
@@ -189,7 +190,7 @@ public class JavaAnnotationsMerger extends Merger {
       return false;
     }
 
-    if (annotationStartPattern.matcher(text).find()) {
+    if (startsWithAnnotation) {
       String classTextAnnoOnly = "class MyClass {" + text + ";" + "}";
       ClassTree annoOnlyCT = JavacParse.parseTypeDeclaration(classTextAnnoOnly).getTree();
       if (annoOnlyCT != null) {

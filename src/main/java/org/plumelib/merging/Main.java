@@ -43,7 +43,7 @@ public class Main implements Callable<Integer> {
   @Parameters(index = "3", description = "The right, or other, file")
   Path rightPath;
 
-  /** Fro a merge tool, the merged file; is overwritten. For a merge driver, null. */
+  /** For a merge tool, the merged file; is overwritten. For a merge driver, null. */
   @Parameters(
       arity = "0..1",
       index = "4",
