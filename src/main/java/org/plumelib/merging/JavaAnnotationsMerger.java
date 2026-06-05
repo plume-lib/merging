@@ -224,7 +224,6 @@ public class JavaAnnotationsMerger extends Merger {
    * @param regexes the disjuncts
    * @return a regex that matches any of the given regexes
    */
-  @SuppressWarnings("regex") // string concatenation
   protected static @Regex String or(String... regexes) {
     if (regexes.length < 2) {
       throw new Error("not enough arguments to or(): " + Arrays.toString(regexes));
