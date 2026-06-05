@@ -9,6 +9,7 @@ jobs:
 
     strategy:
       matrix:
+        # On GitHub Actions, GraalVM is not available for Java 26, as of 2026-06-05.
         java: ['21', '25']
 
     steps:
