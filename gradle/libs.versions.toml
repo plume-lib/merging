@@ -14,7 +14,7 @@ org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version 
 
 checker-framework = "4.2.0"
 
-junit-jupiter = "6.1.0"
+junit-jupiter = "6.1.1"
 
 [libraries]
 
