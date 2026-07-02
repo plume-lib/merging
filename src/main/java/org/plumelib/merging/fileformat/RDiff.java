@@ -136,7 +136,8 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
    * after texts match the given pattern, or are the empty string.
    *
    * @param p a pattern that matches text that should be in the first part. It must be of the form
-   *     "^(PATTERN).*$, where the PATTERN subpattern matches text that should be in the first part.
+   *     "^(PATTERN).*$", where the PATTERN subpattern matches text that should be in the first
+   *     part.
    * @return a pair of RDiffs that are together equivalent to this one
    */
   @SuppressWarnings("nullness:dereference.of.nullable") // p is @Regex(1) => group(1) is non-null

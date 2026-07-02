@@ -163,7 +163,7 @@ public class JavaImportsMerger extends Merger {
    * Returns true if the given merge conflict is not an import block.
    *
    * @param mc a merge conflict
-   * @return true if the argument has with non-{@code import} lines
+   * @return true if the argument has non-{@code import} lines
    */
   static boolean isOutsideImports(MergeConflict mc) {
     List<String> base = mc.base();

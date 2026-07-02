@@ -299,7 +299,7 @@ public final class Diff3File {
        * Returns a new ThreeSections, with each section's lines filled in.
        *
        * @param kind the kind of diff3 hunk that the three sections belong in
-       * @return a ThreeSections with each sections line's filled in
+       * @return a ThreeSections with each section's lines filled in
        */
       private ThreeSections fillIn(Diff3HunkKind kind) {
 
@@ -376,7 +376,7 @@ public final class Diff3File {
     ONE_DIFFERS,
     /** Section 2 text differs, sections 1 and 3 have the same text. */
     TWO_DIFFERS,
-    /** Section 2 text differs, sections 2 and 3 have the same text. */
+    /** Section 3 text differs, sections 1 and 2 have the same text. */
     THREE_DIFFERS,
     /** All three sections differ. */
     THREE_WAY;
@@ -621,7 +621,7 @@ public final class Diff3File {
     static final long serialVersionUID = 20240331;
 
     /**
-     * Creates a Diff3ParseException3.
+     * Creates a Diff3ParseException.
      *
      * @param message the descriptive message
      */
@@ -630,7 +630,7 @@ public final class Diff3File {
     }
 
     /**
-     * Creates a Diff3ParseException3.
+     * Creates a Diff3ParseException.
      *
      * @param message the descriptive message
      * @param cause the underlying exception

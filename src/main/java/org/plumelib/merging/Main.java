@@ -31,7 +31,7 @@ public class Main implements Callable<Integer> {
   @Parameters(index = "0", description = "\"driver\" or \"tool\"")
   MergeMode command;
 
-  /** The left or current file file; is overwritten by a merge driver. */
+  /** The left or current file; is overwritten by a merge driver. */
   @Parameters(index = "1", description = "The left, or current, file")
   Path leftPath;
 

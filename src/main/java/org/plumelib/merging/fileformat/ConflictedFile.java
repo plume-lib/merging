@@ -317,9 +317,9 @@ public class ConflictedFile {
   /** One element of a conflicted file: either {@link MergeConflict} or {@link CommonLines}. */
   public static sealed interface ConflictElement permits MergeConflict, CommonLines {
     /**
-     * Returns the lines in the confict-file representation of this.
+     * Returns the lines in the conflict-file representation of this.
      *
-     * @return the lines in the confict-file representation of this
+     * @return the lines in the conflict-file representation of this
      */
     @SideEffectFree
     public List<String> toLines();

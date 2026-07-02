@@ -52,7 +52,7 @@ public final class JavaLibrary {
   }
 
   /**
-   * A pattern that matches an package line in Java code. Does not match package lines with a
+   * A pattern that matches a package line in Java code. Does not match package lines with a
    * trailing comment.
    */
   private static Pattern packagePattern = Pattern.compile("\\s*package\\s.*;\\R?");
@@ -116,7 +116,7 @@ public final class JavaLibrary {
   }
 
   /**
-   * Given a line of code, return true if can appear in an import block: it is an {@code import},
+   * Given a line of code, return true if it can appear in an import block: it is an {@code import},
    * blank line, or comment.
    *
    * @param line a line of code
