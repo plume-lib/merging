@@ -94,8 +94,8 @@ public class AdjacentDynamicProgramming {
    * Creates a new AdjacentDynamicProgramming.
    *
    * @param a the first parent
-   * @param b the base
-   * @param c the second parent
+   * @param c the base
+   * @param b the second parent
    */
   public AdjacentDynamicProgramming(List<String> a, List<String> c, List<String> b) {
     IMPOSSIBLE.add("IMPOSSIBLE");

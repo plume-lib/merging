@@ -185,7 +185,7 @@ public class MergeState {
   public void writeBack(boolean verbose) {
     if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivialConflict())) {
       if (verbose) {
-        System.out.printf("Writing back to %s .%n", mergedPath);
+        System.out.printf("Writing back to %s.%n", mergedPath);
       }
       writeBack(mergedPath);
       // By default, if a mergetool returns a non-zero status, git discards any edits done by the

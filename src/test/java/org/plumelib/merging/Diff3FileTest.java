@@ -18,7 +18,7 @@ public class Diff3FileTest {
     try {
       ClassLoader cl = this.getClass().getClassLoader();
       if (cl == null) {
-        throw new Error("no class leader for " + this.getClass());
+        throw new Error("no class loader for " + this.getClass());
       }
       try (InputStream is = cl.getResourceAsStream(file)) {
         if (is == null) {

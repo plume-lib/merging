@@ -52,9 +52,7 @@ You can use the mergers in this repository in three ways.
 
 * Using them as [**re-merge tools**](#how-to-use-as-a-re-merge-tool) means
    to keep Git's original behavior and manually invoke them to improve the
-   merge (whither Git produced a conflict or not
-
-leads
+   merge (whether Git produced a conflict or not).  This leads
    to the best merge results; see
    [below](#why-to-use-a-re-merge-tool-rather-than-a-merge-driver) for an
    explanation.
@@ -229,12 +227,12 @@ A **re-merge tool** is _called manually_ by the programmer
 (via `git-mergetool.sh`).
 A re-merge tool differs from a merge tool in the following ways:
 
-* It not require user interaction.  (By contrast, a regular git merge tool
+* It does not require user interaction.  (By contrast, a regular git merge tool
    requires you to press a key for every file that gets merged.)
 
 * With the `--all` command-line argument, it is run on every file that
    differed between the two versions being merged -- even ones for which
-   the merge driver produced a clean merge.  This feature is is only
+   the merge driver produced a clean merge.  This feature is only
    necessary for mergers that may re-introduce lines that were removed in a
    clean merge.  The [Java imports](README-java-imports.md) merger is the
    only example currently.  Most mergers (other than the Java imports
