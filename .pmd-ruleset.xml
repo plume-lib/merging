@@ -163,7 +163,6 @@
     <rule ref="category/java/design.xml/SwitchDensity" />
     <rule ref="category/java/design.xml/TooManyFields" />
     <rule ref="category/java/design.xml/UselessOverridingMethod" />
-    <rule ref="category/java/design.xml/UseObjectForClearerAPI" />
     <rule ref="category/java/design.xml/UseUtilityClass" />
 
     <!-- design rules that seem to be broken.
@@ -267,6 +266,7 @@
     <rule ref="category/java/errorprone.xml/NonSerializableClass" />
     <rule ref="category/java/errorprone.xml/NonStaticInitializer" />
     <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode" />
+    <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashCodeOnComparable" />
     <rule ref="category/java/errorprone.xml/ProperCloneImplementation" />
     <rule ref="category/java/errorprone.xml/ProperLogger" />
     <rule ref="category/java/errorprone.xml/ReplaceJavaUtilCalendar" />
@@ -306,7 +306,6 @@
     <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals" />
     <rule ref="category/java/errorprone.xml/DoNotTerminateVM" />
     <rule ref="category/java/errorprone.xml/NullAssignment" />
-    <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashCodeOnComparable" />
     <rule ref="category/java/errorprone.xml/ReturnEmptyCollectionRatherThanNull" />
     <rule ref="category/java/errorprone.xml/TestClassWithoutTestCases" />
     <rule ref="category/java/errorprone.xml/UseProperClassLoader" />
