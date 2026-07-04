@@ -106,7 +106,7 @@ public class Main implements Callable<Integer> {
       names = "--only-version-numbers",
       description = "Only merge version numbers",
       defaultValue = "false")
-  public boolean only_version_numbers = true;
+  public boolean only_version_numbers = false;
 
   /** If true, print diagnostics for debugging. */
   @Option(names = "--verbose", description = "Print diagnostics", defaultValue = "false")
