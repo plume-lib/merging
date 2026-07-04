@@ -211,6 +211,7 @@ public class AdjacentDynamicProgramming {
         List<String> prev = table[iA - 1][0][iB - 1];
         if (prev == IMPOSSIBLE) {
           table[iA][0][iB] = IMPOSSIBLE;
+          continue;
         }
         String aElt = a.get(iA - 1);
         String bElt = b.get(iB - 1);
