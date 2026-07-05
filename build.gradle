@@ -144,12 +144,15 @@ spotless {
     googleJavaFormat()
     formatAnnotations()
   }
-  groovyGradle {
-    target("**/*.gradle")
-    greclipse()  // which formatter Spotless should use to format .gradle files.
-    leadingTabsToSpaces(2)
-    trimTrailingWhitespace()
-    // endWithNewline() // Don't want to end empty files with a newline
+  // Run greclipse less, because of frequent "Failed to provision P2 dependencies".
+  if (JavaVersion.current() >= JavaVersion.VERSION_25) {
+    groovyGradle {
+      target("**/*.gradle")
+      greclipse()  // which formatter Spotless should use to format .gradle files.
+      leadingTabsToSpaces(2)
+      trimTrailingWhitespace()
+      // endWithNewline() // Don't want to end empty files with a newline
+    }
   }
 }
 
