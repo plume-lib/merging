@@ -13,7 +13,7 @@ import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.IPair;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 /**
  * A RDiff is one of the operations "equal", "replace", or "insert".
@@ -279,9 +279,9 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
     @Override
     public String toString(@GuardSatisfied Replace this) {
       return "Replace{"
-          + StringsPlume.escapeNonASCII(before)
+          + StringsP.escapeNonASCII(before)
           + " -> "
-          + StringsPlume.escapeNonASCII(after)
+          + StringsP.escapeNonASCII(after)
           + "}";
     }
   }
@@ -313,7 +313,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
 
     @Override
     public String toString(@GuardSatisfied Insert this) {
-      return "Insert{" + StringsPlume.escapeNonASCII(text) + "}";
+      return "Insert{" + StringsP.escapeNonASCII(text) + "}";
     }
   }
 
@@ -362,7 +362,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
 
     @Override
     public String toString(@GuardSatisfied Equal this) {
-      return "Equal{" + StringsPlume.escapeNonASCII(text) + "}";
+      return "Equal{" + StringsP.escapeNonASCII(text) + "}";
     }
   }
 

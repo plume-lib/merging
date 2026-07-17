@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.FilesPlume;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.FilesP;
 import org.plumelib.util.IPair;
 
 // TODO: Parsing could use LineNumberReader instead of reading the entire file at once.  That would
@@ -58,7 +58,7 @@ public final class Diff3File {
    * @throws Diff3ParseException if there is a problem parsing the file
    */
   public static Diff3File parseFile(String filename) throws Diff3ParseException {
-    return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
+    return parseFileContents(FilesP.readString(Path.of(filename)), filename);
   }
 
   /**
@@ -465,7 +465,7 @@ public final class Diff3File {
     public String toString(@GuardSatisfied Diff3HunkSection this) {
       return String.format(
           "Diff3HunkSection[command=%s, lines=%s]",
-          command, CollectionsPlume.mapList(s -> s + System.lineSeparator(), lines));
+          command, CollectionsP.mapList(s -> s + System.lineSeparator(), lines));
     }
   }
 

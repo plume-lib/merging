@@ -10,8 +10,8 @@ import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.merging.fileformat.RDiff;
 import org.plumelib.merging.fileformat.RDiff.Equal;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.CollectionsPlume.Replacement;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.CollectionsP.Replacement;
 import org.plumelib.util.IPair;
 
 /** This is a merger that resolves conflicts where the edits are on different but adjacent lines. */
@@ -61,7 +61,7 @@ public class AdjacentLinesMerger extends Merger {
       System.out.printf("AdjacentLinesMerger: replacements = %s%n", replacements);
       // System.out.printf("AdjacentLinesMerger: before replacement = %s%n", cf.lines());
     }
-    List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
+    List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
     if (verbose) {
       // System.out.printf("AdjacentLinesMerger: after replacement = %s%n", newLines);
     }

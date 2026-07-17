@@ -26,10 +26,10 @@ import org.plumelib.merging.fileformat.Diff3File;
 import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
 import org.plumelib.merging.fileformat.Diff3File.Diff3HunkSection;
 import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.FilesPlume;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.FilesP;
 import org.plumelib.util.IPair;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 /**
  * This class resolves conflicts in {@code import} statements and re-inserts any {@code import}
@@ -52,14 +52,14 @@ public class JavaImportsMerger extends Merger {
     List<MergeConflict> mcs = cf.mergeConflicts();
 
     // Proceed only if all the merge conflicts (if any) are within the imports.
-    if (CollectionsPlume.anyMatch(mcs, JavaImportsMerger::isOutsideImports)) {
+    if (CollectionsP.anyMatch(mcs, JavaImportsMerger::isOutsideImports)) {
       return null;
     }
 
     // There are no merge conflicts except possibly within the imports.
 
     // If an import merge conflict has different comments within it, give up.
-    if (!CollectionsPlume.allMatch(mcs, MergeConflict::sameCommentLines)) {
+    if (!CollectionsP.allMatch(mcs, MergeConflict::sameCommentLines)) {
       return null;
     }
 
@@ -112,7 +112,7 @@ public class JavaImportsMerger extends Merger {
       System.out.printf(
           "Problem with conflicted file (hasTrivialConflict=%s):%n", cf.hasTrivialConflict());
       System.out.println("On disk:");
-      System.out.println(FilesPlume.readString(cf.path));
+      System.out.println(FilesP.readString(cf.path));
       System.out.println("In data structure:");
       System.out.println(cf.fileContents());
       System.out.println(cf);
@@ -129,7 +129,7 @@ public class JavaImportsMerger extends Merger {
         System.out.printf("rightContents = %s%nend of rightContents.%n", rightContents);
       }
       mergedFileContentsLines =
-          CollectionsPlume.filter(
+          CollectionsP.filter(
               mergedFileContentsLines,
               (String line) -> {
                 final String imported = getImportedType(line);
@@ -180,7 +180,7 @@ public class JavaImportsMerger extends Merger {
    * @return true if the argument is an import block
    */
   static boolean isImportBlock(List<String> lines) {
-    return CollectionsPlume.allMatch(lines, JavaLibrary::isImportBlockLine);
+    return CollectionsP.allMatch(lines, JavaLibrary::isImportBlockLine);
   }
 
   /**
@@ -224,7 +224,7 @@ public class JavaImportsMerger extends Merger {
       }
       List<String> hunkSection2Lines = h.section2().lines();
       List<String> importStatementsThatAreRemoved =
-          CollectionsPlume.filter(hunkSection2Lines, JavaLibrary::isImportStatement);
+          CollectionsP.filter(hunkSection2Lines, JavaLibrary::isImportStatement);
       // Do not reinsert deleted wildcard imports.
       importStatementsThatAreRemoved.removeIf(s -> s.endsWith("*;"));
       for (int i = 0; i < importStatementsThatAreRemoved.size(); i++) {
@@ -354,11 +354,10 @@ public class JavaImportsMerger extends Merger {
     List<String> rightLines = mc.right();
     int leftLen = leftLines.size();
     int rightLen = rightLines.size();
-    if (leftLen > rightLen
-        && CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
+    if (leftLen > rightLen && CollectionsP.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
       return new CommonLines(leftLines);
     } else if (rightLen > leftLen
-        && CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
+        && CollectionsP.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
       return new CommonLines(rightLines);
     }
 
@@ -370,8 +369,8 @@ public class JavaImportsMerger extends Merger {
     int leftIndex = 0; // the index after the most recently found comment
     int rightIndex = 0; // the index after the most recently found comment
     for (String comment : leftComments) {
-      int leftCommentIndex = CollectionsPlume.indexOf(leftLines, comment, leftIndex);
-      int rightCommentIndex = CollectionsPlume.indexOf(rightLines, comment, rightIndex);
+      int leftCommentIndex = CollectionsP.indexOf(leftLines, comment, leftIndex);
+      int rightCommentIndex = CollectionsP.indexOf(rightLines, comment, rightIndex);
       if (leftCommentIndex == -1 || rightCommentIndex == -1) {
         Main.exitErroneously("didn't find comment: " + comment);
       }
@@ -413,12 +412,11 @@ public class JavaImportsMerger extends Merger {
         return leftLines;
       }
     } else if (leftLen > rightLen) {
-      if (rightLen == 0
-          || CollectionsPlume.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
+      if (rightLen == 0 || CollectionsP.isSubsequenceMaybeNonContiguous(leftLines, rightLines)) {
         return leftLines;
       }
     } else if (rightLen > leftLen) {
-      if (leftLen == 0 || CollectionsPlume.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
+      if (leftLen == 0 || CollectionsP.isSubsequenceMaybeNonContiguous(rightLines, leftLines)) {
         return rightLines;
       }
     }
@@ -445,7 +443,7 @@ public class JavaImportsMerger extends Merger {
     if (firstLineEmpty != null) {
       result.add(firstLineEmpty);
     }
-    result.addAll(CollectionsPlume.filter(imports, Predicate.not(JavaLibrary::isBlankLine)));
+    result.addAll(CollectionsP.filter(imports, Predicate.not(JavaLibrary::isBlankLine)));
     if (lastLineEmpty != null) {
       result.add(lastLineEmpty);
     }
@@ -470,7 +468,7 @@ public class JavaImportsMerger extends Merger {
     for (Diff diff : diffs) {
       switch (diff.operation) {
         case INSERT -> {
-          for (String insertedLine : StringsPlume.splitLines(diff.text)) {
+          for (String insertedLine : StringsP.splitLines(diff.text)) {
             String imported = getImportedType(insertedLine);
             if (imported != null) {
               inserted.add(imported);
@@ -478,7 +476,7 @@ public class JavaImportsMerger extends Merger {
           }
         }
         case DELETE -> {
-          for (String deletedLine : StringsPlume.splitLines(diff.text)) {
+          for (String deletedLine : StringsP.splitLines(diff.text)) {
             String imported = getImportedType(deletedLine);
             if (imported != null) {
               deleted.add(imported);
@@ -518,7 +516,7 @@ public class JavaImportsMerger extends Merger {
       System.out.printf("inserted imports = %s%n", inserted);
     }
     Set<String> insertedIdentifiers =
-        new HashSet<>(CollectionsPlume.mapList(JavaImportsMerger::lastIdentifier, inserted));
+        new HashSet<>(CollectionsP.mapList(JavaImportsMerger::lastIdentifier, inserted));
     List<String> result = new ArrayList<>();
     for (String del : deleted) {
       String deletedIdentifier = lastIdentifier(del);

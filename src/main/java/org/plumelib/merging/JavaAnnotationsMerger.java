@@ -13,9 +13,9 @@ import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.javacparse.JavacParse;
 import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.CollectionsPlume.Replacement;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.CollectionsP.Replacement;
+import org.plumelib.util.StringsP;
 
 /**
  * This is a merger for Java files. It handles conflicts where the edits differ only in adding
@@ -47,8 +47,8 @@ public class JavaAnnotationsMerger extends Merger {
     List<Replacement<String>> replacements = new ArrayList<>();
 
     for (MergeConflict mc : cf.mergeConflicts()) {
-      String leftLines = StringsPlume.join("", mc.left());
-      String rightLines = StringsPlume.join("", mc.right());
+      String leftLines = StringsP.join("", mc.left());
+      String rightLines = StringsP.join("", mc.right());
       // If left or right introduces a comment and an annotation, that is OK.  But if one side
       // introduces only a comment, then it must differ from the other side (because it's a
       // MergeConflict), and we don't want to merge it as an annotation.
@@ -76,7 +76,7 @@ public class JavaAnnotationsMerger extends Merger {
     if (verbose) {
       System.out.printf("JavaAnnotationsMerger: replacements = %s%n", replacements);
     }
-    List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
+    List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
     ConflictedFile result = new ConflictedFile(newLines, cf.path);
     return result;
   }
@@ -184,7 +184,7 @@ public class JavaAnnotationsMerger extends Merger {
     // Use this diagnostic to determine which strings are still getting parsed.
     // Perhaps write regular expressions for them to improve performance.
     // System.out.printf("isJavaAnnotations(%s) about to parse: %s%n", origText, classText);
-    ClassTree mergedCT = JavacParse.parseTypeDeclaration(classText).getTree();
+    ClassTree mergedCT = JavacParse.parseTypeDeclaration(classText).tree();
 
     if (mergedCT == null) {
       return false;
@@ -192,7 +192,7 @@ public class JavaAnnotationsMerger extends Merger {
 
     if (startsWithAnnotation) {
       String classTextAnnoOnly = "class MyClass {" + text + ";" + "}";
-      ClassTree annoOnlyCT = JavacParse.parseTypeDeclaration(classTextAnnoOnly).getTree();
+      ClassTree annoOnlyCT = JavacParse.parseTypeDeclaration(classTextAnnoOnly).tree();
       if (annoOnlyCT != null) {
         // The argument parses all on its own, so it is not an annotation (despite the fact that it
         // parses when followed by " String varname;").
@@ -228,7 +228,7 @@ public class JavaAnnotationsMerger extends Merger {
     if (regexes.length < 2) {
       throw new Error("not enough arguments to or(): " + Arrays.toString(regexes));
     }
-    List<String> groupedElts = CollectionsPlume.mapList(JavaAnnotationsMerger::group, regexes);
+    List<String> groupedElts = CollectionsP.mapList(JavaAnnotationsMerger::group, regexes);
     return group(String.join("|", groupedElts));
   }
 

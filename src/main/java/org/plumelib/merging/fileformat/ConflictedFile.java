@@ -12,9 +12,9 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.plumelib.merging.JavaLibrary;
 import org.plumelib.merging.Main;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.FilesPlume;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.FilesP;
+import org.plumelib.util.StringsP;
 
 // This class is needed because it seems that JGit's MergeResult is produced only by its own tools;
 // that is, one cannot create a JGit MergeResult by parsing a conflicted file.
@@ -89,7 +89,7 @@ public class ConflictedFile {
    */
   @SideEffectFree
   public ConflictedFile(Path path) {
-    this(FilesPlume.readString(path), path);
+    this(FilesP.readString(path), path);
   }
 
   /**
@@ -100,7 +100,7 @@ public class ConflictedFile {
    */
   @SideEffectFree
   public ConflictedFile(Path path, boolean hasConflict) {
-    this(FilesPlume.readString(path), hasConflict, path);
+    this(FilesP.readString(path), hasConflict, path);
   }
 
   /**
@@ -223,11 +223,11 @@ public class ConflictedFile {
   public boolean hasConflict() {
     if (!hasConflictInitialized) {
       if (hunks != null) {
-        hasConflict = CollectionsPlume.anyMatch(hunks, ce -> ce instanceof MergeConflict);
+        hasConflict = CollectionsP.anyMatch(hunks, ce -> ce instanceof MergeConflict);
       } else if (fileContents != null) {
         hasConflict = conflictStartMultilinePattern.matcher(fileContents).find();
       } else if (lines != null) {
-        hasConflict = CollectionsPlume.anyMatch(lines, l -> l.startsWith("<<<<<<"));
+        hasConflict = CollectionsP.anyMatch(lines, l -> l.startsWith("<<<<<<"));
       } else {
         Main.exitErroneously("Too many null fields in state");
         throw new Error("unreachable");
@@ -277,7 +277,7 @@ public class ConflictedFile {
   public List<String> lines() {
     if (lines == null) {
       if (fileContents != null) {
-        lines = StringsPlume.splitLinesRetainSeparators(fileContents);
+        lines = StringsP.splitLinesRetainSeparators(fileContents);
       } else if (hunks != null) {
         lines = new ArrayList<>();
         for (ConflictElement ce : hunks) {

@@ -12,7 +12,7 @@ import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.merging.fileformat.ConflictedFile.CommonLines;
 import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
-import org.plumelib.util.FilesPlume;
+import org.plumelib.util.FilesP;
 
 public class ConflictedFileTest {
 
@@ -26,7 +26,7 @@ public class ConflictedFileTest {
         if (is == null) {
           throw new Error("Can't find resource " + file);
         }
-        return FilesPlume.streamString(is);
+        return FilesP.streamString(is);
       }
     } catch (IOException e) {
       throw new UncheckedIOException(e);

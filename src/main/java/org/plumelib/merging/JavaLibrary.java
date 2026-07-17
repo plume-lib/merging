@@ -2,7 +2,7 @@ package org.plumelib.merging;
 
 import java.util.List;
 import java.util.regex.Pattern;
-import org.plumelib.util.CollectionsPlume;
+import org.plumelib.util.CollectionsP;
 
 /** This class contains static methods related to Java code. */
 public final class JavaLibrary {
@@ -48,7 +48,7 @@ public final class JavaLibrary {
    * @return the comment lines in the input
    */
   public static List<String> commentLines(List<String> lines) {
-    return CollectionsPlume.filter(lines, JavaLibrary::isCommentLine);
+    return CollectionsP.filter(lines, JavaLibrary::isCommentLine);
   }
 
   /**
