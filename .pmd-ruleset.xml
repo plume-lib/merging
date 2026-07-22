@@ -24,7 +24,7 @@
     <rule ref="category/java/bestpractices.xml/GuardLogStatement" />
     <rule ref="category/java/bestpractices.xml/ImplicitFunctionalInterface" />
     <rule ref="category/java/bestpractices.xml/JUnit4SuitesShouldUseSuiteAnnotation" />
-    <rule ref="category/java/bestpractices.xml/JUnit5TestShouldBePackagePrivate" />
+    <rule ref="category/java/bestpractices.xml/JUnitJupiterTestShouldBePackagePrivate" />
     <rule ref="category/java/bestpractices.xml/JUnitUseExpected" />
     <rule ref="category/java/bestpractices.xml/MethodReturnsInternalArray" />
     <rule ref="category/java/bestpractices.xml/MissingOverride" />
@@ -167,7 +167,6 @@
     <rule ref="category/java/design.xml/SwitchDensity" />
     <rule ref="category/java/design.xml/TooManyFields" />
     <rule ref="category/java/design.xml/UselessOverridingMethod" />
-    <rule ref="category/java/design.xml/UseObjectForClearerAPI" />
     <rule ref="category/java/design.xml/UseUtilityClass" />
 
     <!-- design rules that seem to be broken.
