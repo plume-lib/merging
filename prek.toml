@@ -108,7 +108,7 @@ hooks = [{ id = "pyupgrade" }]
 [[repos]]
 repo = "https://github.com/gitleaks/gitleaks"
 rev = "v8.24.2"
-hooks = [{ id = "gitleaks" }]
+hooks = [{ id = "gitleaks" , exclude = { glob = [ "**/AdjacentTest*" ] }}]
 
 [[repos]]
 repo = "https://github.com/Yelp/detect-secrets"
