@@ -152,20 +152,20 @@ hooks = [
   ] } },
 ]
 
-# TODO: Make this also install the program if necessary.
-[[repos]]
-repo = "local"
-hooks = [
-  { id = "checkbashisms", name = "Run checkbashisms", entry = "checkbashisms", language = "system", types = [
-    "shell",
-  ], exclude = { glob = [
-    "share/addrfilter",
-    "share/print-mail",
-    "share/myxapps",
-    "share/javapp",
-    "gradlew",
-  ] } },
-]
+# TODO: checkbashisms (I need to write my own).
+# [[repos]]
+# repo = "TODO"
+# hooks = [
+#   { id = "checkbashisms", types = [
+#     "shell",
+#   ], exclude = { glob = [
+#     "share/addrfilter",
+#     "share/print-mail",
+#     "share/myxapps",
+#     "share/javapp",
+#     "gradlew",
+#   ] } },
+# ]
 
 # Problems:
 # * False positives for E011.
