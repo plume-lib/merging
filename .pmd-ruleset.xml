@@ -56,8 +56,7 @@
     <rule ref="category/java/bestpractices.xml/LiteralsFirstInComparisons" />
     <rule ref="category/java/bestpractices.xml/LooseCoupling" />
     <rule ref="category/java/bestpractices.xml/PreserveStackTrace" />
-    <rule ref="category/java/bestpractices.xml/RelianceOnDefaultCharset" />
-      Java 18+ uses UTF-8 as the default character encoding.
+    <rule ref="category/java/bestpractices.xml/RelianceOnDefaultCharset" />      Java 18+ uses UTF-8 as the default character encoding.
     <rule ref="category/java/bestpractices.xml/SystemPrintln" />
     <rule ref="category/java/bestpractices.xml/UnitTestAssertionsShouldIncludeMessage" />
     <rule ref="category/java/bestpractices.xml/UnitTestContainsTooManyAsserts" />
@@ -114,7 +113,6 @@
     <rule ref="category/java/codestyle.xml/LocalVariableCouldBeFinal" />
     <rule ref="category/java/codestyle.xml/MethodArgumentCouldBeFinal" />
     <rule ref="category/java/codestyle.xml/PrematureDeclaration" />
-    <rule ref="category/java/codestyle.xml/UselessParentheses" />
      -->
 
     <!-- code style rules that seem to be broken
@@ -132,19 +130,14 @@
     <rule ref="category/java/codestyle.xml/LongVariable" />
     <rule ref="category/java/codestyle.xml/MethodNamingConventions" />
     <rule ref="category/java/codestyle.xml/OnlyOneReturn" />
-    <rule ref="category/java/codestyle.xml/ShortClassName" />
+    <rule ref="category/java/codestyle.xml/ShortClassName" />      Complains about "Type", "Node", etc.
     <rule ref="category/java/codestyle.xml/ShortMethodName" />
-      Complains about "Type", "Node", etc.
     <rule ref="category/java/codestyle.xml/ShortVariable" />
     <rule ref="category/java/codestyle.xml/TooManyStaticImports" />
     <rule ref="category/java/codestyle.xml/TypeParameterNamingConventions" />
-    <rule ref="category/java/codestyle.xml/UnnecessaryModifier" />
-      Redundant `public` can be useful.
-    <rule ref="category/java/codestyle.xml/UselessParentheses" />
-      Redundant parens can be helpful, for example to emphasize
-      subexpressions in string concatenation.
-    <rule ref="category/java/codestyle.xml/VariableCanBeInlined" />
-      Naming a value can improve readability.
+    <rule ref="category/java/codestyle.xml/UnnecessaryModifier" />      Redundant `public` can be useful.
+    <rule ref="category/java/codestyle.xml/UselessParentheses" />      Redundant parens can be helpful, for example to emphasize subexpressions in string concatenation.
+    <rule ref="category/java/codestyle.xml/VariableCanBeInlined" />      Naming a value can improve readability.
      -->
 
     <!-- design rules -->
@@ -167,6 +160,7 @@
     <rule ref="category/java/design.xml/SwitchDensity" />
     <rule ref="category/java/design.xml/TooManyFields" />
     <rule ref="category/java/design.xml/UselessOverridingMethod" />
+    <rule ref="category/java/design.xml/UseObjectForClearerAPI" />
     <rule ref="category/java/design.xml/UseUtilityClass" />
 
     <!-- design rules that seem to be broken.
@@ -195,8 +189,7 @@
     <rule ref="category/java/design.xml/LoosePackageCoupling" />
     <rule ref="category/java/design.xml/NcssCount" />
     <rule ref="category/java/design.xml/NPathComplexity" />
-    <rule ref="category/java/design.xml/SimplifyBooleanReturns" />
-      Suggests too-clever boolean expressions to replace simpler code.
+    <rule ref="category/java/design.xml/SimplifyBooleanReturns" />      Suggests too-clever boolean expressions to replace simpler code.
     <rule ref="category/java/design.xml/TooManyMethods" />
     -->
 
@@ -205,13 +198,11 @@
     <rule ref="category/java/documentation.xml/UncommentedEmptyMethodBody" />
 
     <!-- documentation rules that seem to be broken
-    <rule ref="category/java/documentation.xml/DanglingJavadoc" />
-      False positive for record constructors.
+    <rule ref="category/java/documentation.xml/DanglingJavadoc" />      False positive for record constructors.
     -->
 
     <!-- documentation rules we are not using
-    <rule ref="category/java/documentation.xml/CommentRequired" />
-      A good rule, but too disruptive to apply without lint-diff.
+    <rule ref="category/java/documentation.xml/CommentRequired" />      A good rule, but too disruptive to apply without lint-diff.
     <rule ref="category/java/documentation.xml/CommentSize" />
     <rule ref="category/java/documentation.xml/UncommentedEmptyConstructor" />
      -->
@@ -301,12 +292,9 @@
     <rule ref="category/java/errorprone.xml/UseLocaleWithCaseConversions" />
 
     <!-- error prone rules that seem to be broken
-    <rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals" />
-      False positive in OptionsDoclet.
-    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
-      Triggers for `return` as well as for branches within the method.
-    <rule ref="category/java/errorprone.xml/CloseResource" />
-      CloseResource ought to warn only when the RHS is "new ..."
+    <rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals" />      False positive in OptionsDoclet.
+    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />      Triggers for `return` as well as for branches within the method.
+    <rule ref="category/java/errorprone.xml/CloseResource" />      CloseResource ought to warn only when the RHS is "new ..."
     -->
 
     <!-- error prone rules we are not using
@@ -360,10 +348,8 @@
     <rule ref="category/java/performance.xml/UseStringBufferLength" />
 
     <!-- performance rules we are not using
-    <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops" />
-      Blanket prohibition on `new` in loops is too broad.
-    <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse" />
-      It's not clear this helps, and "fluent" appends are harder to read.
+    <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops" />      Blanket prohibition on `new` in loops is too broad.
+    <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse" />      It's not clear this helps, and "fluent" appends are harder to read.
     <rule ref="category/java/performance.xml/RedundantFieldInitializer" />  Explicit initializers are better style
     <rule ref="category/java/performance.xml/TooFewBranchesForSwitch" />
     <rule ref="category/java/performance.xml/UseStringBufferForStringAppends" />
