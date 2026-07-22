@@ -27,7 +27,7 @@ public class MessagePacket extends InformationField {
     private String targetCallsign ="";
     private boolean isAck = false;
     private boolean isRej = false;
-    
+
     public MessagePacket( byte[] bodyBytes, String destCall ) {
         super(bodyBytes);
         String message = new String(bodyBytes);
@@ -61,7 +61,7 @@ public class MessagePacket extends InformationField {
 		this.messageBody = messageBody.substring(0, 3);
         }
     }
-    
+
     public MessagePacket(String targetCallsign, String messageBody, String messageNumber) {
     	this.messageBody = messageBody;
     	this.targetCallsign = targetCallsign;
@@ -70,7 +70,7 @@ public class MessagePacket extends InformationField {
     	if ( messageBody.equals("rej") ) isRej = true;
     	super.setDataTypeIdentifier(':');
     }
-    
+
     /**
      * @return the messageBody
      */
@@ -141,8 +141,8 @@ public class MessagePacket extends InformationField {
 		this.isRej = isRej;
 	}
 
-	
-    /** 
+
+    /**
      * @return String
      */
     @Override

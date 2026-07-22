@@ -20,6 +20,8 @@ hooks = [
   { id = "detect-private-key" },
   { id = "end-of-file-fixer", exclude = { glob = [
     "bugs/jikes-patches/*",
+    "**/non-conflicted-file-without-terminator.txt",
+    "**/native-image/**",
   ] } },
   { id = "fix-byte-order-marker" },
   { id = "forbid-new-submodules" },
@@ -37,6 +39,9 @@ hooks = [
     "dots/enscript.st",
     "enscript.st",
     "emacs/bug/crypted.UUE",
+    "**/*.diff",
+    "**/*.diff3",
+    "**/*.patch",
   ] } },
 ]
 
@@ -90,7 +95,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/astral-sh/ty-pre-commit"
-rev = "v0.0.62" # ty version.
+rev = "v0.0.62"                                       # ty version.
 hooks = [{ id = "ty", types_or = ["python", "pyi"] }]
 
 [[repos]]
@@ -140,7 +145,10 @@ hooks = [
     "-bn",
     "-sr",
   ], exclude = { glob = [
-    "gradlew", "share/addrfilter", "dots/conda-initialize.sh", "conda-initialize.sh"
+    "gradlew",
+    "share/addrfilter",
+    "dots/conda-initialize.sh",
+    "conda-initialize.sh",
   ] } },
 ]
 
