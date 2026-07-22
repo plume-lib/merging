@@ -52,7 +52,7 @@ hooks = [{ id = "actionlint" }]
 [[repos]]
 repo = "https://github.com/Lucas-C/pre-commit-hooks-java"
 rev = "1.3.10"
-hooks = [ { id = "validate-html" } ]
+hooks = [{ id = "validate-html" }]
 
 ## Makefiles
 
@@ -91,9 +91,7 @@ hooks = [
 [[repos]]
 repo = "https://github.com/astral-sh/ty-pre-commit"
 rev = "v0.0.62" # ty version.
-hooks = [
-  { id = "ty" },
-]
+hooks = [{ id = "ty", types_or = ["python", "pyi"] }]
 
 [[repos]]
 repo = "https://github.com/asottile/pyupgrade"
@@ -134,13 +132,31 @@ hooks = [
 [[repos]]
 repo = "https://github.com/scop/pre-commit-shfmt"
 rev = "v3.13.1-1"
-hooks = [{id = "shfmt"}]
+hooks = [
+  { id = "shfmt", args = [
+    "-i",
+    "2",
+    "-ci",
+    "-bn",
+    "-sr",
+  ], exclude = { glob = [
+    "gradlew", "share/addrfilter", "dots/conda-initialize.sh", "conda-initialize.sh"
+  ] } },
+]
 
 # TODO: Make this also install the program if necessary.
 [[repos]]
 repo = "local"
 hooks = [
-    { id = "checkbashisms", name = "Run checkbashisms", entry = "checkbashisms", language = "system", types = ["shell"], exclude = { glob = ["share/addrfilter", "share/print-mail", "share/myxapps", "share/javapp" ] } }
+  { id = "checkbashisms", name = "Run checkbashisms", entry = "checkbashisms", language = "system", types = [
+    "shell",
+  ], exclude = { glob = [
+    "share/addrfilter",
+    "share/print-mail",
+    "share/myxapps",
+    "share/javapp",
+    "gradlew",
+  ] } },
 ]
 
 # Problems:
@@ -155,10 +171,16 @@ hooks = [
 
 ## Text
 
-[[repos]]
-repo = "https://github.com/amperser/proselint"
-rev = "v0.16.0"
-hooks = [{ id = "proselint", args = ["check"], files = "\\.(dj|md|rst|txt)$" }]
+# Very noisy.
+# [[repos]]
+# repo = "https://github.com/errata-ai/vale"
+# rev = "16d3a7f"
+# hooks = [ #{id = "vale", name = "vale sync",         pass_filenames = false,         args =  ["sync"], },
+#   { id = "vale", args = [
+#     "--output=line",
+#     "--minAlertLevel=error",
+#   ] },
+# ]
 
 # Very disruptive.  Perhaps re-enable later.
 # [[repos]]
@@ -175,6 +197,12 @@ hooks = [{ id = "proselint", args = ["check"], files = "\\.(dj|md|rst|txt)$" }]
 # hooks = [
 #     { id = "codespell", exclude = { glob = [ "en_US_apostrophe.dic", ".ssh/known_hosts", "enscript.st" ] } },
 # ]
+
+# proselint does not understand fenced code blocks in markdown files.
+# [[repos]]
+# repo = "https://github.com/amperser/proselint"
+# rev = "v0.16.0"
+# hooks = [{ id = "proselint", args = ["check"],  }]
 
 ## YAML
 
