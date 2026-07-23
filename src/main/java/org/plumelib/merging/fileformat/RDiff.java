@@ -402,7 +402,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
    * Breaks {@link Equal} RDiffs into smaller ones so that, for every RDiff in either output list,
    * there is an RDiff in the other output list that starts in the same character location (in the
    * original text). In other words, each result list has the same length, and each corresponding
-   * pair of RDiffs have the same pre-length. If this is not possible, return null.
+   * pair of RDiffs has the same pre-length. If this is not possible, return null.
    *
    * @param edits1 edits to a text
    * @param edits2 different edits to the same text
