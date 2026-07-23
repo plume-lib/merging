@@ -368,7 +368,6 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
 
   // TODO: Is NoOp necessary?  Experimentally remove it to find out.
   /** A no-op operation, which transforms "" into "". */
-  @SuppressWarnings("PMD.ShortClassName")
   @Interned public static final class NoOp extends RDiff {
 
     /** The no-op operation. */
