@@ -27,7 +27,7 @@ public class AdjacentDynamicProgramming {
   // all the lists are empty.
   // However, it's OK if only two of the three elements are the same.
 
-  // Let the three lengths be aL, bL, cL.  If (aL > bL + cL) || (bL > aL + cL) || (cL > aL + cL),
+  // Let the three lengths be aL, bL, cL.  If (aL > bL + cL) || (bL > aL + cL) || (cL > aL + bL),
   // then no solution is possible.
   // We can apply this rule to the lists yet to process, or to the amount of the lists that have
   // been processed so far.

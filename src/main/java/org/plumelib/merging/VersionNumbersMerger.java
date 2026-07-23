@@ -19,7 +19,7 @@ import org.plumelib.util.StringsP;
 
 /**
  * This is a merger that handles conflicts where the edits differ only in version numbers. A version
- * number has the form "N.N", "N.N.N", etc, where "N" consists of digits. It merges such conflicts
+ * number has the form "N.N", "N.N.N", etc., where "N" consists of digits. It merges such conflicts
  * in favor of the largest version number.
  */
 public class VersionNumbersMerger extends Merger {
