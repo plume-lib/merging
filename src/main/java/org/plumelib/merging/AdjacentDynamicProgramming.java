@@ -107,7 +107,7 @@ public class AdjacentDynamicProgramming {
     bLen = b.size();
     if (!possibleLengths(aLen, cLen, bLen)) {
       table = null;
-    } else if ((long) aLen * cLen * bLen > MAX_TABLE_SIZE) {
+    } else if ((aLen + 1) * (cLen + 1) * (bLen + 1) > MAX_TABLE_SIZE) {
       table = null;
     } else {
       @SuppressWarnings("unchecked")
