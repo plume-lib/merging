@@ -34,7 +34,7 @@ public class VersionNumbersMerger extends Merger {
   }
 
   /** An instance of diff_match_patch. */
-  private static diff_match_patch dmp = new diff_match_patch();
+  private static final diff_match_patch dmp = new diff_match_patch();
 
   static {
     dmp.Match_Threshold = 0.0f;
@@ -144,14 +144,9 @@ public class VersionNumbersMerger extends Merger {
         nextRDiff = rdiff;
       } else {
         List<RDiff> versionNumberMerged = versionNumberMerge(nextRDiff, rdiff);
-        if (versionNumberMerged != null) {
-          int size = versionNumberMerged.size() - 1;
-          result.addAll(versionNumberMerged.subList(0, size));
-          nextRDiff = versionNumberMerged.get(size);
-        } else {
-          result.add(nextRDiff);
-          nextRDiff = rdiff;
-        }
+        int size = versionNumberMerged.size() - 1;
+        result.addAll(versionNumberMerged.subList(0, size));
+        nextRDiff = versionNumberMerged.get(size);
       }
     }
     if (nextRDiff != null) {
@@ -174,7 +169,7 @@ public class VersionNumbersMerger extends Merger {
    *
    * @param r1 a RDiff
    * @param r2 a RDiff
-   * @return the merge of {@code r1} and {@code r2}, or null
+   * @return the merge of {@code r1} and {@code r2}
    */
   private List<RDiff> versionNumberMerge(RDiff r1, RDiff r2) {
 

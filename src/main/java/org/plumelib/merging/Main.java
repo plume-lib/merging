@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.merging.fileformat.ConflictedFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -318,10 +317,6 @@ public class Main implements Callable<Integer> {
           "status %d for: git merge-file %s %s %s%n",
           gitMergeFileExitCode, leftPath, basePath, rightPath);
     }
-
-    // Look for trivial merge conflicts
-    ConflictedFile cf = new ConflictedFile(leftPath);
-    cf.hunks();
 
     return new MergeState(
         leftFileSavedPath, basePath, rightPath, leftPath, gitMergeFileExitCode != 0);

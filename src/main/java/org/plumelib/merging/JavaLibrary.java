@@ -140,6 +140,8 @@ public final class JavaLibrary {
    * @param lines code lines
    * @return the zero-based line number of the first line that does not start within a comment
    */
+  // TODO: This method violates its documented contract: it skips a leading plain-code line, so
+  // `["code", "/* c"]` returns 1 when it should return 0.
   public static int firstOutsideCommentLine(List<String> lines) {
     int linesSize = lines.size();
     for (int i = 0; i < linesSize; i++) {
