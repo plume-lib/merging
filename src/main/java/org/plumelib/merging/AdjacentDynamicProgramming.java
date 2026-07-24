@@ -61,7 +61,7 @@ public class AdjacentDynamicProgramming {
   private static final boolean debug = false;
 
   /** The maximum table size that will be attempted. */
-  private static int MAX_TABLE_SIZE = 10_000_000;
+  private static final int MAX_TABLE_SIZE = 10_000_000;
 
   /** Indicates that a given table entry is unreachable. */
   @SuppressWarnings("interning:assignment") // unique assignment
@@ -107,7 +107,7 @@ public class AdjacentDynamicProgramming {
     bLen = b.size();
     if (!possibleLengths(aLen, cLen, bLen)) {
       table = null;
-    } else if (aLen * cLen * bLen > MAX_TABLE_SIZE) {
+    } else if ((aLen + 1) * (cLen + 1) * (bLen + 1) > MAX_TABLE_SIZE) {
       table = null;
     } else {
       @SuppressWarnings("unchecked")
@@ -230,6 +230,7 @@ public class AdjacentDynamicProgramming {
         List<String> prev = table[iA - 1][iC - 1][0];
         if (prev == IMPOSSIBLE) {
           table[iA][iC][0] = IMPOSSIBLE;
+          continue;
         }
         String aElt = a.get(iA - 1);
         String cElt = c.get(iC - 1);
