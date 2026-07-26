@@ -295,7 +295,7 @@ files, which `./gradlew spotlessApply` then performs.  It is not the
 default, because the formatter downloads Eclipse artifacts, and eclipse.org
 flakiness leads to "Failed to provision P2 dependencies".
 
-* `-PskipCheckerFramework=true`, which the Checker Framework Gradle plugin
+* `-PskipCheckerFramework`, which the Checker Framework Gradle plugin
 provides, omits Checker Framework pluggable type-checking from
 compilation.  This makes compilation much faster, at the cost of not
 running that verification.

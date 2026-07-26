@@ -59,7 +59,9 @@ dependencies {
 // This project (and google-java-format, which it uses) calls javac internals,
 // which are not exported from the jdk.compiler module.  Every javac and JVM
 // invocation therefore needs these packages exported.  Defining the list in one
-// place keeps the invocations from drifting apart.  Exporting all six to them is harmless.
+// place keeps the invocations from drifting apart; exporting all six packages
+// in an invocation that needs only some of them is harmless.  The shell scripts
+// in src/main/sh contain a copy of this list.
 def javacInternalPackages = ["api", "code", "file", "parser", "tree", "util"]
 def javacExportTargets = javacInternalPackages.collect {
   "jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED".toString()
@@ -104,17 +106,11 @@ tasks.named("test") {
   // user's PATH; `org.gradle.java.home` overrides it.
   javaLauncher = javaToolchains.launcherFor {
     def requested = project.findProperty("testJavaVersion")?.toString()
-        ?: JavaVersion.current().majorVersion
+        ?: System.getProperty("java.specification.version")
     languageVersion = JavaLanguageVersion.of(Integer.parseInt(requested))
   }
 
   jvmArgs(addExportsArgs)
-
-  // Always re-run the tests, so that the JaCoCo report is never stale.
-  // `upToDateWhen` alone suppresses only the up-to-date check; `cacheIf` is also
-  // needed, or the build cache could supply a previous run's results.
-  outputs.upToDateWhen { false }
-  outputs.cacheIf { false }
 
   testLogging {
     // TODO: What about "ignored"?  There is no such event: https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLogEvent.html
@@ -154,9 +150,24 @@ tasks.register("runMakefileTests", Exec) {
   // choose by probing for a native executable in its default location.  Without
   // this, an executable left behind by an earlier `nativeCompile` would be
   // tested in place of the fat jar that this task just built -- so `./gradlew
-  // check` would silently test stale code and still pass.
+  // check` would silently test stale code and still pass.  Ask "nativeCompile"
+  // for its output file rather than hard-coding the path, which would go stale
+  // if `imageName` or the plugin's output directory changed.
   environment("PLUMELIB_MERGE_EXECUTABLE",
-      testNative ? file("build/native/nativeCompile/plumelib-merge").absolutePath : "")
+      testNative
+      ? tasks.named("nativeCompile").flatMap { it.outputFile }.get().asFile.absolutePath
+      : "")
+  // Without PLUMELIB_MERGE_EXECUTABLE naming a native executable, the shell
+  // scripts run the fat jar under "$JAVA_HOME/bin/java".  Supply JAVA_HOME from
+  // the compilation toolchain, so that the tests do not depend on whether the
+  // developer's environment happens to define it.  This is done in `doFirst` so
+  // that merely configuring this task does not provision a JDK.
+  def java21Home = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(21)
+  }.map { it.metadata.installationPath.asFile.absolutePath }
+  doFirst {
+    environment("JAVA_HOME", java21Home.get())
+  }
   // SKIP_GRADLE tells the Makefile not to build the artifacts itself.  Gradle
   // has already built them, per the dependencies above, and a nested Gradle
   // invocation from within a running Gradle build contends for Gradle's locks.
