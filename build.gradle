@@ -1,9 +1,5 @@
 plugins {
   id("java")
-  // Provides the `run` task and the start scripts.  This project contains
-  // several merge drivers and merge tools, but they are all reached through a
-  // single entry point, org.plumelib.merging.Main, which dispatches on its
-  // first argument.
   id("application")
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
@@ -58,10 +54,9 @@ dependencies {
 
 // This project (and google-java-format, which it uses) calls javac internals,
 // which are not exported from the jdk.compiler module.  Every javac and JVM
-// invocation therefore needs these packages exported.  Defining the list in one
-// place keeps the invocations from drifting apart; exporting all six packages
-// in an invocation that needs only some of them is harmless.  The shell scripts
-// in src/main/sh contain a copy of this list.
+// invocation therefore needs these packages exported.  Exporting all six
+// packages in an invocation that needs only some of them is harmless.  The
+// shell scripts in src/main/sh contain a copy of this list.
 def javacInternalPackages = ["api", "code", "file", "parser", "tree", "util"]
 def javacExportTargets = javacInternalPackages.collect {
   "jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED".toString()
@@ -95,21 +90,13 @@ tasks.named("compileTestJava") {
 }
 
 // The Java version under which to run the tests -- both the JUnit tests and the
-// tests in src/test/resources/Makefile, which must agree so that a single
-// -PtestJavaVersion controls both.  The default is the Java version that is
-// running the Gradle daemon, rather than the Java 21 toolchain that is used for
-// compilation.  This is what makes the Java version matrix in
-// .github/workflows/gradle.yml test multiple Java versions.  Note that the
+// tests in src/test/resources/Makefile.  Note that the
 // Gradle daemon's JVM is not necessarily the `java` on the user's PATH;
 // `org.gradle.java.home` overrides it.  Gradle downloads the requested JDK if it
 // is not already installed.
 //
 // `settings.gradle` requires Gradle itself to run under Java 21 or later, so
-// only -PtestJavaVersion can supply a value that the checks below reject.  Make
-// those checks explicit: otherwise -PtestJavaVersion=17 fails much later, as an
-// UnsupportedClassVersionError buried in the output of the "test" task, and a
-// non-numeric value fails as a bare NumberFormatException that does not name
-// the property.
+// only -PtestJavaVersion can supply a value that the checks below reject.
 def testJavaVersionProperty = project.findProperty("testJavaVersion")?.toString()
 def testJavaVersion
 try {
@@ -139,10 +126,8 @@ tasks.named("test") {
   // output that `testLogging` requests below.  Run `./gradlew test --rerun` to
   // run the tests again without changing the code.
   testLogging {
-    // TODO: What about "ignored"?  There is no such event: https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLogEvent.html
-    // The "standardOut" and "standardError" events are what makes the tests'
-    // standard output and error visible; `showStandardStreams = true` would be
-    // a redundant way to request the same thing.
+    // `showStandardStreams = true` would be a redundant way to say the same
+    // thing as including the "standardOut" and "standardError" events here.
     events("skipped", "failed", "standardOut", "standardError")
     exceptionFormat = "full"
   }
@@ -227,8 +212,6 @@ spotless {
   format("misc") {
     // define the files to apply `misc` to
     target("**/*.md", ".gitignore")
-    // src/test/resources holds merge test inputs and expected outputs.
-    // Reformatting those files would corrupt the tests.
     targetExclude("build/**", ".gradle/**", "src/test/resources/**")
 
     // define the steps to apply to those files
@@ -241,16 +224,12 @@ spotless {
     googleJavaFormat()
     formatAnnotations()
   }
-  // Formatting of .gradle files is opt-in, via -PformatGradleFiles, because
-  // eclipse.org flakiness leads to "Failed to provision P2 dependencies".
-  if (project.hasProperty("formatGradleFiles")) {
-    groovyGradle {
-      target("**/*.gradle")
-      greclipse()  // which formatter Spotless should use to format .gradle files.
-      leadingTabsToSpaces(2)
-      trimTrailingWhitespace()
-      // endWithNewline() // Don't want to end empty files with a newline
-    }
+  groovyGradle {
+    target("**/*.gradle")
+    greclipse()  // which formatter Spotless should use to format .gradle files.
+    leadingTabsToSpaces(2)
+    trimTrailingWhitespace()
+    // endWithNewline() // Don't want to end empty files with a newline
   }
 }
 
@@ -375,14 +354,10 @@ tasks.withType(Javadoc).configureEach {
     addMultilineStringsOption("-add-exports").setValue(javacExportTargets)
   }
   doLast {
-    // Javadoc emits `@import url('resources/fonts/dejavu.css');` into
-    // stylesheet.css, but generates no resources/fonts directory, so the import
-    // is a dangling reference.  Remove it.  This is written with plain file I/O
-    // rather than `ant.replaceregexp` because reading `ant` at execution time
-    // requires the Project object, which the configuration cache forbids.
-    // The trailing `[ \t]*\R?` matches only to the end of the line, as
-    // `ant.replaceregexp`'s `byline` did; a plain `\s*` would also consume any
-    // blank lines that follow the import.
+    // Javadoc generates a reference to dejavu.css but no dejavu.css, so remove
+    // the reference.  Cannot use  `ant.replaceregexp` because reading `ant` at
+    // execution time requires the Project object, which the configuration cache
+    // forbids.
     def dejavuImport = ~/@import url\('resources\/fonts\/dejavu\.css'\);[ \t]*\R?/
     // Only stylesheets contain the import.
     destinationDir.eachFileRecurse { file ->
