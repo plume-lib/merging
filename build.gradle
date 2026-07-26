@@ -143,10 +143,7 @@ tasks.named("test") {
     // The "standardOut" and "standardError" events are what makes the tests'
     // standard output and error visible; `showStandardStreams = true` would be
     // a redundant way to request the same thing.
-    // Note that "passed" and "skipped" make this noisier than the previous
-    // configuration, whose second `testLogging` block overwrote the first
-    // block's event list with just "failed".
-    events("passed", "skipped", "failed", "standardOut", "standardError")
+    events("skipped", "failed", "standardOut", "standardError")
     exceptionFormat = "full"
   }
 
