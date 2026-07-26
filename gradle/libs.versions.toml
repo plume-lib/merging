@@ -20,8 +20,6 @@ junit-jupiter = "6.1.2"
 
 checker-framework = { module = "org.checkerframework:checker", version.ref = "checker-framework" }
 
-checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
-
 error-prone-core = "com.google.errorprone:error_prone_core:2.50.0"
 
 google-java-format = "com.google.googlejavaformat:google-java-format:1.33.0"
@@ -30,17 +28,14 @@ javac-parse = "org.plumelib:javac-parse:1.0.0-SNAPSHOT"
 
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit-jupiter" }
 
-junit-platform-console = { module = "org.junit.platform:junit-platform-console" }
-
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-jupiter" }
-
-junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.1.6"
-
-junit-platform-reporting = { module = "org.junit.platform:junit-platform-reporting" }
 
 picocli = "info.picocli:picocli:4.7.7"
 
 picocli-codegen = "info.picocli:picocli-codegen:4.7.7"
+
+# Not a dependency; build.gradle uses this entry's version as the PMD toolVersion.
+pmd = "net.sourceforge.pmd:pmd-java:7.26.0"
 
 plume-util = "org.plumelib:plume-util:2.0.0-SNAPSHOT"
 

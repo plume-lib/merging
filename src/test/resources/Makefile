@@ -1,4 +1,9 @@
-.PHONY: all clean test
+.PHONY: all clean compile test
+
+# Set SKIP_GRADLE to a nonempty value to suppress the Gradle invocations in the
+# `compile` target.  Gradle's own `runMakefileTests` task does so, because it
+# has already built the artifacts and because a nested Gradle invocation from
+# within a running Gradle build contends for Gradle's locks.
 
 test: test-adjacent test-annotations test-imports test-version-numbers
 
@@ -19,9 +24,11 @@ test-version-numbers: VersionNumbersTest1.diff
 test-defaults: DefaultsTest14.diff
 
 compile:
+ifeq ($(SKIP_GRADLE),)
 	@(cd ../../.. && ./gradlew -q assemble)
 ifneq ("","$(wildcard ../../../build/native/nativeCompile/plumelib-merge)")
 	@(cd ../../.. && ./gradlew -q nativeCompile)
+endif
 endif
 
 Adjacent%.diff: compile

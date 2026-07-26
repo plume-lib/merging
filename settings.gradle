@@ -1,12 +1,12 @@
-buildscript {
-  if (JavaVersion.current() < JavaVersion.VERSION_21) {
-    throw new GradleException("Use Java 21 or later.")
-  }
-}
-
 plugins {
   // Apply the foojay-resolver plugin to allow automatic download of JDKs
   id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
+}
+
+// This check appears after the `plugins` block because Gradle permits only
+// `buildscript`, `pluginManagement`, and `plugins` blocks to precede it.
+if (JavaVersion.current() < JavaVersion.VERSION_21) {
+  throw new GradleException("Use Java 21 or later.")
 }
 
 // Project name is read-only in build scripts, and defaults to directory name.
