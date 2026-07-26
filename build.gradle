@@ -103,9 +103,26 @@ tasks.named("compileTestJava") {
 // Gradle daemon's JVM is not necessarily the `java` on the user's PATH;
 // `org.gradle.java.home` overrides it.  Gradle downloads the requested JDK if it
 // is not already installed.
-def testJavaVersion = Integer.parseInt(
-    project.findProperty("testJavaVersion")?.toString()
-    ?: System.getProperty("java.specification.version"))
+//
+// `settings.gradle` requires Gradle itself to run under Java 21 or later, so
+// only -PtestJavaVersion can supply a value that the checks below reject.  Make
+// those checks explicit: otherwise -PtestJavaVersion=17 fails much later, as an
+// UnsupportedClassVersionError buried in the output of the "test" task, and a
+// non-numeric value fails as a bare NumberFormatException that does not name
+// the property.
+def testJavaVersionProperty = project.findProperty("testJavaVersion")?.toString()
+def testJavaVersion
+try {
+  testJavaVersion = Integer.parseInt(
+      testJavaVersionProperty ?: System.getProperty("java.specification.version"))
+} catch (NumberFormatException e) {
+  throw new GradleException(
+      "-PtestJavaVersion must be an integer, but is \"${testJavaVersionProperty}\".")
+}
+if (testJavaVersion < 21) {
+  throw new GradleException("-PtestJavaVersion must be 21 or later, but is ${testJavaVersion}."
+      + "  The code is compiled under Java 21, whose class files an earlier JVM cannot read.")
+}
 
 tasks.named("test") {
   // Use JUnit Platform for unit tests.

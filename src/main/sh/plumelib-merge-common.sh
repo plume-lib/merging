@@ -34,7 +34,8 @@ fi
 # Runs org.plumelib.merging.Main: the native executable if one is available, and
 # the fat jar otherwise.  The first argument is the subcommand ("driver" or
 # "tool"); the remaining arguments are passed to the subcommand.  Returns the
-# exit status of org.plumelib.merging.Main.
+# exit status of org.plumelib.merging.Main, or exits the calling script with
+# status 2 if there is nothing to run.
 #
 # The `--add-exports` arguments below correspond to `javacInternalPackages` in
 # build.gradle; keep the two lists in sync.
@@ -52,6 +53,15 @@ run_plumelib_merge() {
     fi
     "$EXECUTABLE" "$subcommand" "$@"
   else
+    # Diagnose a missing fat jar here.  Otherwise the failure surfaces only as an
+    # unexpected merge result, because callers such as src/test/resources/Makefile
+    # ignore this script's exit status; `java` would merely report that it cannot
+    # load org.plumelib.merging.Main, without saying which file is absent.
+    if [ ! -f "$JARFILE" ]; then
+      echo "$0: found no fat jar at $JARFILE; run: ./gradlew shadowJar" >&2
+      exit 2
+    fi
+
     # The fat jar's class files require Java 21 or later.
     #
     # PLUMELIB_MERGE_JAVA_HOME, when it is set and nonempty, names the Java
@@ -61,12 +71,18 @@ run_plumelib_merge() {
     #
     # Otherwise, JAVA21_HOME, when it is set and differs from JAVA_HOME, names a
     # Java 21 installation to use.
+    #
+    # java_home_source records which variable supplied java_home, so that a
+    # diagnostic can name the variable that the user needs to correct.
     if [ -n "${PLUMELIB_MERGE_JAVA_HOME:-}" ]; then
       java_home="$PLUMELIB_MERGE_JAVA_HOME"
+      java_home_source="PLUMELIB_MERGE_JAVA_HOME"
     elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA21_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA21_HOME" ]; then
       java_home="$JAVA21_HOME"
+      java_home_source="JAVA21_HOME"
     else
       java_home="${JAVA_HOME:-}"
+      java_home_source="JAVA_HOME"
     fi
     if [ -n "$java_home" ]; then
       java_command="${java_home}/bin/java"
@@ -81,11 +97,17 @@ run_plumelib_merge() {
       # Java version that cannot read the fat jar's class files.
       java_command="$(command -v java || true)"
     fi
-    # Diagnose a missing Java here.  Otherwise the failure surfaces only as an
-    # unexpected merge result, because callers such as src/test/resources/Makefile
-    # ignore this script's exit status.
+    # Diagnose a missing Java here, for the same reason as the missing fat jar
+    # above.  Name the variable that supplied the bad directory, rather than
+    # listing every variable that might have; the one at fault is the one the
+    # user needs to correct, and it is often PLUMELIB_MERGE_JAVA_HOME, which
+    # Gradle rather than the user sets.
     if [ -z "$java_command" ] || [ ! -x "$java_command" ]; then
-      echo "$0: found no Java executable; set JAVA_HOME or JAVA21_HOME to a Java 21 or later installation" >&2
+      if [ -n "$java_home" ]; then
+        echo "$0: $java_home_source does not name a Java installation: no executable $java_command" >&2
+      else
+        echo "$0: found no Java executable; set JAVA_HOME or JAVA21_HOME to a Java 21 or later installation" >&2
+      fi
       exit 2
     fi
     "$java_command" \
