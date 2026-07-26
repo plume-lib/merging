@@ -1,12 +1,17 @@
+// The `plugins` block must be the first block in the file, apart from
+// `pluginManagement` and `buildscript`.  This check therefore lives in
+// `pluginManagement`, so that it runs before the `plugins` block resolves the
+// foojay-resolver plugin; otherwise a user on an old JVM would wait for a
+// plugin download before seeing the explanation of what is wrong.
+pluginManagement {
+  if (JavaVersion.current() < JavaVersion.VERSION_21) {
+    throw new GradleException("Use Java 21 or later.")
+  }
+}
+
 plugins {
   // Apply the foojay-resolver plugin to allow automatic download of JDKs
   id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
-}
-
-// This check appears after the `plugins` block because Gradle permits only
-// `buildscript`, `pluginManagement`, and `plugins` blocks to precede it.
-if (JavaVersion.current() < JavaVersion.VERSION_21) {
-  throw new GradleException("Use Java 21 or later.")
 }
 
 // Project name is read-only in build scripts, and defaults to directory name.

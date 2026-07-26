@@ -16,6 +16,9 @@ checker-framework = "4.2.1"
 
 junit-jupiter = "6.1.2"
 
+# Not a dependency; build.gradle uses this as the PMD toolVersion.
+pmd = "7.26.0"
+
 [libraries]
 
 checker-framework = { module = "org.checkerframework:checker", version.ref = "checker-framework" }
@@ -33,9 +36,6 @@ junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform
 picocli = "info.picocli:picocli:4.7.7"
 
 picocli-codegen = "info.picocli:picocli-codegen:4.7.7"
-
-# Not a dependency; build.gradle uses this entry's version as the PMD toolVersion.
-pmd = "net.sourceforge.pmd:pmd-java:7.26.0"
 
 plume-util = "org.plumelib:plume-util:2.0.0-SNAPSHOT"
 

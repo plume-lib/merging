@@ -94,10 +94,12 @@ tasks.named("test") {
   // Use JUnit Platform for unit tests.
   useJUnitPlatform()
 
-  // Run the tests under the JVM that is running Gradle, rather than under the
-  // Java 21 toolchain that is used for compilation.  This is what makes the
-  // Java version matrix in .github/workflows/gradle.yml test multiple Java
-  // versions.  Pass -PtestJavaVersion=NN to use a different Java version.
+  // Run the tests under the JVM that is running the Gradle daemon, rather than
+  // under the Java 21 toolchain that is used for compilation.  This is what
+  // makes the Java version matrix in .github/workflows/gradle.yml test multiple
+  // Java versions.  Pass -PtestJavaVersion=NN to use a different Java version.
+  // Note that the Gradle daemon's JVM is not necessarily the `java` on the
+  // user's PATH; `org.gradle.java.home` overrides it.
   javaLauncher = javaToolchains.launcherFor {
     def requested = project.findProperty("testJavaVersion")?.toString()
         ?: JavaVersion.current().majorVersion
@@ -107,13 +109,19 @@ tasks.named("test") {
   jvmArgs(addExportsArgs)
 
   // Always re-run the tests, so that the JaCoCo report is never stale.
+  // `upToDateWhen` alone suppresses only the up-to-date check; `cacheIf` is also
+  // needed, or the build cache could supply a previous run's results.
   outputs.upToDateWhen { false }
+  outputs.cacheIf { false }
 
   testLogging {
     // TODO: What about "ignored"?  There is no such event: https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLogEvent.html
     // The "standardOut" and "standardError" events are what makes the tests'
     // standard output and error visible; `showStandardStreams = true` would be
     // a redundant way to request the same thing.
+    // Note that "passed" and "skipped" make this noisier than the previous
+    // configuration, whose second `testLogging` block overwrote the first
+    // block's event list with just "failed".
     events("passed", "skipped", "failed", "standardOut", "standardError")
     exceptionFormat = "full"
   }
@@ -131,7 +139,12 @@ tasks.register("runMakefileTests", Exec) {
   // The Makefile's tests run the shell scripts in src/main/sh, which use the
   // fat jar, or the native executable if it has been built.
   dependsOn(tasks.named("shadowJar"))
-  if (file("build/native/nativeCompile/plumelib-merge").exists()) {
+  // Testing the native executable is opt-in, via -PtestNative, because building
+  // it takes minutes.  Do not instead test whether the native executable
+  // already exists: that would make the task graph depend on the results of
+  // previous builds, so that `./gradlew check` behaves differently on a clean
+  // checkout than on a tree where someone once ran `nativeCompile`.
+  if (project.hasProperty("testNative")) {
     dependsOn(tasks.named("nativeCompile"))
   }
   // SKIP_GRADLE tells the Makefile not to build the artifacts itself.  Gradle
@@ -140,8 +153,10 @@ tasks.register("runMakefileTests", Exec) {
   commandLine("make", "-C", file("src/test/resources").absolutePath, "SKIP_GRADLE=1")
   // The "test" task runs the JUnit tests, whose failure is more informative than system tests.
   mustRunAfter(tasks.named("test"))
-  // If "nativeCompile" is also in the task graph, run it first, because the
-  // shell scripts prefer the native executable to the fat jar.
+  // If "nativeCompile" is also in the task graph -- because of -PtestNative, or
+  // because the user requested it, as .github/workflows/gradle-native-compile.yml
+  // does -- run it first, because the shell scripts prefer the native
+  // executable to the fat jar.
   mustRunAfter(tasks.named("nativeCompile"))
 }
 tasks.named("check") {
@@ -160,7 +175,9 @@ spotless {
   format("misc") {
     // define the files to apply `misc` to
     target("**/*.md", ".gitignore")
-    targetExclude("build/**", ".gradle/**")
+    // src/test/resources holds merge test inputs and expected outputs.
+    // Reformatting those files would corrupt the tests.
+    targetExclude("build/**", ".gradle/**", "src/test/resources/**")
 
     // define the steps to apply to those files
     trimTrailingWhitespace()
@@ -244,7 +261,7 @@ tasks.withType(JavaCompile).configureEach {
 // PMD linter
 
 pmd {
-  toolVersion = libs.pmd.get().version
+  toolVersion = libs.versions.pmd.get()
   ruleSetFiles = files("${rootDir}/.pmd-ruleset.xml")
   consoleOutput = true
   ignoreFailures = false
@@ -310,9 +327,13 @@ tasks.withType(Javadoc).configureEach {
     // fetch a font over the network.  This is written with plain file I/O
     // rather than `ant.replaceregexp` because reading `ant` at execution time
     // requires the Project object, which the configuration cache forbids.
-    def dejavuImport = ~/@import url\('resources\/fonts\/dejavu\.css'\);\s*/
+    // The trailing `[ \t]*\R?` matches only to the end of the line, as
+    // `ant.replaceregexp`'s `byline` did; a plain `\s*` would also consume any
+    // blank lines that follow the import.
+    def dejavuImport = ~/@import url\('resources\/fonts\/dejavu\.css'\);[ \t]*\R?/
+    // Only stylesheets contain the import.
     destinationDir.eachFileRecurse { file ->
-      if (file.isFile() && (file.name.endsWith(".css") || file.name.endsWith(".html"))) {
+      if (file.isFile() && file.name.endsWith(".css")) {
         def original = file.getText("UTF-8")
         def stripped = original.replaceAll(dejavuImport, "")
         if (stripped != original) {
