@@ -12,6 +12,14 @@ name: Claude Code Review
     # means that a pull request with many pushes costs many reviews.
     types: [opened, synchronize, ready_for_review, reopened]
 
+# A push to a pull request supersedes any review that is still running for that
+# same pull request, so cancel it rather than pay for a review of stale code.
+# The group is per pull request, so that reviews of different pull requests still
+# run concurrently.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   claude-review:
     # "pull_request_target:" exposes the base repository's secrets to a job that
@@ -21,6 +29,9 @@ jobs:
     if: contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
 
     runs-on: ubuntu-latest
+    # A review takes a few minutes.  Without this, a run that hangs would occupy
+    # a runner for GitHub's default of 6 hours.
+    timeout-minutes: 30
     permissions:
       contents: read # Claude cannot push or merge; it can only comment.
       # To post the review.  Unlike a "pull_request:" run from a fork, which
@@ -29,8 +40,11 @@ jobs:
       # the job runs in the context of the base repository.
       pull-requests: write
       issues: read
-      id-token: write
       actions: read # Required for Claude to read CI results on PRs
+      # Deliberately no "id-token: write".  That permission exists only to obtain
+      # an OIDC token for the exchange described at "github_token" below, and
+      # supplying "github_token" skips the exchange, so nothing here requests an
+      # OIDC token.
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -64,19 +78,15 @@ jobs:
           # comments come from "github-actions[bot]" rather than "claude[bot]".
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-          # Enable progress tracking
-          # When track_progress is enabled:
-          # - Creates a tracking comment with progress checkboxes
-          # - Includes all PR context (comments, attachments, images)
-          # - Updates progress as the review proceeds
-          # - Marks as completed when done
-          track_progress: true
-
-          # Supplying "prompt" selects the action's automation mode, which
-          # reviews every pull request as soon as the workflow runs.  Without
-          # "prompt" the action selects interactive mode, which does nothing
+          # Supplying "prompt" is what makes this workflow review every pull
+          # request as soon as it runs: the action treats a prompt as an
+          # unconditional trigger.  Without "prompt", the action does nothing
           # until someone writes "@claude" in a comment, and reports "No trigger
           # found, skipping remaining steps".
+          #
+          # ("prompt" alone would select the action's automation mode, but
+          # "track_progress" is tested first and selects tag mode instead.  The
+          # mode affects how the review is reported, not whether it runs.)
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}

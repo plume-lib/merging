@@ -1,8 +1,9 @@
-// The `plugins` block must be the first block in the file, apart from
-// `pluginManagement` and `buildscript`.  This check therefore lives in
-// `pluginManagement`, so that it runs before the `plugins` block resolves the
-// foojay-resolver plugin; otherwise a user on an old JVM would wait for a
-// plugin download before seeing the explanation of what is wrong.
+// This check must run before the `plugins` block resolves the foojay-resolver
+// plugin; otherwise a user on an old JVM would wait for a plugin download before
+// seeing the explanation of what is wrong.  Only `pluginManagement` and
+// `buildscript` may precede the `plugins` block, and Gradle evaluates both of
+// them first, so either would do; `pluginManagement` reads better next to the
+// plugin that the check guards.
 pluginManagement {
   if (JavaVersion.current() < JavaVersion.VERSION_21) {
     throw new GradleException("Use Java 21 or later.")

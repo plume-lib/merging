@@ -52,9 +52,18 @@ run_plumelib_merge() {
     fi
     "$EXECUTABLE" "$subcommand" "$@"
   else
-    # The fat jar's class files require Java 21 or later.  JAVA21_HOME, when it
-    # is set and differs from JAVA_HOME, names a Java 21 installation to use.
-    if [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA21_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA21_HOME" ]; then
+    # The fat jar's class files require Java 21 or later.
+    #
+    # PLUMELIB_MERGE_JAVA_HOME, when it is set and nonempty, names the Java
+    # installation to use and overrides both variables below.  Gradle's
+    # `runMakefileTests` task sets it, so that the tests do not depend on
+    # whatever JAVA_HOME or JAVA21_HOME the developer's environment defines.
+    #
+    # Otherwise, JAVA21_HOME, when it is set and differs from JAVA_HOME, names a
+    # Java 21 installation to use.
+    if [ -n "${PLUMELIB_MERGE_JAVA_HOME:-}" ]; then
+      java_home="$PLUMELIB_MERGE_JAVA_HOME"
+    elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA21_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA21_HOME" ]; then
       java_home="$JAVA21_HOME"
     else
       java_home="${JAVA_HOME:-}"
@@ -66,10 +75,10 @@ run_plumelib_merge() {
       JAVA_HOME="$java_home"
       export JAVA_HOME
     else
-      # Neither JAVA_HOME nor JAVA21_HOME is set.  Use the `java` on PATH rather
-      # than "${JAVA_HOME}/bin/java", which would expand to "/bin/java" and, on
-      # a system that has such a file, could silently run a Java version that
-      # cannot read the fat jar's class files.
+      # None of the variables above names a Java installation.  Use the `java`
+      # on PATH rather than "${JAVA_HOME}/bin/java", which would expand to
+      # "/bin/java" and, on a system that has such a file, could silently run a
+      # Java version that cannot read the fat jar's class files.
       java_command="$(command -v java || true)"
     fi
     # Diagnose a missing Java here.  Otherwise the failure surfaces only as an

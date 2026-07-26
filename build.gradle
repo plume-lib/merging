@@ -94,24 +94,33 @@ tasks.named("compileTestJava") {
   options.compilerArgs += addExportsArgs
 }
 
+// The Java version under which to run the tests -- both the JUnit tests and the
+// tests in src/test/resources/Makefile, which must agree so that a single
+// -PtestJavaVersion controls both.  The default is the Java version that is
+// running the Gradle daemon, rather than the Java 21 toolchain that is used for
+// compilation.  This is what makes the Java version matrix in
+// .github/workflows/gradle.yml test multiple Java versions.  Note that the
+// Gradle daemon's JVM is not necessarily the `java` on the user's PATH;
+// `org.gradle.java.home` overrides it.  Gradle downloads the requested JDK if it
+// is not already installed.
+def testJavaVersion = Integer.parseInt(
+    project.findProperty("testJavaVersion")?.toString()
+    ?: System.getProperty("java.specification.version"))
+
 tasks.named("test") {
   // Use JUnit Platform for unit tests.
   useJUnitPlatform()
 
-  // Run the tests under the JVM that is running the Gradle daemon, rather than
-  // under the Java 21 toolchain that is used for compilation.  This is what
-  // makes the Java version matrix in .github/workflows/gradle.yml test multiple
-  // Java versions.  Pass -PtestJavaVersion=NN to use a different Java version.
-  // Note that the Gradle daemon's JVM is not necessarily the `java` on the
-  // user's PATH; `org.gradle.java.home` overrides it.
   javaLauncher = javaToolchains.launcherFor {
-    def requested = project.findProperty("testJavaVersion")?.toString()
-        ?: System.getProperty("java.specification.version")
-    languageVersion = JavaLanguageVersion.of(Integer.parseInt(requested))
+    languageVersion = JavaLanguageVersion.of(testJavaVersion)
   }
 
   jvmArgs(addExportsArgs)
 
+  // This task is up-to-date-checked in the ordinary way: a repeated `./gradlew
+  // test` reports "UP-TO-DATE", runs no test, and therefore prints none of the
+  // output that `testLogging` requests below.  Run `./gradlew test --rerun` to
+  // run the tests again without changing the code.
   testLogging {
     // TODO: What about "ignored"?  There is no such event: https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLogEvent.html
     // The "standardOut" and "standardError" events are what makes the tests'
@@ -146,6 +155,11 @@ tasks.register("runMakefileTests", Exec) {
   if (testNative) {
     dependsOn(tasks.named("nativeCompile"))
   }
+  // This task declares no inputs or outputs, so Gradle always runs it and never
+  // caches it.  That is intentional: the Makefile's rules do not create the
+  // files that name them, so the Makefile has no reliable up-to-date check of
+  // its own for Gradle to defer to.
+  //
   // Tell the shell scripts which artifact to run, rather than letting them
   // choose by probing for a native executable in its default location.  Without
   // this, an executable left behind by an earlier `nativeCompile` would be
@@ -153,20 +167,24 @@ tasks.register("runMakefileTests", Exec) {
   // check` would silently test stale code and still pass.  Ask "nativeCompile"
   // for its output file rather than hard-coding the path, which would go stale
   // if `imageName` or the plugin's output directory changed.
-  environment("PLUMELIB_MERGE_EXECUTABLE",
-      testNative
-      ? tasks.named("nativeCompile").flatMap { it.outputFile }.get().asFile.absolutePath
-      : "")
+  def nativeExecutable = testNative
+      ? tasks.named("nativeCompile").flatMap { it.outputFile }.map { it.asFile.absolutePath }
+      : project.providers.provider { "" }
   // Without PLUMELIB_MERGE_EXECUTABLE naming a native executable, the shell
-  // scripts run the fat jar under "$JAVA_HOME/bin/java".  Supply JAVA_HOME from
-  // the compilation toolchain, so that the tests do not depend on whether the
-  // developer's environment happens to define it.  This is done in `doFirst` so
-  // that merely configuring this task does not provision a JDK.
-  def java21Home = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(21)
+  // scripts run the fat jar under a Java installation.  Name that installation
+  // explicitly, so that the tests do not depend on whether the developer's
+  // environment happens to define JAVA_HOME or JAVA21_HOME.  Overriding
+  // JAVA_HOME would not suffice: an `Exec` task inherits the parent process's
+  // environment, and the shell scripts prefer JAVA21_HOME over JAVA_HOME
+  // whenever the two differ, so a stray JAVA21_HOME would still win.
+  def makefileJavaHome = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(testJavaVersion)
   }.map { it.metadata.installationPath.asFile.absolutePath }
+  // Set the environment in `doFirst`, so that merely configuring this task
+  // neither provisions a JDK nor forces "nativeCompile" to be configured.
   doFirst {
-    environment("JAVA_HOME", java21Home.get())
+    environment("PLUMELIB_MERGE_EXECUTABLE", nativeExecutable.get())
+    environment("PLUMELIB_MERGE_JAVA_HOME", makefileJavaHome.get())
   }
   // SKIP_GRADLE tells the Makefile not to build the artifacts itself.  Gradle
   // has already built them, per the dependencies above, and a nested Gradle
@@ -442,6 +460,6 @@ tasks.named("check") {
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
-  group = "documentation"
+  group = "build"
   commandLine("bash", "-c", "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags")
 }

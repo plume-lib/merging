@@ -272,13 +272,13 @@ linters.  Gradle itself must run under Java 21 or later.
 
 The build recognizes the following optional command-line properties.
 
-* `-PtestJavaVersion=`_N_ runs the JUnit tests under Java version _N_.  The
-default is the Java version that is running the Gradle daemon, which is not
-necessarily the `java` on your PATH, because the `org.gradle.java.home`
-Gradle property overrides it.  The code is always _compiled_ under Java 21,
-so _N_ must be 21 or later; an earlier version cannot read the class files.
-Gradle downloads the requested JDK if it is not already installed.  For
-example:
+* `-PtestJavaVersion=`_N_ runs the tests under Java version _N_ -- both the
+JUnit tests and the tests in `src/test/resources/Makefile`.  The default is
+the Java version that is running the Gradle daemon, which is not necessarily
+the `java` on your PATH, because the `org.gradle.java.home` Gradle property
+overrides it.  The code is always _compiled_ under Java 21, so _N_ must be 21
+or later; an earlier version cannot read the class files.  Gradle downloads
+the requested JDK if it is not already installed.  For example:
 
   ```sh
   ./gradlew test -PtestJavaVersion=25
@@ -287,8 +287,10 @@ example:
 * `-PtestNative` builds the native executable and makes the tests in
 `src/test/resources/Makefile` run that executable rather than the fat jar.
 It is not the default, because building the native executable takes minutes
-and requires GraalVM.  Without it, those tests always run the fat jar, even
-if a native executable happens to be present from an earlier build.
+and requires GraalVM.  Without it, a Gradle-run `src/test/resources/Makefile`
+test always runs the fat jar, even if a native executable happens to be
+present from an earlier build.  Running that Makefile directly, rather than
+through Gradle, still prefers a native executable if one is present.
 
 * `-PformatGradleFiles` enables Spotless reformatting of the `*.gradle`
 files, which `./gradlew spotlessApply` then performs.  It is not the
