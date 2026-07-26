@@ -5,7 +5,19 @@
 # has already built the artifacts and because a nested Gradle invocation from
 # within a running Gradle build contends for Gradle's locks.
 
+all: test
+
 test: test-adjacent test-annotations test-imports test-version-numbers
+
+# The prefixes of the tests whose output files `clean` removes.  These are the
+# same prefixes that the top-level .gitignore file lists.  Do not add
+# InsertionTest, and do not generalize the patterns below to `*Output.java`:
+# InsertionTest4Output.java is committed to the repository, because the
+# insertion test is not yet enabled.
+CLEAN_PREFIXES = AdjacentTest AnnotationsTest DefaultsTest ImportsTest VersionNumbersTest
+
+clean:
+	rm -f $(foreach p,$(CLEAN_PREFIXES),$(p)*Output.java $(p)*.diff) *.git-merge
 
 test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff AdjacentTest4.diff AdjacentTest5.diff \
                AdjacentTest6.diff AdjacentTest7.diff AdjacentTest8.diff

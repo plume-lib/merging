@@ -31,7 +31,9 @@ plugins {
 
 repositories {
   // The snapshot repositories are restricted to snapshots, so that a stale
-  // artifact in one of them cannot shadow a release on Maven Central.
+  // artifact in one of them cannot shadow a release on Maven Central.  One
+  // consequence is that a locally-installed *release* build of, say, plume-util
+  // is ignored; install such a build as a snapshot to have this build use it.
   mavenLocal {
     mavenContent { snapshotsOnly() }
   }
@@ -57,7 +59,7 @@ dependencies {
 // This project (and google-java-format, which it uses) calls javac internals,
 // which are not exported from the jdk.compiler module.  Every javac and JVM
 // invocation therefore needs these packages exported.  Defining the list in one
-// place keeps the invocations from drifting apart.
+// place keeps the invocations from drifting apart.  Exporting all six to them is harmless.
 def javacInternalPackages = ["api", "code", "file", "parser", "tree", "util"]
 def javacExportTargets = javacInternalPackages.collect {
   "jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED".toString()
@@ -136,27 +138,34 @@ tasks.named("test") {
 tasks.register("runMakefileTests", Exec) {
   description = "Run tests defined in Makefile."
   group = "verification"
-  // The Makefile's tests run the shell scripts in src/main/sh, which use the
-  // fat jar, or the native executable if it has been built.
+  // The Makefile's tests run the shell scripts in src/main/sh, which use either
+  // the fat jar or the native executable.
   dependsOn(tasks.named("shadowJar"))
   // Testing the native executable is opt-in, via -PtestNative, because building
   // it takes minutes.  Do not instead test whether the native executable
   // already exists: that would make the task graph depend on the results of
   // previous builds, so that `./gradlew check` behaves differently on a clean
   // checkout than on a tree where someone once ran `nativeCompile`.
-  if (project.hasProperty("testNative")) {
+  def testNative = project.hasProperty("testNative")
+  if (testNative) {
     dependsOn(tasks.named("nativeCompile"))
   }
+  // Tell the shell scripts which artifact to run, rather than letting them
+  // choose by probing for a native executable in its default location.  Without
+  // this, an executable left behind by an earlier `nativeCompile` would be
+  // tested in place of the fat jar that this task just built -- so `./gradlew
+  // check` would silently test stale code and still pass.
+  environment("PLUMELIB_MERGE_EXECUTABLE",
+      testNative ? file("build/native/nativeCompile/plumelib-merge").absolutePath : "")
   // SKIP_GRADLE tells the Makefile not to build the artifacts itself.  Gradle
   // has already built them, per the dependencies above, and a nested Gradle
   // invocation from within a running Gradle build contends for Gradle's locks.
   commandLine("make", "-C", file("src/test/resources").absolutePath, "SKIP_GRADLE=1")
   // The "test" task runs the JUnit tests, whose failure is more informative than system tests.
   mustRunAfter(tasks.named("test"))
-  // If "nativeCompile" is also in the task graph -- because of -PtestNative, or
-  // because the user requested it, as .github/workflows/gradle-native-compile.yml
-  // does -- run it first, because the shell scripts prefer the native
-  // executable to the fat jar.
+  // Under -PtestNative, "nativeCompile" is a dependency, so it is already
+  // ordered first.  This ordering additionally covers a command line that names
+  // both tasks, such as `./gradlew nativeCompile check`.
   mustRunAfter(tasks.named("nativeCompile"))
 }
 tasks.named("check") {
@@ -323,8 +332,9 @@ tasks.withType(Javadoc).configureEach {
     addMultilineStringsOption("-add-exports").setValue(javacExportTargets)
   }
   doLast {
-    // Remove the DejaVu font import, which makes the generated documentation
-    // fetch a font over the network.  This is written with plain file I/O
+    // Javadoc emits `@import url('resources/fonts/dejavu.css');` into
+    // stylesheet.css, but generates no resources/fonts directory, so the import
+    // is a dangling reference.  Remove it.  This is written with plain file I/O
     // rather than `ant.replaceregexp` because reading `ant` at execution time
     // requires the Project object, which the configuration cache forbids.
     // The trailing `[ \t]*\R?` matches only to the end of the line, as

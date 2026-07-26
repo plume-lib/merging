@@ -17,7 +17,22 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
 
 ROOTDIR="${SCRIPT_DIR}/../../.."
 # JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
-EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
+
+# If PLUMELIB_MERGE_EXECUTABLE is set, it names the native executable to run, and
+# setting PLUMELIB_MERGE_EXECUTABLE to the empty string forces use of the fat jar.
+# If PLUMELIB_MERGE_EXECUTABLE is unset, this script uses the native executable
+# in its default location, if one has been built there.  Gradle's
+# `runMakefileTests` task sets PLUMELIB_MERGE_EXECUTABLE, so that the tests
+# cannot silently run a stale executable that a previous build left behind.
+if [ -n "${PLUMELIB_MERGE_EXECUTABLE+x}" ]; then
+  EXECUTABLE="$PLUMELIB_MERGE_EXECUTABLE"
+  if [ -n "$EXECUTABLE" ] && [ ! -x "$EXECUTABLE" ]; then
+    echo "$0: PLUMELIB_MERGE_EXECUTABLE is not an executable file: $EXECUTABLE" >&2
+    exit 2
+  fi
+else
+  EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
+fi
 
 ## Gradle is potentially too expensive to run on every invocation of this script.
 # if [ -x "$EXECUTABLE" ] ; then

@@ -265,6 +265,41 @@ Another reason to use a re-merge tool is that sometimes Git produces a
 clean merge (no conflicts), but the merge is incorrect -- say, the imports
 are not properly updated.  A re-merge tool can correct these problems.
 
+## Building and testing
+
+Run `./gradlew build` to compile the code, run the tests, and run the
+linters.  Gradle itself must run under Java 21 or later.
+
+The build recognizes the following optional command-line properties.
+
+* `-PtestJavaVersion=`_N_ runs the JUnit tests under Java version _N_.  The
+default is the Java version that is running the Gradle daemon, which is not
+necessarily the `java` on your PATH, because the `org.gradle.java.home`
+Gradle property overrides it.  The code is always _compiled_ under Java 21,
+so _N_ must be 21 or later; an earlier version cannot read the class files.
+Gradle downloads the requested JDK if it is not already installed.  For
+example:
+
+  ```sh
+  ./gradlew test -PtestJavaVersion=25
+  ```
+
+* `-PtestNative` builds the native executable and makes the tests in
+`src/test/resources/Makefile` run that executable rather than the fat jar.
+It is not the default, because building the native executable takes minutes
+and requires GraalVM.  Without it, those tests always run the fat jar, even
+if a native executable happens to be present from an earlier build.
+
+* `-PformatGradleFiles` enables Spotless reformatting of the `*.gradle`
+files, which `./gradlew spotlessApply` then performs.  It is not the
+default, because the formatter downloads Eclipse artifacts, and eclipse.org
+flakiness leads to "Failed to provision P2 dependencies".
+
+* `-PskipCheckerFramework=true`, which the Checker Framework Gradle plugin
+provides, omits Checker Framework pluggable type-checking from
+compilation.  This makes compilation much faster, at the cost of not
+running that verification.
+
 ## License
 
 This project is distributed under the [MIT license](LICENSE).  One file
