@@ -30,8 +30,12 @@ for attempt in $(seq $attempts); do
     exit 0
   fi
   if ! grep -q 'Failed to provision P2 dependencies' "$log"; then
+    # This step exits 0, so its output scrolls by unremarked.  `tee` above has
+    # already printed the whole log, but the reason for exiting 0 is then tens of
+    # lines above this message; repeat the end of the log next to the message.
     echo 'spotlessGroovyGradle failed for some reason other than the download;'
-    echo 'leaving the main build to report it.'
+    echo 'leaving the main build to report it.  The last 20 lines of its output:'
+    tail -20 "$log"
     exit 0
   fi
   if [ "$attempt" -lt "$attempts" ]; then
