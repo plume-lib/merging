@@ -27,6 +27,10 @@ jobs:
           native-image-job-reports: 'true'
       - name: Download Groovy-Eclipse for Spotless
         uses: ./.github/actions/spotless-p2
+        with:
+          # The "Java CI with Gradle" workflow populates this cache; these jobs
+          # only read it, so that the two workflows do not race to save it.
+          save-cache: "false"
       # -PtestNative makes `check` build the native executable and makes the
       # Makefile tests run that executable rather than the fat jar.
       - name: ./gradlew check -PtestNative

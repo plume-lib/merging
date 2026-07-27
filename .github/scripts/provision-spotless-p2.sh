@@ -10,20 +10,28 @@
 # reads from that cache in preference to the network, so the rest of the build,
 # and any later build that restores that cache, does not contact eclipse.org.
 #
-# This script fails only if the download failed.  Any other failure of
-# `spotlessCheck`, such as a formatting violation, is left for the main build to
-# report.
+# The task below is `spotlessGroovyGradle`, not `spotlessCheck`, because
+# `spotlessGroovyGradle` is the only task that provisions Groovy-Eclipse.  It
+# computes the formatted text without either rewriting the source files or
+# failing on a formatting violation, so a violation is reported once, by the main
+# build, rather than also appearing here under a step that then reports success.
+#
+# This script fails only if the download failed.  Any other failure is left for
+# the main build to report.
 
 set -euo pipefail
 
 attempts=5
 log=$(mktemp)
+trap 'rm -f "$log"' EXIT
 
 for attempt in $(seq $attempts); do
-  if ./gradlew spotlessCheck 2>&1 | tee "$log"; then
+  if ./gradlew spotlessGroovyGradle 2>&1 | tee "$log"; then
     exit 0
   fi
   if ! grep -q 'Failed to provision P2 dependencies' "$log"; then
+    echo 'spotlessGroovyGradle failed for some reason other than the download;'
+    echo 'leaving the main build to report it.'
     exit 0
   fi
   if [ "$attempt" -lt "$attempts" ]; then

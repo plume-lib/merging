@@ -233,7 +233,47 @@ spotless {
   }
   groovyGradle {
     target("**/*.gradle")
-    greclipse()  // which formatter Spotless should use to format .gradle files.
+    // Groovy-Eclipse is the formatter that Spotless uses for .gradle files.
+    // Spotless downloads it from the P2 repository at download.eclipse.org,
+    // which is intermittently unavailable; a build that is unlucky fails with
+    // "Failed to provision P2 dependencies".  Spotless caches the download under
+    // ~/.m2/repository/dev/equo/p2-data and prefers that cache to the network,
+    // so only a cold cache needs eclipse.org: the first run after a change to
+    // the `greclipse` version above downloads about 70 MB, and every later run
+    // formats with no network access at all.  CI keeps that cache warm; see
+    // .github/actions/spotless-p2.
+    def greclipseConfig = greclipse(libs.versions.greclipse.get())
+    // Name the cache directory rather than accepting Spotless's default, which
+    // has moved between Spotless versions -- from ~/.m2/repository/dev/equo to
+    // the Gradle user home -- and which is not documented as being stable.  CI
+    // caches exactly this directory, so a silent move would silently stop the
+    // caching from working, and every CI run would again contact eclipse.org.
+    // Deliberately not under "caches/", which `actions/setup-java` saves as part
+    // of the Gradle cache; that would store these 145 MB a second time, under a
+    // key that changes far more often.
+    greclipseConfig.cacheDirectory(new File(gradle.gradleUserHomeDir, "spotless-p2"))
+    // For a network that cannot reach those repositories at all, such as one
+    // behind a proxy that permits only an internal mirror.  This does not help
+    // with ordinary eclipse.org flakiness; a warm cache is the answer to that.
+    //
+    // Spotless demands a mirror for *every* P2 repository as soon as it is given
+    // any, and Groovy-Eclipse comes from groovy.jfrog.io rather than from
+    // eclipse.org, so both must be listed:
+    //   -PspotlessP2Mirrors=https://download.eclipse.org/=URL1,https://groovy.jfrog.io/=URL2
+    def p2Mirrors = project.findProperty("spotlessP2Mirrors")
+    if (p2Mirrors) {
+      def mirrorMap = [:]
+      p2Mirrors.toString().split(",").each { pair ->
+        // Split at the first "=", because a URL may itself contain one.
+        int separator = pair.indexOf("=")
+        if (separator < 0) {
+          throw new GradleException(
+          "-PspotlessP2Mirrors entries are PREFIX=URL, but one is \"${pair}\".")
+        }
+        mirrorMap[pair.substring(0, separator)] = pair.substring(separator + 1)
+      }
+      greclipseConfig.withP2Mirrors(mirrorMap)
+    }
     leadingTabsToSpaces(2)
     trimTrailingWhitespace()
     // endWithNewline() // Don't want to end empty files with a newline

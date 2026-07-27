@@ -16,6 +16,15 @@ checker-framework = "4.2.1"
 
 junit-jupiter = "6.1.2"
 
+# Not a dependency; build.gradle uses this as the Groovy-Eclipse version for
+# Spotless, and .github/actions/spotless-p2 keys its cache on it.  Pin it rather
+# than letting `greclipse()` choose: Spotless's default depends on the JVM that
+# runs Gradle (4.36 under Java 17, 4.39 under Java 21), so an unpinned version
+# would format the *.gradle files differently on different machines, and would
+# change silently when Spotless is upgraded.  The version is an Eclipse release,
+# not a Groovy-Eclipse release.
+greclipse = "4.39"
+
 # Not a dependency; build.gradle uses this as the PMD toolVersion.
 pmd = "7.26.0"
 

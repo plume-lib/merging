@@ -27,5 +27,8 @@ jobs:
         run: java -version
       - name: Download Groovy-Eclipse for Spotless
         uses: ./.github/actions/spotless-p2
+        with:
+          # Every leg of the matrix downloads the same data; let one leg save it.
+          save-cache: ${{ matrix.java == '21' }}
       - name: ./gradlew build
         run: ./gradlew build
