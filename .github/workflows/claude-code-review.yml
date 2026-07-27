@@ -83,10 +83,6 @@ jobs:
           # unconditional trigger.  Without "prompt", the action does nothing
           # until someone writes "@claude" in a comment, and reports "No trigger
           # found, skipping remaining steps".
-          #
-          # ("prompt" alone would select the action's automation mode, but
-          # "track_progress" is tested first and selects tag mode instead.  The
-          # mode affects how the review is reported, not whether it runs.)
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}

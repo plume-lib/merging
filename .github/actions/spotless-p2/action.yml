@@ -1,0 +1,37 @@
+name: Download Groovy-Eclipse for Spotless
+description: >-
+  Downloads the Groovy-Eclipse formatter that Spotless uses, caching it across
+  runs and retrying if download.eclipse.org is unavailable.
+
+# Spotless downloads Groovy-Eclipse from the P2 repository at
+# download.eclipse.org rather than from Maven Central, and it caches the download
+# under ~/.m2 rather than in the Gradle cache that "setup-java" saves.  Without
+# this action, every run contacts download.eclipse.org, whose flakiness then
+# fails the build with "Failed to provision P2 dependencies".
+
+runs:
+  using: composite
+  steps:
+    - name: Restore Spotless's Groovy-Eclipse download
+      id: p2-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.m2/repository/dev/equo/p2-data
+        key: p2-data-${{ hashFiles('gradle/libs.versions.toml', 'build.gradle') }}
+        # Reuse an older download if the key does not match exactly.  Spotless
+        # requests only what the cache lacks, so a stale cache still avoids most,
+        # and usually all, contact with download.eclipse.org.
+        restore-keys: p2-data-
+    - name: Download Groovy-Eclipse for Spotless
+      shell: bash
+      run: .github/scripts/provision-spotless-p2.sh
+    # Not "actions/cache", because that saves even if a later step fails.  The
+    # download is worth saving only if it succeeded, and the preceding step fails
+    # if it did not.  This step does not run in that case, because a step runs by
+    # default only if all preceding steps succeeded.
+    - name: Save Spotless's Groovy-Eclipse download
+      if: steps.p2-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/.m2/repository/dev/equo/p2-data
+        key: p2-data-${{ hashFiles('gradle/libs.versions.toml', 'build.gradle') }}

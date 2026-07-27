@@ -25,6 +25,8 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
+      - name: Download Groovy-Eclipse for Spotless
+        uses: ./.github/actions/spotless-p2
       # -PtestNative makes `check` build the native executable and makes the
       # Makefile tests run that executable rather than the fat jar.
       - name: ./gradlew check -PtestNative
