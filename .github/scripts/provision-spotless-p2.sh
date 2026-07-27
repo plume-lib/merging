@@ -6,9 +6,13 @@
 # download.eclipse.org, which is intermittently unavailable; a build that is
 # unlucky fails with "Failed to provision P2 dependencies".  This script retries
 # that download, so that a transient outage delays the build rather than failing
-# it.  Spotless stores the download in ~/.m2/repository/dev/equo/p2-data and
-# reads from that cache in preference to the network, so the rest of the build,
-# and any later build that restores that cache, does not contact eclipse.org.
+# it.  Spotless stores the download in the directory that the `cacheDirectory`
+# call in build.gradle names, and reads from it in preference to the network, so
+# the rest of the build, and any later build that restores that directory from
+# the cache, does not contact eclipse.org.
+#
+# .github/actions/spotless-p2 runs this script only on a cache miss, so a run
+# that reaches here is downloading roughly 130 MB.
 #
 # The task below is `spotlessGroovyGradle`, not `spotlessCheck`, because
 # `spotlessGroovyGradle` is the only task that provisions Groovy-Eclipse.  It

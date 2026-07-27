@@ -1,4 +1,6 @@
-.PHONY: all clean compile test
+.PHONY: all clean compile test \
+        test-adjacent test-annotations test-defaults test-imports test-insertion \
+        test-version-numbers
 
 # Set SKIP_GRADLE to a nonempty value to suppress the Gradle invocations in the
 # `compile` target.  Gradle's own `runMakefileTests` task does so, because it

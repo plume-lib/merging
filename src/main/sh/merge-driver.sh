@@ -16,6 +16,7 @@ fi
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
 
 # shellcheck source=plumelib-merge-common.sh
+# shellcheck source-path=SCRIPTDIR
 . "${SCRIPT_DIR}/plumelib-merge-common.sh"
 
 run_plumelib_merge driver "$@"

@@ -107,8 +107,13 @@ tasks.named("compileTestJava") {
 def testJavaVersionProperty = project.findProperty("testJavaVersion")?.toString()
 def testJavaVersion
 try {
-  testJavaVersion = Integer.parseInt(
-      testJavaVersionProperty ?: System.getProperty("java.specification.version"))
+  // Compare to null rather than writing `?:`, which would also treat the empty
+  // string as absent.  `./gradlew test -PtestJavaVersion` (no "=" and no value)
+  // supplies the empty string, and silently testing under the default version is
+  // not what someone who wrote that on the command line meant.
+  testJavaVersion = Integer.parseInt(testJavaVersionProperty != null
+      ? testJavaVersionProperty
+      : System.getProperty("java.specification.version"))
 } catch (NumberFormatException e) {
   throw new GradleException(
   "-PtestJavaVersion must be an integer, but is \"${testJavaVersionProperty}\".")
@@ -215,11 +220,18 @@ tasks.named("jacocoTestReport") {
   }
 }
 
+def spotlessExclusions = [
+  "build/**",
+  ".gradle/**",
+  ".plume-scripts/**",
+  "src/test/resources/**"
+]
+
 spotless {
   format("misc") {
-    // define the files to apply `misc` to
-    target("**/*.md", ".gitignore")
-    targetExclude("build/**", ".gradle/**", "src/test/resources/**")
+    // Define the files to apply `misc` to.  prek handles `.gitignore`.
+    target("**/*.md")
+    targetExclude(*spotlessExclusions)
 
     // define the steps to apply to those files
     trimTrailingWhitespace()
@@ -233,15 +245,16 @@ spotless {
   }
   groovyGradle {
     target("**/*.gradle")
+    targetExclude(*spotlessExclusions)
     // Groovy-Eclipse is the formatter that Spotless uses for .gradle files.
-    // Spotless downloads it from the P2 repository at download.eclipse.org,
-    // which is intermittently unavailable; a build that is unlucky fails with
-    // "Failed to provision P2 dependencies".  Spotless caches the download under
-    // ~/.m2/repository/dev/equo/p2-data and prefers that cache to the network,
-    // so only a cold cache needs eclipse.org: the first run after a change to
-    // the `greclipse` version above downloads about 70 MB, and every later run
-    // formats with no network access at all.  CI keeps that cache warm; see
-    // .github/actions/spotless-p2.
+    // Spotless downloads it from the P2 repositories at download.eclipse.org and
+    // groovy.jfrog.io, which are intermittently unavailable; a build that is
+    // unlucky fails with "Failed to provision P2 dependencies".  Spotless caches
+    // the download in the directory that the next statement names, and prefers
+    // that cache to the network, so only a cold cache needs those hosts: the
+    // first run after a change to the `greclipse` version above downloads about
+    // 130 MB, and every later run formats with no network access at all.  CI
+    // keeps that cache warm; see .github/actions/spotless-p2.
     def greclipseConfig = greclipse(libs.versions.greclipse.get())
     // Name the cache directory rather than accepting Spotless's default, which
     // has moved between Spotless versions -- from ~/.m2/repository/dev/equo to
@@ -249,8 +262,8 @@ spotless {
     // caches exactly this directory, so a silent move would silently stop the
     // caching from working, and every CI run would again contact eclipse.org.
     // Deliberately not under "caches/", which `actions/setup-java` saves as part
-    // of the Gradle cache; that would store these 145 MB a second time, under a
-    // key that changes far more often.
+    // of the Gradle cache; that would store these 145 MB
+    // a second time, under a key that changes far more often.
     greclipseConfig.cacheDirectory(new File(gradle.gradleUserHomeDir, "spotless-p2"))
     // For a network that cannot reach those repositories at all, such as one
     // behind a proxy that permits only an internal mirror.  This does not help

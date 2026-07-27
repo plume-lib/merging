@@ -7,18 +7,6 @@ description: >-
 # download.eclipse.org rather than from Maven Central.  Without this action,
 # every run contacts download.eclipse.org, whose flakiness then fails the build
 # with "Failed to provision P2 dependencies".
-#
-# Spotless reads its download cache in preference to the network, so a run that
-# restores that cache does not contact eclipse.org at all -- not merely less
-# often.  Keeping the cache warm is therefore the whole fix; the retry in the
-# script below matters only for the cold cache that follows a change to the
-# pinned version.
-#
-# The path below must agree with the `cacheDirectory` call in build.gradle, which
-# is why build.gradle names the directory rather than accepting Spotless's
-# default: the default has moved between Spotless versions, and caching a
-# directory that Spotless no longer writes fails silently -- the cache is saved
-# and restored, is empty, and every run downloads again.
 
 inputs:
   save-cache:
@@ -34,8 +22,8 @@ runs:
     # Key the cache on the Groovy-Eclipse version alone.  Hashing build.gradle
     # instead would miss on nearly every commit, because build.gradle changes far
     # more often than the formatter does.
-    - name: Determine the Groovy-Eclipse version
-      id: greclipse
+    - name: Locate Spotless's Groovy-Eclipse download
+      id: p2
       shell: bash
       run: |
         version=$(sed -n 's/^greclipse = "\(.*\)"$/\1/p' gradle/libs.versions.toml)
@@ -44,6 +32,7 @@ runs:
           exit 1
         fi
         echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "dir=${GRADLE_USER_HOME:-$HOME/.gradle}/spotless-p2" >> "$GITHUB_OUTPUT"
 
     # No "restore-keys".  A prefix match would restore some other version's
     # download, which does not avoid downloading the version that is wanted, and
@@ -54,10 +43,11 @@ runs:
       id: p2-cache
       uses: actions/cache/restore@v6
       with:
-        path: ~/.gradle/spotless-p2
-        key: p2-data-greclipse-${{ steps.greclipse.outputs.version }}
+        path: ${{ steps.p2.outputs.dir }}
+        key: p2-data-${{ runner.os }}-greclipse-${{ steps.p2.outputs.version }}
 
     - name: Download Groovy-Eclipse for Spotless
+      if: steps.p2-cache.outputs.cache-hit != 'true'
       shell: bash
       run: .github/scripts/provision-spotless-p2.sh
 
@@ -69,5 +59,5 @@ runs:
       if: inputs.save-cache == 'true' && steps.p2-cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@v6
       with:
-        path: ~/.gradle/spotless-p2
-        key: p2-data-greclipse-${{ steps.greclipse.outputs.version }}
+        path: ${{ steps.p2.outputs.dir }}
+        key: p2-data-${{ runner.os }}-greclipse-${{ steps.p2.outputs.version }}
