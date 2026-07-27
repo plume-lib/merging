@@ -23,15 +23,11 @@ concurrency:
 jobs:
   claude-review:
     # "pull_request_target:" exposes the base repository's secrets to a job that
-    # examines pull request code, so run only for trusted authors.  A pull
-    # request from a bot such as Dependabot has author_association
-    # "CONTRIBUTOR" or "NONE", so this workflow does not review it.
+    # examines pull request code, so run only for trusted authors.
     if: contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
 
     runs-on: ubuntu-latest
-    # A review takes a few minutes.  Without this, a run that hangs would occupy
-    # a runner for GitHub's default of 6 hours.
-    timeout-minutes: 30
+    timeout-minutes: 15
     permissions:
       contents: read # Claude cannot push or merge; it can only comment.
       # To post the review.  Unlike a "pull_request:" run from a fork, which

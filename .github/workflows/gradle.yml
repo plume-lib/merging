@@ -23,12 +23,13 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'gradle'
+      - name: Cache Spotless p2 data
+        uses: actions/cache@v6
+        with:
+          path: ~/.gradle/p2-data
+          key: p2-data-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: p2-data-${{ runner.os }}-
       - name: java -version
         run: java -version
-      - name: Download Groovy-Eclipse for Spotless
-        uses: ./.github/actions/spotless-p2
-        with:
-          # Every leg of the matrix downloads the same data; let one leg save it.
-          save-cache: ${{ matrix.java == '21' }}
       - name: ./gradlew build
         run: ./gradlew build
