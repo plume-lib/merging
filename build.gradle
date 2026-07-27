@@ -1,12 +1,9 @@
 plugins {
   id("java")
-  // This project includes multiple programs, not just one.  The "application"
-  // plugin is applied anyway, for its `mainClass`, which the fat jar uses as its
-  // Main-Class and which `graalvmNative` reads below; each program is a
-  // subcommand of that one main class.
   id("application")
 
-  // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
+  // Creates the fat jar build/libs/...-all.jar as part of "assemble".
+  // To create only that jar, run: ./gradlew shadowJar
   alias(libs.plugins.com.gradleup.shadow)
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
@@ -14,7 +11,7 @@ plugins {
   alias(libs.plugins.com.diffplug.spotless)
 
   // Error Prone linter
-  alias(libs.plugins.net.ltgt.errorprone) apply false
+  alias(libs.plugins.net.ltgt.errorprone)
 
   // PMD linter
   id("pmd")
@@ -131,8 +128,11 @@ tasks.named("test") {
   // Use JUnit Platform for unit tests.
   useJUnitPlatform()
 
+  // Run the tests under the JVM that is running Gradle, rather than under the
+  // Java 21 toolchain that is used for compilation.  Without this, every entry
+  // of the continuous integration Java version matrix would test Java 21 only.
   javaLauncher = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(testJavaVersion)
+    languageVersion = JavaLanguageVersion.of(Runtime.version().feature())
   }
 
   jvmArgs(addExportsArgs)
@@ -148,11 +148,8 @@ tasks.named("test") {
     exceptionFormat = "full"
   }
 
-  // Two possible configurations:
-  // Configuration A: report is always generated after tests run.
+  // Generate the coverage report after the tests run.
   finalizedBy(tasks.named("jacocoTestReport"))
-  // Configuration B: user must run `jacocoTestReport` explicitly.
-  // (Give jacocoTestReport a dependsOn(test) instead of this finalizedBy.)
 }
 
 tasks.register("runMakefileTests", Exec) {
@@ -160,7 +157,7 @@ tasks.register("runMakefileTests", Exec) {
   group = "verification"
   // The Makefile's tests run the shell scripts in src/main/sh, which use either
   // the fat jar or the native executable.
-  dependsOn(tasks.named("shadowJar"))
+  dependsOn("shadowJar")
   // Testing the native executable is opt-in, via -PtestNative, because building
   // it takes minutes.  Do not instead test whether the native executable
   // already exists: that would make the task graph depend on the results of
@@ -168,7 +165,7 @@ tasks.register("runMakefileTests", Exec) {
   // checkout than on a tree where someone once ran `nativeCompile`.
   def testNative = project.hasProperty("testNative")
   if (testNative) {
-    dependsOn(tasks.named("nativeCompile"))
+    dependsOn("nativeCompile")
   }
   // This task declares no inputs or outputs, so Gradle always runs it and never
   // caches it.  That is intentional: the Makefile's rules do not create the
@@ -219,7 +216,7 @@ tasks.register("runMakefileTests", Exec) {
   mustRunAfter(tasks.named("nativeCompile"))
 }
 tasks.named("check") {
-  dependsOn(tasks.named("runMakefileTests"))
+  dependsOn("runMakefileTests")
 }
 
 tasks.named("jacocoTestReport") {
@@ -249,42 +246,23 @@ spotless {
     endWithNewline()
   }
   java {
-    targetExclude("**/diff_match_patch.java")
-    googleJavaFormat()
+    googleJavaFormat(libs.versions.google.java.format.get())
     formatAnnotations()
+    targetExclude("**/diff_match_patch.java")
   }
   groovyGradle {
     target("**/*.gradle")
     targetExclude(*spotlessExclusions)
-    // Groovy-Eclipse is the formatter that Spotless uses for .gradle files.
-    // Spotless downloads it from the P2 repositories at download.eclipse.org and
-    // groovy.jfrog.io, which are intermittently unavailable; a build that is
-    // unlucky fails with "Failed to provision P2 dependencies".  Spotless caches
-    // the download in the directory that the next statement names, and prefers
-    // that cache to the network, so only a cold cache needs those hosts: the
-    // first run after a change to the `greclipse` version above downloads the
-    // formatter, and every later run formats with no network access at all.  CI
-    // keeps that cache warm; see .github/actions/spotless-p2.
+
     def greclipseConfig = greclipse(libs.versions.greclipse.get())
     // Name the cache directory rather than accepting Spotless's default, which
-    // has moved between Spotless versions -- from ~/.m2/repository/dev/equo to
-    // the Gradle user home -- and which is not documented as being stable.  CI
-    // caches exactly this directory, so a silent move would silently stop the
-    // caching from working, and every CI run would again contact eclipse.org.
-    // Deliberately not under "caches/", which `actions/setup-java` saves as part
-    // of the Gradle cache; that would store the formatter a second time, under a
-    // key that changes far more often.
+    // has moved between Spotless versions and which is not documented as being stable.
     greclipseConfig.cacheDirectory(new File(gradle.gradleUserHomeDir, "spotless-p2"))
-    // On a network that cannot reach download.eclipse.org and groovy.jfrog.io at
-    // all, such as one behind a proxy that permits only an internal mirror,
-    // uncomment the following and fill in the mirrors' URLs.  Spotless demands a
-    // mirror for *every* P2 repository as soon as it is given any, so both hosts
-    // appear below.  This is not the answer to ordinary flakiness of those hosts;
-    // a warm cache is.
-    // greclipseConfig.withP2Mirrors([
-    //   "https://download.eclipse.org/": "URL-OF-ECLIPSE-MIRROR",
-    //   "https://groovy.jfrog.io/": "URL-OF-GROOVY-MIRROR"
-    // ])
+    greclipseConfig.withP2Mirrors([
+      "https://download.eclipse.org/": "https://mirror.umd.edu/eclipse/",
+      "https://groovy.jfrog.io/": "https://groovy.jfrog.io/",
+    ])
+
     leadingTabsToSpaces(2)
     trimTrailingWhitespace()
     // endWithNewline() // Don't want to end empty files with a newline
@@ -353,8 +331,6 @@ pmd {
   toolVersion = libs.versions.pmd.get()
   ruleSetFiles = files("${rootDir}/.pmd-ruleset.xml")
   consoleOutput = true
-  ignoreFailures = false
-  incrementalAnalysis = true
 }
 tasks.named("pmdTest") {
   enabled = false
@@ -363,10 +339,8 @@ tasks.named("pmdTest") {
 
 // Checker Framework pluggable type-checking
 
-apply plugin: "org.checkerframework"
-
 checkerFramework {
-  version = libs.checker.framework.get().version
+  version = libs.versions.checker.framework.get()
   checkers = [
     // No need to run CalledMethodsChecker, because ResourceLeakChecker does so.
     // "org.checkerframework.checker.calledmethods.CalledMethodsChecker",
@@ -399,6 +373,7 @@ checkerFramework {
 
 tasks.withType(Javadoc).configureEach {
   options.noTimestamp = true
+  // TODO: the bug is now fixed.
   // Buggy per https://github.com/java9-modularity/gradle-modules-plugin/issues/170
   // moduleOptions {
   //   addExports = [
@@ -431,13 +406,22 @@ tasks.withType(Javadoc).configureEach {
 }
 tasks.named("javadoc") {
   // Turn Javadoc warnings into errors.
-  options.addStringOption("Xwerror", "-Xdoclint:all")
-  options.addStringOption("private", "-quiet")
+  options.addBooleanOption("Xwerror", true)
+  options.addBooleanOption("Xdoclint:all", true)
+  options.quiet()
 }
 tasks.named("check") {
-  dependsOn(tasks.named("javadoc"))
+  dependsOn("javadoc")
 }
 
+tasks.register("javadocWeb", DefaultTask) {
+  description = "Upload API documentation to website."
+  group = "documentation"
+  dependsOn(
+      tasks.named("javadocWebUpload"),
+      tasks.named("javadocWebChgrp"),
+      tasks.named("javadocWebChmod"))
+}
 tasks.register("javadocWebUpload", Javadoc) {
   description = "Generate API documentation into the website directory."
   group = "documentation"
@@ -447,8 +431,7 @@ tasks.register("javadocWebUpload", Javadoc) {
 }
 // Set permissions
 tasks.register("javadocWebChgrp", Exec) {
-  description = "Set the Unix group of the uploaded API documentation."
-  group = "documentation"
+  description = "Set the Unix group of the website's API documentation."
   commandLine("chgrp", "-R",  "plse_www", "/cse/web/research/plumelib/${project.name}/api")
   ignoreExitValue = true
   mustRunAfter(tasks.named("javadocWebUpload"))
@@ -460,8 +443,7 @@ tasks.register("javadocWebChgrp", Exec) {
   }
 }
 tasks.register("javadocWebChmod", Exec) {
-  description = "Set the Unix permissions of the uploaded API documentation."
-  group = "documentation"
+  description = "Set the Unix permissions of the website's API documentation."
   commandLine("chmod", "-R",  "g+w", "/cse/web/research/plumelib/${project.name}/api")
   ignoreExitValue = true
   mustRunAfter(tasks.named("javadocWebUpload"))
@@ -472,15 +454,6 @@ tasks.register("javadocWebChmod", Exec) {
     }
   }
 }
-tasks.register("javadocWeb", DefaultTask) {
-  description = "Upload API documentation to website."
-  group = "documentation"
-  dependsOn(
-      tasks.named("javadocWebUpload"),
-      tasks.named("javadocWebChgrp"),
-      tasks.named("javadocWebChmod"))
-}
-
 
 configurations {
   requireJavadoc
@@ -499,7 +472,7 @@ tasks.register("requireJavadoc", JavaExec) {
   jvmArgs += addOpensArgs
 }
 tasks.named("check") {
-  dependsOn(tasks.named("requireJavadoc"))
+  dependsOn("requireJavadoc")
 }
 
 // Emacs support
@@ -507,6 +480,6 @@ tasks.named("check") {
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
-  group = "build"
+  group = "IDE"
   commandLine("bash", "-c", "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags")
 }
