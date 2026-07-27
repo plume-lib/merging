@@ -1,15 +1,3 @@
-[plugins]
-
-com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.8.0" }
-
-com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
-
-net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
-
-org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
-
-org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.6" }
-
 [versions]
 
 checker-framework = "4.2.1"
@@ -45,3 +33,15 @@ picocli-codegen = "info.picocli:picocli-codegen:4.7.7"
 plume-util = "org.plumelib:plume-util:2.0.0-SNAPSHOT"
 
 require-javadoc = "org.plumelib:require-javadoc:3.0.0-SNAPSHOT"
+
+[plugins]
+
+com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.8.0" }
+
+com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
+
+net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
+
+org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
+
+org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.6" }
