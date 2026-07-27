@@ -69,15 +69,16 @@ run_plumelib_merge() {
     # `runMakefileTests` task sets it, so that the tests do not depend on
     # whatever JAVA_HOME or JAVA21_HOME the developer's environment defines.
     #
-    # Otherwise, JAVA21_HOME, when it is set and differs from JAVA_HOME, names a
-    # Java 21 installation to use.
+    # Otherwise, JAVA21_HOME, when it is set and nonempty, names a Java 21
+    # installation to use.  The comparison to JAVA_HOME only chooses
+    # which variable a diagnostic names when the two agree.
     #
     # java_home_source records which variable supplied java_home, so that a
     # diagnostic can name the variable that the user needs to correct.
     if [ -n "${PLUMELIB_MERGE_JAVA_HOME:-}" ]; then
       java_home="$PLUMELIB_MERGE_JAVA_HOME"
       java_home_source="PLUMELIB_MERGE_JAVA_HOME"
-    elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA21_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA21_HOME" ]; then
+    elif [ -n "${JAVA21_HOME:-}" ] && [ "${JAVA_HOME:-}" != "$JAVA21_HOME" ]; then
       java_home="$JAVA21_HOME"
       java_home_source="JAVA21_HOME"
     else

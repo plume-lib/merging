@@ -286,24 +286,12 @@ the requested JDK if it is not already installed.  For example:
 
 * `-PtestNative` builds the native executable and makes the tests in
 `src/test/resources/Makefile` run that executable rather than the fat jar.
-It is not the default, because building the native executable takes minutes
-and requires GraalVM.  Without it, a Gradle-run `src/test/resources/Makefile`
-test always runs the fat jar, even if a native executable happens to be
-present from an earlier build.  Running that Makefile directly, rather than
-through Gradle, still prefers a native executable if one is present.
-
-* `-PspotlessP2Mirrors=`_PREFIX_`=`_URL_`,`... redirects Spotless's downloads
-of the Groovy-Eclipse formatter to mirrors.  Spotless requires a mirror for
-every P2 repository as soon as it is given any, and the download comes from
-two of them, so both must be listed:
-
-  ```sh
-  ./gradlew build -PspotlessP2Mirrors=https://download.eclipse.org/=URL1,https://groovy.jfrog.io/=URL2
-  ```
-
-  Use this only on a network that cannot reach those hosts at all, such as one
-that permits only an internal mirror.  It does not help with the ordinary
-flakiness described below, for which a warm cache is the answer.
+`-PtestNative` is not the default, because building the native executable
+takes minutes and requires GraalVM.  Without `-PtestNative`, a Gradle-run
+`src/test/resources/Makefile` test always runs the fat jar, even if a native
+executable happens to be present from an earlier build.  Running that Makefile
+directly, rather than through Gradle, still prefers a native executable if one
+is present.
 
 * `-PskipCheckerFramework`, which the Checker Framework Gradle plugin
 provides, omits Checker Framework pluggable type-checking from

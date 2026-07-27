@@ -11,8 +11,7 @@
 # the rest of the build, and any later build that restores that directory from
 # the cache, does not contact eclipse.org.
 #
-# .github/actions/spotless-p2 runs this script only on a cache miss, so a run
-# that reaches here is downloading roughly 130 MB.
+# .github/actions/spotless-p2 runs this script only on a cache miss.
 #
 # The task below is `spotlessGroovyGradle`, not `spotlessCheck`, because
 # `spotlessGroovyGradle` is the only task that provisions Groovy-Eclipse.  It
@@ -29,8 +28,19 @@ attempts=5
 log=$(mktemp)
 trap 'rm -f "$log"' EXIT
 
+# Reports to .github/actions/spotless-p2 that Groovy-Eclipse was downloaded, so
+# that the action saves the cache only then.  Exiting 0 does not imply that the
+# download happened: this script also exits 0 when `spotlessGroovyGradle` fails
+# for a reason other than the download.
+report_downloaded() {
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then
+    echo "downloaded=true" >> "$GITHUB_OUTPUT"
+  fi
+}
+
 for attempt in $(seq $attempts); do
   if ./gradlew spotlessGroovyGradle 2>&1 | tee "$log"; then
+    report_downloaded
     exit 0
   fi
   if ! grep -q 'Failed to provision P2 dependencies' "$log"; then

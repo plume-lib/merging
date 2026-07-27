@@ -1,9 +1,11 @@
-name: Java CI with Gradle
+# Distinct from the name in gradle.yml, so that the two workflows' checks can be
+# told apart in the pull request UI; they run different commands.
+name: Java CI with Gradle, native
 
 "on": [push, pull_request]
 
 jobs:
-  build:
+  native-build:
 
     runs-on: ubuntu-latest
 

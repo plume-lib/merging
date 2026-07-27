@@ -47,16 +47,15 @@ runs:
         key: p2-data-${{ runner.os }}-greclipse-${{ steps.p2.outputs.version }}
 
     - name: Download Groovy-Eclipse for Spotless
+      id: download
       if: steps.p2-cache.outputs.cache-hit != 'true'
       shell: bash
       run: .github/scripts/provision-spotless-p2.sh
 
-    # Not "actions/cache", because that saves even if a later step fails.  The
-    # download is worth saving only if it succeeded, and the preceding step fails
-    # if it did not.  This step does not run in that case, because a step runs by
-    # default only if all preceding steps succeeded.
+    # Not "actions/cache", because that saves even if a later step fails; the
+    # download is worth saving only if it succeeded.
     - name: Save Spotless's Groovy-Eclipse download
-      if: inputs.save-cache == 'true' && steps.p2-cache.outputs.cache-hit != 'true'
+      if: inputs.save-cache == 'true' && steps.download.outputs.downloaded == 'true'
       uses: actions/cache/save@v6
       with:
         path: ${{ steps.p2.outputs.dir }}
