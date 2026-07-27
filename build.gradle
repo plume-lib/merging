@@ -57,7 +57,14 @@ dependencies {
 // invocation therefore needs these packages exported.  Exporting all six
 // packages in an invocation that needs only some of them is harmless.  The
 // shell scripts in src/main/sh contain a copy of this list.
-def javacInternalPackages = ["api", "code", "file", "parser", "tree", "util"]
+def javacInternalPackages = [
+  "api",
+  "code",
+  "file",
+  "parser",
+  "tree",
+  "util"
+]
 def javacExportTargets = javacInternalPackages.collect {
   "jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED".toString()
 }
@@ -104,11 +111,11 @@ try {
       testJavaVersionProperty ?: System.getProperty("java.specification.version"))
 } catch (NumberFormatException e) {
   throw new GradleException(
-      "-PtestJavaVersion must be an integer, but is \"${testJavaVersionProperty}\".")
+  "-PtestJavaVersion must be an integer, but is \"${testJavaVersionProperty}\".")
 }
 if (testJavaVersion < 21) {
   throw new GradleException("-PtestJavaVersion must be 21 or later, but is ${testJavaVersion}."
-      + "  The code is compiled under Java 21, whose class files an earlier JVM cannot read.")
+  + "  The code is compiled under Java 21, whose class files an earlier JVM cannot read.")
 }
 
 tasks.named("test") {
