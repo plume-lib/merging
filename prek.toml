@@ -111,7 +111,9 @@ rev = "0.2.2"
 hooks = [
   { id = "checkmake", args = [
     "--format={{.FileName}}:{{.LineNumber}}:0: {{.Rule}}: {{.Violation}}\n",
-  ] },
+  ], exclude = { glob = [
+    "code-style.Makefile",
+  ] } },
 ]
 
 ## Markdown
