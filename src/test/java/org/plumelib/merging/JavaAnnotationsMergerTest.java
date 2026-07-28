@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.junit.jupiter.api.Test;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 public class JavaAnnotationsMergerTest {
 
@@ -71,7 +71,7 @@ public class JavaAnnotationsMergerTest {
   }
 
   String multilineAnnotation1 =
-      StringsPlume.joinLines(
+      StringsP.joinLines(
           "@SuppressWarnings({",
           "      \"value:argument\",",
           "      \"lowerbound:array.access.unsafe.low\",",
@@ -79,7 +79,7 @@ public class JavaAnnotationsMergerTest {
           "  })");
 
   String multilineAnnotation2 =
-      StringsPlume.joinLines(
+      StringsP.joinLines(
           "@SuppressWarnings({",
           "      \"value:argument\",",
           "      \"lowerbound:array.access.unsafe.low\",",
@@ -87,14 +87,14 @@ public class JavaAnnotationsMergerTest {
           "  })");
 
   String multilineAnnotationValue1 =
-      StringsPlume.joinLines(
+      StringsP.joinLines(
           "{",
           "      \"value:argument\",",
           "      \"lowerbound:array.access.unsafe.low\",",
           "      \"upperbound:array.access.unsafe.high\",",
           "  }");
   String multilineAnnotationValue2 =
-      StringsPlume.joinLines(
+      StringsP.joinLines(
           "{",
           "      \"value:argument\",",
           "      \"lowerbound:array.access.unsafe.low\",",
@@ -102,13 +102,13 @@ public class JavaAnnotationsMergerTest {
           "  }");
 
   String multilineArrayContents1 =
-      StringsPlume.joinLines(
+      StringsP.joinLines(
           "\"value:argument\",",
           "      \"lowerbound:array.access.unsafe.low\",",
           "      \"upperbound:array.access.unsafe.high\",");
 
   String multilineArrayContents2 =
-      StringsPlume.joinLines(
+      StringsP.joinLines(
           "\"value:argument\",",
           "      \"lowerbound:array.access.unsafe.low\",",
           "      \"upperbound:array.access.unsafe.high\"");

@@ -68,7 +68,7 @@ public final class GitLibrary {
     } catch (IOException | InterruptedException e) {
       Main.exitErroneously(
           String.format(
-              "problem in: git merge-file %s %s %s", baseFileName, leftFileName, rightFileName));
+              "problem in: git merge-file %s %s %s", leftFileName, baseFileName, rightFileName));
       throw new Error("unreachable"); // to tell javac that execution does not continue
     }
 

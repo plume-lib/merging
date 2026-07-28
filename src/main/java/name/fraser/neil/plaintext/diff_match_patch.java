@@ -27,7 +27,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 /*
  * Functions for diff, match and patch.
@@ -2356,7 +2356,7 @@ public class diff_match_patch {
      * @return text version.
      */
     public String toString() {
-      String prettyText = StringsPlume.escapeNonASCII(text);
+      String prettyText = StringsP.escapeNonASCII(text);
       return "Diff(" + this.operation + ",\"" + prettyText + "\")";
     }
 
@@ -2478,7 +2478,7 @@ public class diff_match_patch {
   }
 
   /**
-   * Unescape selected chars for compatability with JavaScript's encodeURI.
+   * Unescape selected chars for compatibility with JavaScript's encodeURI.
    * In speed critical applications this could be dropped since the
    * receiving application will certainly decode these fine.
    * Note that this function is case-sensitive.  Thus "%3f" would not be

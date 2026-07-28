@@ -13,7 +13,7 @@ import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.util.IPair;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 /**
  * A RDiff is one of the operations "equal", "replace", or "insert".
@@ -26,7 +26,7 @@ import org.plumelib.util.StringsPlume;
   "lowerbound:argument",
   "PMD.UnnecessaryFullyQualifiedName" // for RDiff.of
 })
-public abstract class RDiff {
+public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Equal, RDiff.NoOp {
 
   /** Creates a new RDiff. */
   private RDiff() {}
@@ -136,7 +136,8 @@ public abstract class RDiff {
    * after texts match the given pattern, or are the empty string.
    *
    * @param p a pattern that matches text that should be in the first part. It must be of the form
-   *     "^(PATTERN).*$, where the PATTERN subpattern matches text that should be in the first part.
+   *     "^(PATTERN).*$", where the PATTERN subpattern matches text that should be in the first
+   *     part.
    * @return a pair of RDiffs that are together equivalent to this one
    */
   @SuppressWarnings("nullness:dereference.of.nullable") // p is @Regex(1) => group(1) is non-null
@@ -278,9 +279,9 @@ public abstract class RDiff {
     @Override
     public String toString(@GuardSatisfied Replace this) {
       return "Replace{"
-          + StringsPlume.escapeNonASCII(before)
+          + StringsP.escapeNonASCII(before)
           + " -> "
-          + StringsPlume.escapeNonASCII(after)
+          + StringsP.escapeNonASCII(after)
           + "}";
     }
   }
@@ -312,7 +313,7 @@ public abstract class RDiff {
 
     @Override
     public String toString(@GuardSatisfied Insert this) {
-      return "Insert{" + StringsPlume.escapeNonASCII(text) + "}";
+      return "Insert{" + StringsP.escapeNonASCII(text) + "}";
     }
   }
 
@@ -361,13 +362,12 @@ public abstract class RDiff {
 
     @Override
     public String toString(@GuardSatisfied Equal this) {
-      return "Equal{" + StringsPlume.escapeNonASCII(text) + "}";
+      return "Equal{" + StringsP.escapeNonASCII(text) + "}";
     }
   }
 
   // TODO: Is NoOp necessary?  Experimentally remove it to find out.
   /** A no-op operation, which transforms "" into "". */
-  @SuppressWarnings("PMD.ShortClassName")
   @Interned public static final class NoOp extends RDiff {
 
     /** The no-op operation. */
@@ -402,7 +402,7 @@ public abstract class RDiff {
    * Breaks {@link Equal} RDiffs into smaller ones so that, for every RDiff in either output list,
    * there is an RDiff in the other output list that starts in the same character location (in the
    * original text). In other words, each result list has the same length, and each corresponding
-   * pair of RDiffs have the same pre-length. If this is not possible, return null.
+   * pair of RDiffs has the same pre-length. If this is not possible, return null.
    *
    * @param edits1 edits to a text
    * @param edits2 different edits to the same text

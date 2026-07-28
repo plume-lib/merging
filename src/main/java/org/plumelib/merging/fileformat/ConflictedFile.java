@@ -12,9 +12,9 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.plumelib.merging.JavaLibrary;
 import org.plumelib.merging.Main;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.FilesPlume;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.FilesP;
+import org.plumelib.util.StringsP;
 
 // This class is needed because it seems that JGit's MergeResult is produced only by its own tools;
 // that is, one cannot create a JGit MergeResult by parsing a conflicted file.
@@ -22,7 +22,7 @@ import org.plumelib.util.StringsPlume;
 /**
  * Represents a file that may contain conflict markers.
  *
- * <p>It is either erroneous (unparseable), or it is a sequence of ConflictElement objects.
+ * <p>It is either erroneous (unparsable), or it is a sequence of ConflictElement objects.
  *
  * <p>There are two general forms of conflicted sections of a file:
  *
@@ -80,7 +80,7 @@ public class ConflictedFile {
   private boolean hasConflict = false;
 
   /** True if the file had trivial conflicts that were resolved. */
-  private boolean hasTrivalConflict = false;
+  private boolean hasTrivialConflict = false;
 
   /**
    * Parse a conflicted file.
@@ -89,7 +89,7 @@ public class ConflictedFile {
    */
   @SideEffectFree
   public ConflictedFile(Path path) {
-    this(FilesPlume.readString(path), path);
+    this(FilesP.readString(path), path);
   }
 
   /**
@@ -100,7 +100,7 @@ public class ConflictedFile {
    */
   @SideEffectFree
   public ConflictedFile(Path path, boolean hasConflict) {
-    this(FilesPlume.readString(path), hasConflict, path);
+    this(FilesP.readString(path), hasConflict, path);
   }
 
   /**
@@ -223,11 +223,11 @@ public class ConflictedFile {
   public boolean hasConflict() {
     if (!hasConflictInitialized) {
       if (hunks != null) {
-        hasConflict = CollectionsPlume.anyMatch(hunks, ce -> ce instanceof MergeConflict);
+        hasConflict = CollectionsP.anyMatch(hunks, ce -> ce instanceof MergeConflict);
       } else if (fileContents != null) {
         hasConflict = conflictStartMultilinePattern.matcher(fileContents).find();
       } else if (lines != null) {
-        hasConflict = CollectionsPlume.anyMatch(lines, l -> l.startsWith("<<<<<<"));
+        hasConflict = CollectionsP.anyMatch(lines, l -> l.startsWith("<<<<<<"));
       } else {
         Main.exitErroneously("Too many null fields in state");
         throw new Error("unreachable");
@@ -244,8 +244,8 @@ public class ConflictedFile {
    * @return true if this file contained a "trivial" conflict
    */
   @Pure
-  public boolean hasTrivalConflict() {
-    return hasTrivalConflict;
+  public boolean hasTrivialConflict() {
+    return hasTrivialConflict;
   }
 
   /**
@@ -277,7 +277,7 @@ public class ConflictedFile {
   public List<String> lines() {
     if (lines == null) {
       if (fileContents != null) {
-        lines = StringsPlume.splitLinesRetainSeparators(fileContents);
+        lines = StringsP.splitLinesRetainSeparators(fileContents);
       } else if (hunks != null) {
         lines = new ArrayList<>();
         for (ConflictElement ce : hunks) {
@@ -304,8 +304,8 @@ public class ConflictedFile {
           + "hasConflict="
           + hasConflict
           + ";"
-          + "hasTrivalConflict="
-          + hasTrivalConflict
+          + "hasTrivialConflict="
+          + hasTrivialConflict
           + ";"
           + hunks.toString()
           + "}";
@@ -315,11 +315,11 @@ public class ConflictedFile {
   }
 
   /** One element of a conflicted file: either {@link MergeConflict} or {@link CommonLines}. */
-  public static interface ConflictElement {
+  public static sealed interface ConflictElement permits MergeConflict, CommonLines {
     /**
-     * Returns the lines in the confict-file representation of this.
+     * Returns the lines in the conflict-file representation of this.
      *
-     * @return the lines in the confict-file representation of this
+     * @return the lines in the conflict-file representation of this
      */
     @SideEffectFree
     public List<String> toLines();
@@ -737,7 +737,7 @@ public class ConflictedFile {
         }
         ConflictElement ce = MergeConflict.of(base, left, right, conflictStart, i + 1);
         if (ce instanceof CommonLines) {
-          hasTrivalConflict = true;
+          hasTrivialConflict = true;
         }
         result.add(ce);
         lastConflictEnder = i;
@@ -749,7 +749,7 @@ public class ConflictedFile {
         result.add(new CommonLines(lastCommon));
       }
       hunks = result;
-      if (hasTrivalConflict) {
+      if (hasTrivialConflict) {
         resetLinesAndFileContents();
       }
     } catch (Throwable e) {

@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.com.gradleup.shadow)
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
+  // which are run by "check" (which is itself run by "build").
   alias(libs.plugins.com.diffplug.spotless)
 
   // Error Prone linter
@@ -108,7 +109,7 @@ tasks.named("test") {
 
 tasks.register("runMakefileTests", Exec) {
   description = "Run tests defined in Makefile."
-  group = "Verification"
+  group = "verification"
   commandLine("make", "-C", file("src/test/resources").absolutePath)
 }
 check.dependsOn(runMakefileTests)
@@ -143,12 +144,15 @@ spotless {
     googleJavaFormat()
     formatAnnotations()
   }
-  groovyGradle {
-    target("**/*.gradle")
-    greclipse()  // which formatter Spotless should use to format .gradle files.
-    leadingTabsToSpaces(2)
-    trimTrailingWhitespace()
-    // endWithNewline() // Don't want to end empty files with a newline
+  // eclipse.org flakiness leads to "Failed to provision P2 dependencies".
+  if (false) {
+    groovyGradle {
+      target("**/*.gradle")
+      greclipse()  // which formatter Spotless should use to format .gradle files.
+      leadingTabsToSpaces(2)
+      trimTrailingWhitespace()
+      // endWithNewline() // Don't want to end empty files with a newline
+    }
   }
 }
 
@@ -216,7 +220,7 @@ tasks.withType(JavaCompile).configureEach {
 // PMD linter
 
 pmd {
-  toolVersion = "7.22.0"
+  toolVersion = "7.26.0"
   ruleSetFiles = files("${rootDir}/.pmd-ruleset.xml")
   consoleOutput = true
   ignoreFailures = false
@@ -329,7 +333,7 @@ dependencies {
   requireJavadoc(libs.require.javadoc)
 }
 def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
-  group = "Documentation"
+  group = "documentation"
   description = "Ensures that Javadoc documentation exists."
   inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
@@ -353,5 +357,6 @@ check.dependsOn(requireJavadoc)
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
+  group = "IDE"
   commandLine("bash", "-c", "find src/ \\( -name '*.java' -o -name '*.sh' \\) | sort | xargs etags")
 }

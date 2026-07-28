@@ -1,6 +1,6 @@
 name: Java CI with Gradle
 
-on: [push, pull_request]   # yamllint disable-line rule:truthy
+"on": [push, pull_request]
 
 jobs:
   build:
@@ -9,11 +9,12 @@ jobs:
 
     strategy:
       matrix:
+        # On GitHub Actions, GraalVM is not available for Java 26, as of 2026-06-05.
         java: ['21', '25']
 
     steps:
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           show-progress: false
