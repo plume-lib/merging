@@ -1,6 +1,6 @@
 name: Java CI with Gradle
 
-on: [push, pull_request]   # yamllint disable-line rule:truthy
+"on": [push, pull_request]
 
 jobs:
   build:
@@ -9,10 +9,10 @@ jobs:
 
     strategy:
       matrix:
-        java: ['21', '25']
+        java: ['21', '25', '26']
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           show-progress: false
@@ -25,5 +25,7 @@ jobs:
           cache: 'gradle'
       - name: java -version
         run: java -version
+      - name: Warm up Gradle cache
+        run: ./gradlew spotlessCheck > /dev/null 2>&1 || (sleep 60 && true)
       - name: ./gradlew build
         run: ./gradlew build

@@ -12,14 +12,14 @@ import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.merging.fileformat.RDiff;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.CollectionsPlume.Replacement;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.CollectionsP.Replacement;
 import org.plumelib.util.IPair;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 /**
  * This is a merger that handles conflicts where the edits differ only in version numbers. A version
- * number has the form "N.N", "N.N.N", etc, where "N" consists of digits. It merges such conflicts
+ * number has the form "N.N", "N.N.N", etc., where "N" consists of digits. It merges such conflicts
  * in favor of the largest version number.
  */
 public class VersionNumbersMerger extends Merger {
@@ -34,7 +34,7 @@ public class VersionNumbersMerger extends Merger {
   }
 
   /** An instance of diff_match_patch. */
-  private static diff_match_patch dmp = new diff_match_patch();
+  private static final diff_match_patch dmp = new diff_match_patch();
 
   static {
     dmp.Match_Threshold = 0.0f;
@@ -61,7 +61,7 @@ public class VersionNumbersMerger extends Merger {
     if (verbose) {
       System.out.printf("VersionNumbersMerger: replacements = %s%n", replacements);
     }
-    List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
+    List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
     ConflictedFile result = new ConflictedFile(newLines, cf.path);
     return result;
   }
@@ -79,9 +79,9 @@ public class VersionNumbersMerger extends Merger {
     if (baseLines == null) {
       throw new Error("Use 3-way diff for VersionNumbersMerger: " + mc);
     }
-    String baseText = StringsPlume.join("", baseLines);
-    String leftText = StringsPlume.join("", mc.left());
-    String rightText = StringsPlume.join("", mc.right());
+    String baseText = StringsP.join("", baseLines);
+    String leftText = StringsP.join("", mc.left());
+    String rightText = StringsP.join("", mc.right());
     List<Diff> leftDiffs = dmp.diff_main(baseText, leftText);
     List<Diff> rightDiffs = dmp.diff_main(baseText, rightText);
     List<RDiff> leftRDiffs = rdiffsForVersionNumbers(leftDiffs);
@@ -106,18 +106,18 @@ public class VersionNumbersMerger extends Merger {
       // }
 
       String pre = d1.preText();
-      assert d1.preText().equals(d2.preText());
+      assert pre.equals(d2.preText());
       String post1 = d1.postText();
       String post2 = d2.postText();
 
       if (post1.equals(post2)) {
         result.append(post1);
-      } else if (StringsPlume.isVersionNumber(pre)
-          && StringsPlume.isVersionNumber(post1)
-          && StringsPlume.isVersionNumber(post2)
-          && StringsPlume.isVersionNumberLE(pre, post1)
-          && StringsPlume.isVersionNumberLE(pre, post2)) {
-        if (StringsPlume.isVersionNumberLE(post1, post2)) {
+      } else if (StringsP.isVersionNumber(pre)
+          && StringsP.isVersionNumber(post1)
+          && StringsP.isVersionNumber(post2)
+          && StringsP.isVersionNumberLE(pre, post1)
+          && StringsP.isVersionNumberLE(pre, post2)) {
+        if (StringsP.isVersionNumberLE(post1, post2)) {
           result.append(post2);
         } else {
           result.append(post1);
@@ -144,16 +144,9 @@ public class VersionNumbersMerger extends Merger {
         nextRDiff = rdiff;
       } else {
         List<RDiff> versionNumberMerged = versionNumberMerge(nextRDiff, rdiff);
-        if (versionNumberMerged != null) {
-          int size = versionNumberMerged.size() - 1;
-          for (int i = 0; i < size; i++) {
-            result.add(versionNumberMerged.get(i));
-          }
-          nextRDiff = versionNumberMerged.get(size);
-        } else {
-          result.add(nextRDiff);
-          nextRDiff = rdiff;
-        }
+        int size = versionNumberMerged.size() - 1;
+        result.addAll(versionNumberMerged.subList(0, size));
+        nextRDiff = versionNumberMerged.get(size);
       }
     }
     if (nextRDiff != null) {
@@ -176,7 +169,7 @@ public class VersionNumbersMerger extends Merger {
    *
    * @param r1 a RDiff
    * @param r2 a RDiff
-   * @return the merge of {@code r1} and {@code r2}, or null
+   * @return the merge of {@code r1} and {@code r2}
    */
   private List<RDiff> versionNumberMerge(RDiff r1, RDiff r2) {
 

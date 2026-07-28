@@ -10,8 +10,8 @@ import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.merging.fileformat.RDiff;
 import org.plumelib.merging.fileformat.RDiff.Equal;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.CollectionsPlume.Replacement;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.CollectionsP.Replacement;
 import org.plumelib.util.IPair;
 
 /** This is a merger that resolves conflicts where the edits are on different but adjacent lines. */
@@ -31,7 +31,7 @@ public class AdjacentLinesMerger extends Merger {
 
     List<ConflictElement> hunks = cf.hunks();
     if (hunks == null) {
-      Main.exitErroneously("Unparseable file " + cf.path);
+      Main.exitErroneously("Unparsable file " + cf.path);
       throw new Error("unreachable");
     }
 
@@ -61,7 +61,7 @@ public class AdjacentLinesMerger extends Merger {
       System.out.printf("AdjacentLinesMerger: replacements = %s%n", replacements);
       // System.out.printf("AdjacentLinesMerger: before replacement = %s%n", cf.lines());
     }
-    List<String> newLines = CollectionsPlume.replace(cf.lines(), replacements);
+    List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
     if (verbose) {
       // System.out.printf("AdjacentLinesMerger: after replacement = %s%n", newLines);
     }
@@ -136,18 +136,21 @@ public class AdjacentLinesMerger extends Merger {
    */
   @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable List<String> mergedSameLength(MergeConflict mc) {
-    if (mc.base() == null) {
+    List<String> mcBase = mc.base();
+    if (mcBase == null) {
       Main.exitErroneously("need a 3-way diff");
       throw new Error("unreachable");
     }
+    List<String> mcLeft = mc.left();
+    List<String> mcRight = mc.right();
 
-    if (mc.base().size() != mc.left().size() || mc.base().size() != mc.right().size()) {
+    if (mcBase.size() != mcLeft.size() || mcBase.size() != mcRight.size()) {
       return null;
     }
     List<String> result = new ArrayList<>();
-    for (Iterator<String> iBase = mc.base().iterator(),
-            iLeft = mc.left().iterator(),
-            iRight = mc.right().iterator();
+    for (Iterator<String> iBase = mcBase.iterator(),
+            iLeft = mcLeft.iterator(),
+            iRight = mcRight.iterator();
         iBase.hasNext() && iLeft.hasNext() && iRight.hasNext(); ) {
       String base = iBase.next();
       String left = iLeft.next();

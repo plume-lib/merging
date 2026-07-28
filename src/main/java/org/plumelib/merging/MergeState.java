@@ -9,7 +9,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.plumelib.merging.fileformat.ConflictedFile;
-import org.plumelib.util.FilesPlume;
+import org.plumelib.util.FilesP;
 
 /** Data about a merge. */
 public class MergeState {
@@ -108,7 +108,7 @@ public class MergeState {
    */
   public List<String> baseFileLines() {
     if (baseFileLines == null) {
-      baseFileLines = FilesPlume.readLinesRetainingSeparators(basePath);
+      baseFileLines = FilesP.readLinesRetainingSeparators(basePath);
     }
     return baseFileLines;
   }
@@ -120,7 +120,7 @@ public class MergeState {
    */
   public List<String> leftFileLines() {
     if (leftFileLines == null) {
-      leftFileLines = FilesPlume.readLinesRetainingSeparators(leftPath);
+      leftFileLines = FilesP.readLinesRetainingSeparators(leftPath);
     }
     return leftFileLines;
   }
@@ -132,7 +132,7 @@ public class MergeState {
    */
   public List<String> rightFileLines() {
     if (rightFileLines == null) {
-      rightFileLines = FilesPlume.readLinesRetainingSeparators(rightPath);
+      rightFileLines = FilesP.readLinesRetainingSeparators(rightPath);
     }
     return rightFileLines;
   }
@@ -183,9 +183,9 @@ public class MergeState {
    * @param verbose if true, print diagnostic information
    */
   public void writeBack(boolean verbose) {
-    if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivalConflict())) {
+    if (conflictedFile != null && (conflictedFileChanged || conflictedFile.hasTrivialConflict())) {
       if (verbose) {
-        System.out.printf("Writing back to %s .%n", mergedPath);
+        System.out.printf("Writing back to %s.%n", mergedPath);
       }
       writeBack(mergedPath);
       // By default, if a mergetool returns a non-zero status, git discards any edits done by the
@@ -207,6 +207,6 @@ public class MergeState {
    */
   @RequiresNonNull("conflictedFile")
   private void writeBack(Path path) {
-    FilesPlume.writeString(path, conflictedFile().fileContents());
+    FilesP.writeString(path, conflictedFile().fileContents());
   }
 }

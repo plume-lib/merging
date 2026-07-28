@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.merging.fileformat.ConflictedFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -18,7 +17,6 @@ import picocli.CommandLine.Parameters;
 @SuppressWarnings({
   "nullness:initialization.fields.uninitialized", // picocli initializes w/reflection
   "initializedfields:contracts.postcondition", // picocli initializes w/reflection
-  "PMD.ShortClassName",
   "PMD.TooManyFields"
 })
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
@@ -31,7 +29,7 @@ public class Main implements Callable<Integer> {
   @Parameters(index = "0", description = "\"driver\" or \"tool\"")
   MergeMode command;
 
-  /** The left or current file file; is overwritten by a merge driver. */
+  /** The left or current file; is overwritten by a merge driver. */
   @Parameters(index = "1", description = "The left, or current, file")
   Path leftPath;
 
@@ -43,7 +41,7 @@ public class Main implements Callable<Integer> {
   @Parameters(index = "3", description = "The right, or other, file")
   Path rightPath;
 
-  /** Fro a merge tool, the merged file; is overwritten. For a merge driver, null. */
+  /** For a merge tool, the merged file; is overwritten. For a merge driver, null. */
   @Parameters(
       arity = "0..1",
       index = "4",
@@ -106,7 +104,7 @@ public class Main implements Callable<Integer> {
       names = "--only-version-numbers",
       description = "Only merge version numbers",
       defaultValue = "false")
-  public boolean only_version_numbers = true;
+  public boolean only_version_numbers = false;
 
   /** If true, print diagnostics for debugging. */
   @Option(names = "--verbose", description = "Print diagnostics", defaultValue = "false")
@@ -287,7 +285,7 @@ public class Main implements Callable<Integer> {
    *
    * @return the MergeState that should be used for a merge driver
    */
-  MergeState mergeStateForDriver() {
+  private MergeState mergeStateForDriver() {
     Path leftFileSavedPath = Path.of("not yet initialized");
 
     // Make a copy of the file that will be overwritten, for passing to external tools.
@@ -320,13 +318,8 @@ public class Main implements Callable<Integer> {
           gitMergeFileExitCode, leftPath, basePath, rightPath);
     }
 
-    // Look for trivial merge conflicts
-    ConflictedFile cf = new ConflictedFile(leftPath);
-    cf.hunks();
-
-    MergeState ms =
-        new MergeState(leftFileSavedPath, basePath, rightPath, leftPath, gitMergeFileExitCode != 0);
-    return ms;
+    return new MergeState(
+        leftFileSavedPath, basePath, rightPath, leftPath, gitMergeFileExitCode != 0);
   }
 
   // //////////////////////////////////////////////////////////////////////

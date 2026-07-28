@@ -10,7 +10,7 @@ import org.plumelib.merging.fileformat.Diff3File;
 import org.plumelib.merging.fileformat.Diff3File.Diff3Hunk;
 import org.plumelib.merging.fileformat.Diff3File.Diff3HunkKind;
 import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
-import org.plumelib.util.FilesPlume;
+import org.plumelib.util.FilesP;
 
 public class Diff3FileTest {
 
@@ -18,13 +18,13 @@ public class Diff3FileTest {
     try {
       ClassLoader cl = this.getClass().getClassLoader();
       if (cl == null) {
-        throw new Error("no class leader for " + this.getClass());
+        throw new Error("no class loader for " + this.getClass());
       }
       try (InputStream is = cl.getResourceAsStream(file)) {
         if (is == null) {
           throw new Error("Can't find resource " + file);
         }
-        return FilesPlume.streamString(is);
+        return FilesP.streamString(is);
       }
     } catch (IOException e) {
       throw new UncheckedIOException(e);
