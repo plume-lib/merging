@@ -1,0 +1,1 @@
+JavaAnnotationsMerger: parse error in merged file: No ====== or |||||| line found after <<<<<< on line 2

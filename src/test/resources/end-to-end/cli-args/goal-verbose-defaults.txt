@@ -1,0 +1,1 @@
+Configuration: adjacent=false; java_annotations=true; java_imports=true; version_numbers=true.
