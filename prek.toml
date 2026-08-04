@@ -21,6 +21,7 @@ exclude = { glob = [
   "**/COPYING",
   "**/*expected*",
   "src/main/resources/specifications/jdk/*",
+  "src/test/resources/end-to-end/**/*",
 ] }
 
 [[repos]]

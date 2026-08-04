@@ -1,0 +1,3 @@
+name = myproject
+version = 3.0.0
+description = An example project
