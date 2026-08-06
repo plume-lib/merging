@@ -30,7 +30,7 @@ picocli = "info.picocli:picocli:4.7.7"
 
 picocli-codegen = "info.picocli:picocli-codegen:4.7.7"
 
-plume-util = "org.plumelib:plume-util:2.0.0-SNAPSHOT"
+plume-util = "org.plumelib:plume-util:2.0.0"
 
 require-javadoc = "org.plumelib:require-javadoc:3.0.0-SNAPSHOT"
 
