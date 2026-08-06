@@ -14,7 +14,7 @@ error-prone-core = "com.google.errorprone:error_prone_core:2.50.0"
 
 google-java-format = "com.google.googlejavaformat:google-java-format:1.33.0"
 
-javac-parse = "org.plumelib:javac-parse:1.0.0-SNAPSHOT"
+javac-parse = "org.plumelib:javac-parse:1.0.0"
 
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit-jupiter" }
 
