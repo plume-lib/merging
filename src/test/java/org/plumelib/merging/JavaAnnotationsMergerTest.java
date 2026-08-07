@@ -8,7 +8,10 @@ import org.checkerframework.checker.regex.qual.Regex;
 import org.junit.jupiter.api.Test;
 import org.plumelib.util.StringsP;
 
-public class JavaAnnotationsMergerTest {
+final class JavaAnnotationsMergerTest {
+
+  /** Creates a new JavaAnnotationsMergerTest. */
+  JavaAnnotationsMergerTest() {}
 
   void assertIsJavaAnnotations(String s) {
     assertTrue(JavaAnnotationsMerger.isJavaAnnotations(s), s);
