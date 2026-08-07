@@ -26,9 +26,9 @@ jobs:
       - name: Cache Spotless p2 data
         uses: actions/cache@v6
         with:
-          path: ~/.gradle/p2-data
-          key: p2-data-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
-          restore-keys: p2-data-${{ runner.os }}-
+          path: ~/.gradle/spotless-p2
+          key: spotless-p2-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: spotless-p2-${{ runner.os }}-
       - name: java -version
         run: java -version
       - name: ./gradlew build
