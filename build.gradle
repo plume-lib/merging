@@ -164,9 +164,15 @@ tasks.withType(JavaCompile).configureEach {
 // Override with, for example:
 //   ./gradlew test -PtestJavaVersion=25
 def testJavaVersionProperty = project.findProperty("testJavaVersion")
-// Compare to null rather than writing `?:`, which would also treat the empty string as absent.
-// `./gradlew test -PtestJavaVersion` (no "=" and no value) supplies the empty string, and silently
-// testing under the default version is not what someone who wrote that on the command line meant.
+// `./gradlew test -PtestJavaVersion` (no "=" and no value) supplies the empty string.  Silently
+// testing under the default version is not what someone who wrote that on the command line meant,
+// so reject it here rather than comparing to null with `?:`, which would treat it as absent.
+// Rejecting it here also keeps `JavaLanguageVersion.of("")` from failing with Gradle's generic
+// message, which does not mention the property that the user got wrong.
+if (testJavaVersionProperty != null && testJavaVersionProperty.toString().isEmpty()) {
+  throw new GradleException("-PtestJavaVersion needs a value, as in `-PtestJavaVersion=25`."
+  + "  Omit the property entirely to test under the JVM that Gradle is running under.")
+}
 def testJavaVersion = JavaLanguageVersion.of(
     (testJavaVersionProperty != null
     ? testJavaVersionProperty
@@ -290,9 +296,25 @@ tasks.named("check") {
 // The directory in which Spotless caches the Groovy-Eclipse formatter that it provisions from P2
 // repositories.  Naming the directory, rather than accepting Spotless's default, keeps the
 // location stable: the default has moved between Spotless versions and is not documented as being
-// stable.  .github/workflows/gradle.yml caches this directory, because downloading its ~140 MB of
-// contents intermittently fails with "Failed to provision P2 dependencies".
+// stable.  .github/workflows/gradle.yml caches this directory, and .github/workflows/prek.yaml
+// restores it, because downloading its ~140 MB of contents intermittently fails with "Failed to
+// provision P2 dependencies".
+//
+// Both workflows compute this same path, from GRADLE_USER_HOME if it is set and from ~/.gradle
+// otherwise, which is how Gradle itself resolves `gradle.gradleUserHomeDir`.  Keep those
+// computations in step with this line; caching the wrong directory fails silently, as a run that
+// downloads the whole formatter again.  The `printSpotlessP2CacheDir` task below reports the
+// resolved path, for checking by hand what a workflow computes.
 def spotlessP2CacheDir = new File(gradle.gradleUserHomeDir, "spotless-p2")
+
+tasks.register("printSpotlessP2CacheDir") {
+  description = "Print the directory in which Spotless caches the Groovy-Eclipse formatter."
+  // The path is fixed at configuration time, so capture it rather than referring to the script.
+  def path = spotlessP2CacheDir.toString()
+  doLast {
+    println path
+  }
+}
 
 // Solstice, which provisions that cache for Spotless, guards it with a lock file that holds the
 // owning process's PID.  A build that is killed while provisioning -- by control-C, or by a

@@ -23,10 +23,21 @@ jobs:
       # version costs nothing, because Solstice downloads whatever the restored directory lacks, and
       # a partial entry can carry a stale lock file, which build.gradle's
       # "deleteStaleSpotlessP2Lock" task deletes.
+      #
+      # The directory, unlike the key, must match what build.gradle passes to
+      # `greclipseConfig.cacheDirectory`, so derive it the way Gradle resolves
+      # `gradle.gradleUserHomeDir` rather than writing "~/.gradle" and assuming that nothing sets
+      # GRADLE_USER_HOME.  Restoring some other directory would fail silently, as a run that
+      # downloads the whole formatter again.  Compare `./gradlew printSpotlessP2CacheDir`.
+      - name: Compute the Spotless P2 cache directory
+        id: spotless-p2-dir
+        run: |
+          set -eu
+          echo "dir=${GRADLE_USER_HOME:-$HOME/.gradle}/spotless-p2" >> "$GITHUB_OUTPUT"
       - name: Restore Spotless P2 cache
         uses: actions/cache/restore@v6
         with:
-          path: ~/.gradle/spotless-p2
+          path: ${{ steps.spotless-p2-dir.outputs.dir }}
           key: spotless-p2-${{ runner.os }}-
           restore-keys: spotless-p2-${{ runner.os }}-
       - uses: j178/prek-action@v3.0.0

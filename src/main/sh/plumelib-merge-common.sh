@@ -5,8 +5,8 @@
 
 # shellcheck shell=sh
 
-ROOTDIR="${SCRIPT_DIR}/../../.."
-JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
+plumelib_rootdir="${SCRIPT_DIR}/../../.."
+plumelib_jarfile="${plumelib_rootdir}/build/libs/merging-all.jar"
 
 # If PLUMELIB_MERGE_EXECUTABLE is set, it names the native executable to run, and
 # setting PLUMELIB_MERGE_EXECUTABLE to the empty string forces use of the fat jar.
@@ -15,20 +15,20 @@ JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
 # task sets PLUMELIB_MERGE_EXECUTABLE, so that the tests cannot silently run a
 # stale executable that a previous build left behind.
 if [ -n "${PLUMELIB_MERGE_EXECUTABLE+x}" ]; then
-  EXECUTABLE="$PLUMELIB_MERGE_EXECUTABLE"
-  if [ -n "$EXECUTABLE" ] && [ ! -x "$EXECUTABLE" ]; then
-    echo "$0: PLUMELIB_MERGE_EXECUTABLE is not an executable file: $EXECUTABLE" >&2
+  plumelib_executable="$PLUMELIB_MERGE_EXECUTABLE"
+  if [ -n "$plumelib_executable" ] && [ ! -x "$plumelib_executable" ]; then
+    echo "$0: PLUMELIB_MERGE_EXECUTABLE is not an executable file: $plumelib_executable" >&2
     exit 2
   fi
 else
-  EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
+  plumelib_executable="${plumelib_rootdir}/build/native/nativeCompile/plumelib-merge"
 fi
 
 ## Gradle is potentially too expensive to run on every invocation of this script.
-# if [ -x "$EXECUTABLE" ] ; then
-#     (cd "$ROOTDIR" && ./gradlew nativeCompile)
+# if [ -x "$plumelib_executable" ] ; then
+#     (cd "$plumelib_rootdir" && ./gradlew nativeCompile)
 # else
-#     (cd "$ROOTDIR" && ./gradlew shadowJar)
+#     (cd "$plumelib_rootdir" && ./gradlew shadowJar)
 # fi
 
 # Runs org.plumelib.merging.Main: the native executable if one is available, and
@@ -39,10 +39,6 @@ fi
 #
 # The `--add-exports` arguments below correspond to `javacInternalPackages` in
 # build.gradle; keep the two lists in sync.
-#
-# This file is sourced, and POSIX sh has no `local`, so every variable that this
-# function sets is global.  The `plumelib_` prefix keeps those variables from
-# colliding with variables of the script that sources this file.
 run_plumelib_merge() {
   plumelib_subcommand="$1"
   shift
@@ -51,18 +47,18 @@ run_plumelib_merge() {
   # TIMEFORMAT="%3R seconds" \
   # time \
 
-  if [ -x "$EXECUTABLE" ]; then
+  if [ -x "$plumelib_executable" ]; then
     if [ -n "${VERBOSE:-}" ]; then
-      echo "running executable $EXECUTABLE"
+      echo "running executable $plumelib_executable"
     fi
-    "$EXECUTABLE" "$plumelib_subcommand" "$@"
+    "$plumelib_executable" "$plumelib_subcommand" "$@"
   else
     # Diagnose a missing fat jar here.  Otherwise the failure surfaces only as an
     # unexpected merge result, because callers such as src/test/resources/Makefile
     # ignore this script's exit status; `java` would merely report that it cannot
     # load org.plumelib.merging.Main, without saying which file is absent.
-    if [ ! -f "$JARFILE" ]; then
-      echo "$0: found no fat jar at $JARFILE; run: ./gradlew shadowJar" >&2
+    if [ ! -f "$plumelib_jarfile" ]; then
+      echo "$0: found no fat jar at $plumelib_jarfile; run: ./gradlew shadowJar" >&2
       exit 2
     fi
 
@@ -123,7 +119,7 @@ run_plumelib_merge() {
       --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
       --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
       --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-      -cp "$JARFILE" \
+      -cp "$plumelib_jarfile" \
       org.plumelib.merging.Main "$plumelib_subcommand" \
       "$@"
   fi

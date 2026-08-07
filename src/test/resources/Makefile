@@ -11,11 +11,15 @@ all: test
 
 test: test-adjacent test-annotations test-imports test-version-numbers
 
-# The prefixes of the tests whose output files `clean` removes.  These are the
-# same prefixes that the top-level .gitignore file lists.  Do not add
-# InsertionTest, and do not generalize the patterns below to `*Output.java`:
-# InsertionTest4Output.java is committed to the repository, because the
-# insertion test is not yet enabled.
+# The prefixes of the tests whose `*Output.java` and `*.diff` files `clean`
+# removes.  These are the same prefixes that the top-level .gitignore file lists
+# for those two patterns.  Do not add InsertionTest, and do not generalize the
+# two patterns to `*Output.java` and `*.diff`: InsertionTest4Output.java is
+# committed to the repository, because the insertion test is not yet enabled.
+#
+# The `*.git-merge` pattern needs no such prefixes, and .gitignore likewise
+# lists it unprefixed: every `.git-merge` file is generated, including
+# InsertionTest4.git-merge.
 CLEAN_PREFIXES = AdjacentTest AnnotationsTest DefaultsTest ImportsTest VersionNumbersTest
 
 clean:
