@@ -58,10 +58,10 @@ dependencies {
   testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-// This project (and google-java-format, which it uses) calls javac internals, which the
-// jdk.compiler module does not export.  Every javac and JVM invocation therefore needs these
-// packages exported.  Exporting all six packages in an invocation that needs only some of them is
-// harmless.  The shell scripts in src/main/sh contain a copy of this list.
+// This project calls javac internals, which the jdk.compiler module does not export.  Every javac
+// and JVM invocation therefore needs these packages exported.  Exporting all six packages in an
+// invocation that needs only some of them is harmless.
+// The shell scripts in src/main/sh contain a copy of this list.
 def javacInternalPackages = [
   "api",
   "code",
@@ -164,11 +164,7 @@ tasks.withType(JavaCompile).configureEach {
 // Override with, for example:
 //   ./gradlew test -PtestJavaVersion=25
 def testJavaVersionProperty = project.findProperty("testJavaVersion")
-// `./gradlew test -PtestJavaVersion` (no "=" and no value) supplies the empty string.  Silently
-// testing under the default version is not what someone who wrote that on the command line meant,
-// so reject it here rather than comparing to null with `?:`, which would treat it as absent.
-// Rejecting it here also keeps `JavaLanguageVersion.of("")` from failing with Gradle's generic
-// message, which does not mention the property that the user got wrong.
+// Compare to null rather than writing `?:`, which would also treat the empty string as absent.
 if (testJavaVersionProperty != null && testJavaVersionProperty.toString().isEmpty()) {
   throw new GradleException("-PtestJavaVersion needs a value, as in `-PtestJavaVersion=25`."
   + "  Omit the property entirely to test under the JVM that Gradle is running under.")
@@ -201,9 +197,11 @@ tasks.withType(Test).configureEach {
   outputs.cacheIf { false }
 
   testLogging {
+    // "passed" is what makes the forced re-run above worth its cost:  without it, a run in which
+    // every test passes prints nothing at all.
     // `showStandardStreams = true` would be a redundant way to say the same
     // thing as including the "standardOut" and "standardError" events here.
-    events("skipped", "failed", "standardOut", "standardError")
+    events("passed", "skipped", "failed", "standardOut", "standardError")
     exceptionFormat = "full"
   }
 
@@ -293,6 +291,13 @@ tasks.named("check") {
 
 // Code formatting
 
+// Solstice, which provisions the Groovy-Eclipse formatter for Spotless, guards its cache with a
+// lock file and never checks whether the process that holds the lock still exists.  A build that is
+// killed while provisioning therefore leaves "metadata/.lock" behind in the cache directory, and
+// every later build then waits for a timeout and fails with "Failed to provision P2 dependencies".
+// Deleting that file is the recovery; the cache directory is "caches/p2-data" within the Gradle
+// user home directory.
+
 // Generated files, a checkout of another repository, and test data, none of which should be
 // reformatted.
 def spotlessExclusions = [
@@ -314,18 +319,6 @@ spotless {
     targetExclude(*spotlessExclusions)
 
     def greclipseConfig = greclipse(libs.versions.greclipse.get())
-    // Spotless caches the Groovy-Eclipse formatter that it provisions from P2 repositories.  Naming
-    // the cache directory, rather than accepting Spotless's default, keeps the location stable: the
-    // default has moved between Spotless versions and is not documented as being stable.
-    // .github/workflows/gradle.yml caches this directory, and .github/workflows/prek.yaml restores
-    // it, because downloading its ~140 MB of contents intermittently fails with "Failed to
-    // provision P2 dependencies".
-    //
-    // Both workflows compute this same path, from GRADLE_USER_HOME if it is set and from ~/.gradle
-    // otherwise, which is how Gradle itself resolves `gradle.gradleUserHomeDir`.  Keep those
-    // computations in step with this line; caching the wrong directory fails silently, as a run
-    // that downloads the whole formatter again.
-    greclipseConfig.cacheDirectory(new File(gradle.gradleUserHomeDir, "spotless-p2"))
     greclipseConfig.withP2Mirrors([
       "https://download.eclipse.org/": "https://mirror.umd.edu/eclipse/",
       // Not a no-op:  as soon as the mirror map is non-empty, Spotless rewrites every P2 repository
@@ -370,9 +363,8 @@ pmd {
   ruleSetFiles = files("${rootDir}/.pmd-ruleset.xml")
   consoleOutput = true
 }
-// The test code does not necessarily satisfy .pmd-ruleset.xml.
-tasks.named("pmdTest") {
-  enabled = false
+pmdTest {
+  exclude("**/src/test/resources/**")
 }
 
 
@@ -462,6 +454,7 @@ tasks.named("javadoc", Javadoc) {
 // The `javadoc` task documents only the public API.
 // `javadocPrivate` applies the same doclint checks to private members.
 def javadocPrivate = tasks.register("javadocPrivate", Javadoc) {
+  group = "documentation"
   description = "Generate Javadoc for all members, including private ones."
   source = sourceSets.main.allJava
   classpath = sourceSets.main.output + sourceSets.main.compileClasspath
@@ -514,7 +507,6 @@ tasks.register("javadocWeb", DefaultTask) {
   description = "Upload API documentation to website."
   dependsOn(javadocWebUpload, javadocWebChgrp, javadocWebChmod)
 }
-
 
 // `resolvable` rather than the `configurations { requireJavadoc }` shorthand, which creates a
 // configuration that is both resolvable and consumable and that Gradle reports as legacy.
@@ -583,8 +575,9 @@ tasks.register("tags", Exec) {
 tasks.register("printCompileClasspaths") {
   group = "help"
   description = "Print the compile-time classpaths"
-  // Resolve the classpaths when the task is configured, not when it runs.  Reading `sourceSets`
-  // from a task action would capture the `Project` object, which the configuration cache forbids.
+  // Look up the classpaths when the task is configured, and resolve them (`asPath`) when it runs.
+  // Reading `sourceSets` from a task action would capture the `Project` object, which the
+  // configuration cache forbids.
   def mainClasspath = sourceSets.main.compileClasspath
   def testClasspath = sourceSets.test.compileClasspath
   doFirst {

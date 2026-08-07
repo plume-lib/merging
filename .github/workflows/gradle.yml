@@ -30,96 +30,57 @@ jobs:
       # is upgraded, which would make the cache go cold far more often than the formatter actually
       # changes; the usual remedy for that, "restore-keys", makes the cache grow without bound,
       # because each save then writes back every formatter version that an earlier run downloaded.
+      #
+      # .github/workflows/prek.yaml repeats this computation in order to restore what this job
+      # saves, so the two must be kept in step.
       - name: Compute the Spotless P2 cache key
         id: spotless-p2-key
         run: |
           set -eu
           greclipse="$(sed -n 's/^greclipse *= *"\([^"]*\)".*/\1/p' gradle/libs.versions.toml)"
           spotless="$(sed -n 's/^com-diffplug-spotless *=.*version *= *"\([^"]*\)".*/\1/p' gradle/libs.versions.toml)"
-          if [ -z "$greclipse" ] || [ -z "$spotless" ]; then
-            echo "Cannot read the Groovy-Eclipse and Spotless versions from gradle/libs.versions.toml" >&2
+          # Each expression must match exactly one line.  No match means that the catalog changed
+          # shape, and the key would then not distinguish formatter versions at all.  Two or more
+          # matches would make the value multi-line, which silently corrupts the "key=<value>" line
+          # below:  $GITHUB_OUTPUT treats each line as a separate assignment.
+          if [ -z "$greclipse" ] || [ "$(printf '%s\n' "$greclipse" | wc -l)" -ne 1 ] \
+              || [ -z "$spotless" ] || [ "$(printf '%s\n' "$spotless" | wc -l)" -ne 1 ]; then
+            echo "Expected exactly one Groovy-Eclipse version and one Spotless version in gradle/libs.versions.toml" >&2
+            echo "Groovy-Eclipse: $greclipse" >&2
+            echo "Spotless: $spotless" >&2
             exit 1
           fi
           echo "key=spotless-p2-${{ runner.os }}-greclipse-$greclipse-spotless-$spotless" >> "$GITHUB_OUTPUT"
-      # The directory that build.gradle passes to `greclipseConfig.cacheDirectory`.  It holds the P2
-      # metadata and every downloaded bundle, so a cache hit means that the Spotless run below makes
-      # no network requests to the P2 repositories.  Caching some other directory would fail
-      # silently, as a run that downloads the whole formatter again, so derive the path the way
-      # Gradle resolves `gradle.gradleUserHomeDir` rather than writing "~/.gradle" and assuming that
-      # nothing sets GRADLE_USER_HOME.
-      - name: Compute the Spotless P2 cache directory
-        id: spotless-p2-dir
-        run: |
-          set -eu
-          echo "dir=${GRADLE_USER_HOME:-$HOME/.gradle}/spotless-p2" >> "$GITHUB_OUTPUT"
+      # The directory is Spotless's default P2 cache directory.  It holds the P2 metadata and every
+      # downloaded bundle, so a cache hit means that the Spotless run below makes no network
+      # requests to the P2 repositories.
+      #
+      # That directory lies within "~/.gradle/caches", which "setup-java"'s `cache: 'gradle'` also
+      # saves.  This entry is still worth having:  the "setup-java" key is a hash of every Gradle
+      # file, so it goes cold whenever any of them changes, whereas the key above changes only when
+      # the formatter version does.
       - name: Restore Spotless P2 cache
         id: restore-spotless-p2
         uses: actions/cache/restore@v6
         with:
-          path: ${{ steps.spotless-p2-dir.outputs.dir }}
+          path: ~/.gradle/caches/p2-data
           key: ${{ steps.spotless-p2-key.outputs.key }}
-          restore-keys: ${{ steps.spotless-p2-key.outputs.key }}-partial-
+      # Solstice, which provisions the cache for Spotless, guards it with a lock file, and never
+      # checks whether the process that the lock file names still exists.
+      # Nothing on this freshly created runner can hold the lock, so delete the file unconditionally.
+      - name: Delete any restored Spotless P2 lock file
+        run: rm -f ~/.gradle/caches/p2-data/metadata/.lock
       - name: ./gradlew spotlessCheck
-        id: spotless-check
-        run: |
-          set -o pipefail
-          # Whether the *last* attempt failed to download the Groovy-Eclipse formatter.  The partial
-          # cache below is worth saving only for that kind of failure, and the step's exit status
-          # does not distinguish it from a formatting violation.  Tracking only the last attempt
-          # matters when the two kinds occur in one run:  a download failure followed by a
-          # formatting violation must not save a partial cache, because the second attempt got far
-          # enough to prove that the download had already succeeded.
-          p2_failure=false
-          for attempt in 1 2 3; do
-            if ./gradlew spotlessCheck --stacktrace 2>&1 | tee "$RUNNER_TEMP/spotless-output.txt"; then
-              exit 0
-            fi
-            if ! grep -q 'Failed to provision P2 dependencies' "$RUNNER_TEMP/spotless-output.txt"; then
-              # The failure is a formatting violation or some other real problem, not a failure to
-              # download the Groovy-Eclipse formatter.  Retrying would not help.
-              p2_failure=false
-              break
-            fi
-            p2_failure=true
-            if [ "$attempt" -lt 3 ]; then
-              sleep $((30 * attempt))
-            fi
-          done
-          echo "p2-failure=$p2_failure" >> "$GITHUB_OUTPUT"
-          exit 1
-      # A cache that a successful run saves is complete, so later runs can use it without any
-      # network access.  Saving is skipped after an exact cache hit, because a cache entry that
+        run: ./gradlew spotlessCheck --stacktrace
+      # Only a successful run saves the cache, so every entry is complete and later runs can use it
+      # without any network access.  Saving is skipped after a cache hit, because a cache entry that
       # exists cannot be overwritten.
-      - name: Save the complete Spotless P2 cache
+      - name: Save the Spotless P2 cache
         if: success() && steps.restore-spotless-p2.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
-          path: ${{ steps.spotless-p2-dir.outputs.dir }}
+          path: ~/.gradle/caches/p2-data
           key: ${{ steps.spotless-p2-key.outputs.key }}
-      # A failed download usually obtained part of the formatter, and caching that makes the next
-      # run more likely to succeed.  The key differs from the one above so that a partial cache can
-      # never masquerade as a complete one:  it is reachable only through "restore-keys", which
-      # takes the most recently created entry whose key starts with that prefix.
-      #
-      # Nothing is saved unless the download is what failed, and unless the restore was not an exact
-      # hit.  After an exact hit the cache already holds everything that this run had, and the
-      # failure lies elsewhere; after a formatting violation the directory holds nothing that the
-      # cache lacks.  Without those conditions, every such failure would write another ~140MB entry
-      # that duplicates the complete one.
-      #
-      # The "cache-hit" condition also bounds how many partial entries can pile up:  a run saves one
-      # only while no complete entry exists for this key, so they accumulate only over the failing
-      # pushes between a formatter version bump and the first success.  Nothing deletes them
-      # afterward, because the run id and attempt in the key make every entry distinct and a
-      # workflow cannot overwrite or remove a cache entry.  They go away by least-recently-used
-      # eviction, once the repository holds 10GB of entries -- which is also why needless entries
-      # are worth avoiding, since eviction takes the Gradle caches that "setup-java" maintains.
-      - name: Save a partial Spotless P2 cache
-        if: failure() && steps.spotless-check.outputs.p2-failure == 'true' && steps.restore-spotless-p2.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: ${{ steps.spotless-p2-dir.outputs.dir }}
-          key: ${{ steps.spotless-p2-key.outputs.key }}-partial-${{ github.run_id }}-${{ github.run_attempt }}
 
   build:
 
@@ -141,8 +102,10 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'gradle'
-      - name: java -version
-        run: java -version
+      - name: Show the Java versions
+        run: |
+          echo 'JVM that runs Gradle:'
+          java -version
       # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
         run: ./gradlew build -x spotlessCheck
