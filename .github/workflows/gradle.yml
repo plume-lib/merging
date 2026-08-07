@@ -99,13 +99,22 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          # "setup-java" makes the last version listed the default JAVA_HOME, so Gradle itself runs
+          # under Java 21 no matter which version this job tests.  When "matrix.java" is 21, the
+          # list names 21 twice, which "setup-java" tolerates.
+          java-version: |
+            ${{ matrix.java }}
+            21
           check-latest: true
           cache: 'gradle'
       - name: Show the Java versions
         run: |
           echo 'JVM that runs Gradle:'
           java -version
+          echo 'JVM that runs the tests:'
+          "$JAVA_HOME_${{ matrix.java }}_${{ runner.arch }}/bin/java" -version
+      # Gradle does not auto-detect the JDKs that "setup-java" installs, because
+      # they are in the tool cache rather than in a standard location.
       # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build -x spotlessCheck
+        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.java }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.java }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}

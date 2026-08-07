@@ -160,7 +160,9 @@ tasks.withType(JavaCompile).configureEach {
 // Compilation always uses Java 21, but the tests run under various Java versions.  The
 // `java.toolchain` setting above applies to Test tasks as well as to compilation, so without this
 // the tests would always run under Java 21.  By default the tests run under the JVM that Gradle
-// itself is running under, which is what the job matrix in .github/workflows/gradle.yml varies.
+// itself is running under.  The job matrix in .github/workflows/gradle.yml does not rely on that
+// default:  it runs Gradle under Java 21 in every job and selects the test JVM by passing
+// `-PtestJavaVersion`.
 // Override with, for example:
 //   ./gradlew test -PtestJavaVersion=25
 def testJavaVersionProperty = project.findProperty("testJavaVersion")
@@ -363,9 +365,6 @@ pmd {
   ruleSetFiles = files("${rootDir}/.pmd-ruleset.xml")
   consoleOutput = true
 }
-pmdTest {
-  exclude("**/src/test/resources/**")
-}
 
 
 // Checker Framework pluggable type-checking
@@ -376,8 +375,7 @@ checkerFramework {
     // No need to run CalledMethodsChecker, because ResourceLeakChecker does so.
     // "org.checkerframework.checker.calledmethods.CalledMethodsChecker",
     "org.checkerframework.checker.formatter.FormatterChecker",
-    // Passing the Index Checker should be possible; reinstate this when I have time to do so.
-    // "org.checkerframework.checker.index.IndexChecker",
+    // TODO: "org.checkerframework.checker.index.IndexChecker",
     "org.checkerframework.checker.interning.InterningChecker",
     "org.checkerframework.checker.lock.LockChecker",
     "org.checkerframework.checker.nullness.NullnessChecker",
