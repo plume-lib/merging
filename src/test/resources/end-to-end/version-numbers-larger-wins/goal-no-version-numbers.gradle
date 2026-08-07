@@ -1,0 +1,10 @@
+plugins {
+  // Checker Framework pluggable type-checking
+<<<<<<< OURS
+  id "org.checkerframework" version "0.6.38"
+||||||| BASE
+  id "org.checkerframework" version "0.6.37"
+=======
+  id "org.checkerframework" version "0.6.39"
+>>>>>>> THEIRS
+}

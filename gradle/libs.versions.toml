@@ -36,7 +36,7 @@ google-java-format = { module = "com.google.googlejavaformat:google-java-format"
 # Version only:  for the JaCoCo plugin's `toolVersion`.
 jacoco = { module = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }
 
-javac-parse = { module = "org.plumelib:javac-parse", version = "1.0.0-SNAPSHOT" }
+javac-parse = { module = "org.plumelib:javac-parse", version = "1.0.0" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 
@@ -46,12 +46,14 @@ picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 
-plume-util = { module = "org.plumelib:plume-util", version = "2.0.0-SNAPSHOT" }
+junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.1.7"
+
+plume-util = { module = "org.plumelib:plume-util", version = "2.0.0" }
 
 # Version only:  for the PMD plugin's `toolVersion`.
 pmd-java = { module = "net.sourceforge.pmd:pmd-java", version.ref = "pmd" }
 
-require-javadoc = { module = "org.plumelib:require-javadoc", version = "3.0.0-SNAPSHOT" }
+require-javadoc = { module = "org.plumelib:require-javadoc", version = "3.0.0" }
 
 [plugins]
 
@@ -63,4 +65,4 @@ net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
 
 org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
 
-org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.6" }
+org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.7" }
