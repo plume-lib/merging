@@ -39,8 +39,12 @@ fi
 #
 # The `--add-exports` arguments below correspond to `javacInternalPackages` in
 # build.gradle; keep the two lists in sync.
+#
+# This file is sourced, and POSIX sh has no `local`, so every variable that this
+# function sets is global.  The `plumelib_` prefix keeps those variables from
+# colliding with variables of the script that sources this file.
 run_plumelib_merge() {
-  subcommand="$1"
+  plumelib_subcommand="$1"
   shift
 
   # Can add to the below if desired.
@@ -51,7 +55,7 @@ run_plumelib_merge() {
     if [ -n "${VERBOSE:-}" ]; then
       echo "running executable $EXECUTABLE"
     fi
-    "$EXECUTABLE" "$subcommand" "$@"
+    "$EXECUTABLE" "$plumelib_subcommand" "$@"
   else
     # Diagnose a missing fat jar here.  Otherwise the failure surfaces only as an
     # unexpected merge result, because callers such as src/test/resources/Makefile
@@ -73,45 +77,46 @@ run_plumelib_merge() {
     # installation to use.  The comparison to JAVA_HOME only chooses
     # which variable a diagnostic names when the two agree.
     #
-    # java_home_source records which variable supplied java_home, so that a
-    # diagnostic can name the variable that the user needs to correct.
+    # plumelib_java_home_source records which variable supplied
+    # plumelib_java_home, so that a diagnostic can name the variable that the
+    # user needs to correct.
     if [ -n "${PLUMELIB_MERGE_JAVA_HOME:-}" ]; then
-      java_home="$PLUMELIB_MERGE_JAVA_HOME"
-      java_home_source="PLUMELIB_MERGE_JAVA_HOME"
+      plumelib_java_home="$PLUMELIB_MERGE_JAVA_HOME"
+      plumelib_java_home_source="PLUMELIB_MERGE_JAVA_HOME"
     elif [ -n "${JAVA21_HOME:-}" ] && [ "${JAVA_HOME:-}" != "$JAVA21_HOME" ]; then
-      java_home="$JAVA21_HOME"
-      java_home_source="JAVA21_HOME"
+      plumelib_java_home="$JAVA21_HOME"
+      plumelib_java_home_source="JAVA21_HOME"
     else
-      java_home="${JAVA_HOME:-}"
-      java_home_source="JAVA_HOME"
+      plumelib_java_home="${JAVA_HOME:-}"
+      plumelib_java_home_source="JAVA_HOME"
     fi
-    if [ -n "$java_home" ]; then
-      java_command="${java_home}/bin/java"
+    if [ -n "$plumelib_java_home" ]; then
+      plumelib_java_command="${plumelib_java_home}/bin/java"
       # Make JAVA_HOME agree with the Java that is about to run.  This script
       # exits immediately afterward, so changing JAVA_HOME affects nothing else.
-      JAVA_HOME="$java_home"
+      JAVA_HOME="$plumelib_java_home"
       export JAVA_HOME
     else
       # None of the variables above names a Java installation.  Use the `java`
       # on PATH rather than "${JAVA_HOME}/bin/java", which would expand to
       # "/bin/java" and, on a system that has such a file, could silently run a
       # Java version that cannot read the fat jar's class files.
-      java_command="$(command -v java || true)"
+      plumelib_java_command="$(command -v java || true)"
     fi
     # Diagnose a missing Java here, for the same reason as the missing fat jar
     # above.  Name the variable that supplied the bad directory, rather than
     # listing every variable that might have; the one at fault is the one the
     # user needs to correct, and it is often PLUMELIB_MERGE_JAVA_HOME, which
     # Gradle rather than the user sets.
-    if [ -z "$java_command" ] || [ ! -x "$java_command" ]; then
-      if [ -n "$java_home" ]; then
-        echo "$0: $java_home_source does not name a Java installation: no executable $java_command" >&2
+    if [ -z "$plumelib_java_command" ] || [ ! -x "$plumelib_java_command" ]; then
+      if [ -n "$plumelib_java_home" ]; then
+        echo "$0: $plumelib_java_home_source does not name a Java installation: no executable $plumelib_java_command" >&2
       else
         echo "$0: found no Java executable; set JAVA_HOME or JAVA21_HOME to a Java 21 or later installation" >&2
       fi
       exit 2
     fi
-    "$java_command" \
+    "$plumelib_java_command" \
       --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
       --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
       --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
@@ -119,7 +124,7 @@ run_plumelib_merge() {
       --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
       --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
       -cp "$JARFILE" \
-      org.plumelib.merging.Main "$subcommand" \
+      org.plumelib.merging.Main "$plumelib_subcommand" \
       "$@"
   fi
 }
