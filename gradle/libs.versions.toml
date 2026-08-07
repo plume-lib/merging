@@ -1,6 +1,6 @@
 [versions]
 
-checker-framework = "4.2.1"
+checker-framework = "4.2.2"
 
 junit-jupiter = "6.1.2"
 
