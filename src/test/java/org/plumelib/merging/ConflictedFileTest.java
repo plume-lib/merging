@@ -14,7 +14,10 @@ import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 import org.plumelib.util.FilesP;
 
-public class ConflictedFileTest {
+final class ConflictedFileTest {
+
+  /** Creates a new ConflictedFileTest. */
+  ConflictedFileTest() {}
 
   private String fileContents(String file) {
     try {

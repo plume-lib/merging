@@ -12,7 +12,10 @@ import org.plumelib.merging.fileformat.Diff3File.Diff3HunkKind;
 import org.plumelib.merging.fileformat.Diff3File.Diff3ParseException;
 import org.plumelib.util.FilesP;
 
-public class Diff3FileTest {
+final class Diff3FileTest {
+
+  /** Creates a new Diff3FileTest. */
+  Diff3FileTest() {}
 
   private String fileContents(String file) {
     try {

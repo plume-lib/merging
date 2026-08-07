@@ -2,37 +2,56 @@
 
 checker-framework = "4.2.2"
 
+# build.gradle uses this both as a dependency version and as the google-java-format version for
+# Spotless, so that this project is formatted by the same version that it calls.
+google-java-format = "1.33.0"
+
+# The Groovy-Eclipse formatter, which Spotless applies to .gradle files.  The version is an Eclipse
+# release, not a Groovy-Eclipse release.  Spotless permits version 4.36 on JVM 17+ and version 4.40
+# on JVM 21+.
+greclipse = "4.36"
+
+jacoco = "0.8.15"
+
 junit-jupiter = "6.1.2"
+
+picocli = "4.7.7"
+
+pmd = "7.26.0"
 
 [libraries]
 
+# Some entries below are not dependencies.  Each such entry exists so that a dependency-update tool
+# such as Renovate proposes new versions of a tool whose version build.gradle reads, by itself, via
+# "libs.versions.*".  Each such entry is marked "Version only".
+
+# Version only:  the org.checkerframework Gradle plugin adds the dependency, from
+# `checkerFramework.version`.
 checker-framework = { module = "org.checkerframework:checker", version.ref = "checker-framework" }
 
-checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
+error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.50.0" }
 
-error-prone-core = "com.google.errorprone:error_prone_core:2.50.0"
+google-java-format = { module = "com.google.googlejavaformat:google-java-format", version.ref = "google-java-format" }
 
-google-java-format = "com.google.googlejavaformat:google-java-format:1.33.0"
+# Version only:  for the JaCoCo plugin's `toolVersion`.
+jacoco = { module = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }
 
-javac-parse = "org.plumelib:javac-parse:1.0.0"
+javac-parse = { module = "org.plumelib:javac-parse", version = "1.0.0" }
 
-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit-jupiter" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 
-junit-platform-console = { module = "org.junit.platform:junit-platform-console" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-jupiter" }
 
-junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-jupiter" }
+picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 
-junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.1.7"
+picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 
-junit-platform-reporting = { module = "org.junit.platform:junit-platform-reporting" }
+plume-util = { module = "org.plumelib:plume-util", version = "2.0.0" }
 
-picocli = "info.picocli:picocli:4.7.7"
+# Version only:  for the PMD plugin's `toolVersion`.
+pmd-java = { module = "net.sourceforge.pmd:pmd-java", version.ref = "pmd" }
 
-picocli-codegen = "info.picocli:picocli-codegen:4.7.7"
-
-plume-util = "org.plumelib:plume-util:2.0.0"
-
-require-javadoc = "org.plumelib:require-javadoc:3.0.0"
+require-javadoc = { module = "org.plumelib:require-javadoc", version = "3.0.0" }
 
 [plugins]
 

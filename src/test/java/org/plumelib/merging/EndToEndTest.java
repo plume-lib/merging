@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
  * one directory per test case. See {@code src/test/resources/end-to-end/README.md} for the file
  * naming conventions.
  */
-public class EndToEndTest {
+final class EndToEndTest {
 
   /** Creates an EndToEndTest. */
-  public EndToEndTest() {}
+  EndToEndTest() {}
 
   /** The directory that contains one directory per test case. */
   private static final Path testCasesDir = Path.of("src", "test", "resources", "end-to-end");

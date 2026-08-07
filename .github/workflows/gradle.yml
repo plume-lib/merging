@@ -3,6 +3,85 @@ name: Java CI with Gradle
 "on": [push, pull_request]
 
 jobs:
+
+  # Formatting does not depend on the Java version, so Spotless runs in this single job rather than
+  # in every job of the "build" matrix below.  Spotless's Groovy-Eclipse formatter downloads about
+  # 140MB from Eclipse P2 repositories, and that download fails often enough that performing it once
+  # per push rather than once per matrix job noticeably reduces "Failed to provision P2 dependencies"
+  # errors.
+  spotless:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          show-progress: false
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          check-latest: true
+          cache: 'gradle'
+      # Key the cache on just the two versions that determine its contents, rather than on a hash of
+      # all of gradle/libs.versions.toml.  A hash of the whole file changes whenever any dependency
+      # is upgraded, which would make the cache go cold far more often than the formatter actually
+      # changes; the usual remedy for that, "restore-keys", makes the cache grow without bound,
+      # because each save then writes back every formatter version that an earlier run downloaded.
+      #
+      # .github/workflows/prek.yaml repeats this computation in order to restore what this job
+      # saves, so the two must be kept in step.
+      - name: Compute the Spotless P2 cache key
+        id: spotless-p2-key
+        run: |
+          set -eu
+          greclipse="$(sed -n 's/^greclipse *= *"\([^"]*\)".*/\1/p' gradle/libs.versions.toml)"
+          spotless="$(sed -n 's/^com-diffplug-spotless *=.*version *= *"\([^"]*\)".*/\1/p' gradle/libs.versions.toml)"
+          # Each expression must match exactly one line.  No match means that the catalog changed
+          # shape, and the key would then not distinguish formatter versions at all.  Two or more
+          # matches would make the value multi-line, which silently corrupts the "key=<value>" line
+          # below:  $GITHUB_OUTPUT treats each line as a separate assignment.
+          if [ -z "$greclipse" ] || [ "$(printf '%s\n' "$greclipse" | wc -l)" -ne 1 ] \
+              || [ -z "$spotless" ] || [ "$(printf '%s\n' "$spotless" | wc -l)" -ne 1 ]; then
+            echo "Expected exactly one Groovy-Eclipse version and one Spotless version in gradle/libs.versions.toml" >&2
+            echo "Groovy-Eclipse: $greclipse" >&2
+            echo "Spotless: $spotless" >&2
+            exit 1
+          fi
+          echo "key=spotless-p2-${{ runner.os }}-greclipse-$greclipse-spotless-$spotless" >> "$GITHUB_OUTPUT"
+      # The directory is Spotless's default P2 cache directory.  It holds the P2 metadata and every
+      # downloaded bundle, so a cache hit means that the Spotless run below makes no network
+      # requests to the P2 repositories.
+      #
+      # That directory lies within "~/.gradle/caches", which "setup-java"'s `cache: 'gradle'` also
+      # saves.  This entry is still worth having:  the "setup-java" key is a hash of every Gradle
+      # file, so it goes cold whenever any of them changes, whereas the key above changes only when
+      # the formatter version does.
+      - name: Restore Spotless P2 cache
+        id: restore-spotless-p2
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.gradle/caches/p2-data
+          key: ${{ steps.spotless-p2-key.outputs.key }}
+      # Solstice, which provisions the cache for Spotless, guards it with a lock file, and never
+      # checks whether the process that the lock file names still exists.
+      # Nothing on this freshly created runner can hold the lock, so delete the file unconditionally.
+      - name: Delete any restored Spotless P2 lock file
+        run: rm -f ~/.gradle/caches/p2-data/metadata/.lock
+      - name: ./gradlew spotlessCheck
+        run: ./gradlew spotlessCheck --stacktrace
+      # Only a successful run saves the cache, so every entry is complete and later runs can use it
+      # without any network access.  Saving is skipped after a cache hit, because a cache entry that
+      # exists cannot be overwritten.
+      - name: Save the Spotless P2 cache
+        if: success() && steps.restore-spotless-p2.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.gradle/caches/p2-data
+          key: ${{ steps.spotless-p2-key.outputs.key }}
+
   build:
 
     runs-on: ubuntu-latest
@@ -20,12 +99,22 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          # "setup-java" makes the last version listed the default JAVA_HOME, so Gradle itself runs
+          # under Java 21 no matter which version this job tests.  When "matrix.java" is 21, the
+          # list names 21 twice, which "setup-java" tolerates.
+          java-version: |
+            ${{ matrix.java }}
+            21
           check-latest: true
           cache: 'gradle'
-      - name: java -version
-        run: java -version
-      - name: Warm up Gradle cache
-        run: ./gradlew spotlessCheck > /dev/null 2>&1 || (sleep 60 && true)
+      - name: Show the Java versions
+        run: |
+          echo 'JVM that runs Gradle:'
+          java -version
+          echo 'JVM that runs the tests:'
+          "$JAVA_HOME_${{ matrix.java }}_${{ runner.arch }}/bin/java" -version
+      # Gradle does not auto-detect the JDKs that "setup-java" installs, because
+      # they are in the tool cache rather than in a standard location.
+      # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build
+        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.java }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.java }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}

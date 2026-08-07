@@ -15,54 +15,12 @@ fi
 
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
 
-ROOTDIR="${SCRIPT_DIR}/../../.."
-# JARFILE="${ROOTDIR}/build/libs/merging-all.jar"
-EXECUTABLE="${ROOTDIR}/build/native/nativeCompile/plumelib-merge"
+# shellcheck source=plumelib-merge-common.sh
+# shellcheck source-path=SCRIPTDIR
+. "${SCRIPT_DIR}/plumelib-merge-common.sh"
 
-## Gradle is potentially too expensive to run on every invocation of this script.
-# if [ -x "$EXECUTABLE" ] ; then
-#     (cd "$ROOTDIR" && ./gradlew nativeCompile)
-# else
-#     (cd "$ROOTDIR" && ./gradlew shadowJar)
-# fi
-
-# Can add to the below if desired.
-# TIMEFORMAT="%3R seconds" \
-# time \
-
-if [ -x "$EXECUTABLE" ]; then
-  if [ -n "$VERBOSE" ]; then
-    echo "running executable $EXECUTABLE"
-  fi
-  "$EXECUTABLE" tool "$@"
-  result=$?
-elif [ -n "${JAVA_HOME+x}" ] && [ -n "${JAVA21_HOME+x}" ] && [ "$JAVA_HOME" != "$JAVA21_HOME" ]; then
-  # JAVA_HOME is set, and JAVA21_HOME is set, and they differ.
-  JAVA_HOME="$JAVA21_HOME" \
-    "$JAVA21_HOME"/bin/java \
-    --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-    -cp "${SCRIPT_DIR}/../../../build/libs/merging-all.jar" \
-    org.plumelib.merging.Main tool \
-    "$@"
-  result=$?
-else
-  "$JAVA_HOME"/bin/java \
-    --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
-    --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-    -cp "${SCRIPT_DIR}/../../../build/libs/merging-all.jar" \
-    org.plumelib.merging.Main tool \
-    "$@"
-  result=$?
-fi
+run_plumelib_merge tool "$@"
+result=$?
 
 if [ -n "$VERBOSE" ]; then
   echo "Result $result for merge-tool.sh:" "$@"

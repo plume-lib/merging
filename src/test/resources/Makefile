@@ -1,6 +1,29 @@
-.PHONY: all clean test
+.PHONY: all clean compile test \
+        test-adjacent test-annotations test-defaults test-imports test-insertion \
+        test-version-numbers
+
+# Set SKIP_GRADLE to a nonempty value to suppress the Gradle invocations in the
+# `compile` target.  Gradle's own `runMakefileTests` task does so, because it
+# has already built the artifacts and because a nested Gradle invocation from
+# within a running Gradle build contends for Gradle's locks.
+
+all: test
 
 test: test-adjacent test-annotations test-imports test-version-numbers
+
+# The prefixes of the tests whose `*Output.java` and `*.diff` files `clean`
+# removes.  These are the same prefixes that the top-level .gitignore file lists
+# for those two patterns.  Do not add InsertionTest, and do not generalize the
+# two patterns to `*Output.java` and `*.diff`: InsertionTest4Output.java is
+# committed to the repository, because the insertion test is not yet enabled.
+#
+# The `*.git-merge` pattern needs no such prefixes, and .gitignore likewise
+# lists it unprefixed: every `.git-merge` file is generated, including
+# InsertionTest4.git-merge.
+CLEAN_PREFIXES = AdjacentTest AnnotationsTest DefaultsTest ImportsTest VersionNumbersTest
+
+clean:
+	rm -f $(foreach p,$(CLEAN_PREFIXES),$(p)*Output.java $(p)*.diff) *.git-merge
 
 test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff AdjacentTest4.diff AdjacentTest5.diff \
                AdjacentTest6.diff AdjacentTest7.diff AdjacentTest8.diff
@@ -19,9 +42,11 @@ test-version-numbers: VersionNumbersTest1.diff
 test-defaults: DefaultsTest14.diff
 
 compile:
+ifeq ($(SKIP_GRADLE),)
 	@(cd ../../.. && ./gradlew -q assemble)
 ifneq ("","$(wildcard ../../../build/native/nativeCompile/plumelib-merge)")
 	@(cd ../../.. && ./gradlew -q nativeCompile)
+endif
 endif
 
 Adjacent%.diff: compile
