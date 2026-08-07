@@ -293,107 +293,6 @@ tasks.named("check") {
 
 // Code formatting
 
-// The directory in which Spotless caches the Groovy-Eclipse formatter that it provisions from P2
-// repositories.  Naming the directory, rather than accepting Spotless's default, keeps the
-// location stable: the default has moved between Spotless versions and is not documented as being
-// stable.  .github/workflows/gradle.yml caches this directory, and .github/workflows/prek.yaml
-// restores it, because downloading its ~140 MB of contents intermittently fails with "Failed to
-// provision P2 dependencies".
-//
-// Both workflows compute this same path, from GRADLE_USER_HOME if it is set and from ~/.gradle
-// otherwise, which is how Gradle itself resolves `gradle.gradleUserHomeDir`.  Keep those
-// computations in step with this line; caching the wrong directory fails silently, as a run that
-// downloads the whole formatter again.  The `printSpotlessP2CacheDir` task below reports the
-// resolved path, for checking by hand what a workflow computes.
-def spotlessP2CacheDir = new File(gradle.gradleUserHomeDir, "spotless-p2")
-
-tasks.register("printSpotlessP2CacheDir") {
-  description = "Print the directory in which Spotless caches the Groovy-Eclipse formatter."
-  // The path is fixed at configuration time, so capture it rather than referring to the script.
-  def path = spotlessP2CacheDir.toString()
-  doLast {
-    println path
-  }
-}
-
-// Solstice, which provisions that cache for Spotless, guards it with a lock file that holds the
-// owning process's PID.  A build that is killed while provisioning -- by control-C, or by a
-// continuous integration job that times out -- leaves the lock file behind.  Solstice never checks
-// whether the process that the lock file names still exists, so every later build waits for the
-// timeout and then fails with "Failed to provision P2 dependencies"; deleting the lock file by
-// hand is the only recovery.  A lock file can even reach a fresh machine, since the cache that
-// .github/workflows/gradle.yml saves includes whatever the job left in this directory.
-//
-// This is a static method of a class rather than a method of the build script, because the
-// configuration cache nulls out a closure's owner when it serializes the closure.
-class SpotlessP2 {
-
-  // How old a lock file that holds no PID must be before it is treated as abandoned rather than as
-  // one whose owner has not yet written its PID.
-  private static final long EMPTY_LOCK_FILE_GRACE_MILLIS = 60000
-
-  // How old a lock file whose PID names a live process must be before it is treated as abandoned
-  // anyway.  Solstice holds the lock only while it provisions the formatter, which takes a few
-  // minutes at worst, so a much older lock file names some unrelated process that happens to have
-  // the same PID.
-  private static final long LIVE_PID_LOCK_FILE_STALE_MILLIS = 1800000
-
-  static void deleteStaleLockFile(File cacheDirectory, Logger logger) {
-    File lockFile = new File(new File(cacheDirectory, "metadata"), ".lock")
-    if (!lockFile.isFile()) {
-      return
-    }
-    long pid
-    try {
-      pid = Long.parseLong(lockFile.getText("UTF-8").trim())
-    } catch (NumberFormatException e) {
-      // Solstice creates the lock file and then writes its PID into it, so a lock file that holds
-      // no PID usually belongs to a live process that is between those two steps.  A process that
-      // is killed between them leaves the file empty forever, and Solstice parses the file outside
-      // the "try" block that handles a lock it cannot take, so every later build then dies with a
-      // NumberFormatException.  Wait out the race before assuming that this is the latter case.
-      if (System.currentTimeMillis() - lockFile.lastModified() > EMPTY_LOCK_FILE_GRACE_MILLIS
-          && lockFile.delete()) {
-        logger.lifecycle("Deleted abandoned Spotless P2 lock file that holds no PID: ${lockFile}")
-      }
-      return
-    }
-    // A live PID does not prove that the lock is held.  The operating system recycles PIDs, and a
-    // lock file that the cache restored was written on a different machine, where the PID names an
-    // unrelated process if it names anything -- PIDs are small and dense on a fresh continuous
-    // integration runner, so a collision is likely rather than exotic.  Believe a live PID only
-    // while the lock file is young enough that its owner could still be provisioning.
-    long ageMillis = System.currentTimeMillis() - lockFile.lastModified()
-    if (ProcessHandle.of(pid).isPresent() && ageMillis <= LIVE_PID_LOCK_FILE_STALE_MILLIS) {
-      return
-    }
-    if (lockFile.delete()) {
-      logger.lifecycle("Deleted stale Spotless P2 lock file that names process ${pid}: ${lockFile}")
-    }
-  }
-}
-
-// A separate task rather than a "doFirst" action on the Spotless task itself:  Spotless provisions
-// the formatter while Gradle fingerprints that task's inputs, which happens before any of its
-// actions run, so a "doFirst" action would run too late to help.  A dependency runs to completion
-// before the fingerprinting does.
-//
-// The task declares no outputs, so it always runs.  That costs one "stat" of a file that usually
-// does not exist.
-def deleteStaleSpotlessP2Lock = tasks.register("deleteStaleSpotlessP2Lock") {
-  description = "Delete the Spotless P2 lock file if the process that holds it is gone."
-  def cacheDirectory = spotlessP2CacheDir
-  doLast {
-    SpotlessP2.deleteStaleLockFile(cacheDirectory, logger)
-  }
-}
-
-// "spotlessGroovyGradle" is the task that provisions and runs the formatter; "...Check" and
-// "...Apply" depend on it.  Matching by prefix covers all three, in case that ever changes.
-tasks.matching { it.name.startsWith("spotlessGroovyGradle") }.configureEach {
-  dependsOn(deleteStaleSpotlessP2Lock)
-}
-
 // Generated files, a checkout of another repository, and test data, none of which should be
 // reformatted.
 def spotlessExclusions = [
@@ -415,7 +314,18 @@ spotless {
     targetExclude(*spotlessExclusions)
 
     def greclipseConfig = greclipse(libs.versions.greclipse.get())
-    greclipseConfig.cacheDirectory(spotlessP2CacheDir)
+    // Spotless caches the Groovy-Eclipse formatter that it provisions from P2 repositories.  Naming
+    // the cache directory, rather than accepting Spotless's default, keeps the location stable: the
+    // default has moved between Spotless versions and is not documented as being stable.
+    // .github/workflows/gradle.yml caches this directory, and .github/workflows/prek.yaml restores
+    // it, because downloading its ~140 MB of contents intermittently fails with "Failed to
+    // provision P2 dependencies".
+    //
+    // Both workflows compute this same path, from GRADLE_USER_HOME if it is set and from ~/.gradle
+    // otherwise, which is how Gradle itself resolves `gradle.gradleUserHomeDir`.  Keep those
+    // computations in step with this line; caching the wrong directory fails silently, as a run
+    // that downloads the whole formatter again.
+    greclipseConfig.cacheDirectory(new File(gradle.gradleUserHomeDir, "spotless-p2"))
     greclipseConfig.withP2Mirrors([
       "https://download.eclipse.org/": "https://mirror.umd.edu/eclipse/",
       // Not a no-op:  as soon as the mirror map is non-empty, Spotless rewrites every P2 repository

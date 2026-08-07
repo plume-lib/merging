@@ -46,7 +46,7 @@ jobs:
       # no network requests to the P2 repositories.  Caching some other directory would fail
       # silently, as a run that downloads the whole formatter again, so derive the path the way
       # Gradle resolves `gradle.gradleUserHomeDir` rather than writing "~/.gradle" and assuming that
-      # nothing sets GRADLE_USER_HOME.  Compare `./gradlew printSpotlessP2CacheDir`.
+      # nothing sets GRADLE_USER_HOME.
       - name: Compute the Spotless P2 cache directory
         id: spotless-p2-dir
         run: |

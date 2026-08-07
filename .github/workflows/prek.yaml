@@ -20,15 +20,13 @@ jobs:
       # to "restore-keys" and accepts whatever the "spotless" job saved most recently, including a
       # partial entry.  That is deliberate:  it avoids repeating that job's version-derived key
       # here, where it would be a second copy to keep in step.  An entry for another formatter
-      # version costs nothing, because Solstice downloads whatever the restored directory lacks, and
-      # a partial entry can carry a stale lock file, which build.gradle's
-      # "deleteStaleSpotlessP2Lock" task deletes.
+      # version costs nothing, because Solstice downloads whatever the restored directory lacks.
       #
       # The directory, unlike the key, must match what build.gradle passes to
       # `greclipseConfig.cacheDirectory`, so derive it the way Gradle resolves
       # `gradle.gradleUserHomeDir` rather than writing "~/.gradle" and assuming that nothing sets
       # GRADLE_USER_HOME.  Restoring some other directory would fail silently, as a run that
-      # downloads the whole formatter again.  Compare `./gradlew printSpotlessP2CacheDir`.
+      # downloads the whole formatter again.
       - name: Compute the Spotless P2 cache directory
         id: spotless-p2-dir
         run: |
