@@ -11,4 +11,22 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
           cache: 'gradle'
+      # A hook in prek.toml runs Spotless's Groovy-Eclipse formatter when a .gradle file changes.
+      # Restoring the cache that the "spotless" job of gradle.yml saves lets that hook run without
+      # downloading from the Eclipse P2 repositories, which fails often.  This job never saves the
+      # cache, because most runs of this job do not populate it.
+      #
+      # The key is a bare prefix that matches no entry exactly, so the restore always falls through
+      # to "restore-keys" and accepts whatever the "spotless" job saved most recently, including a
+      # partial entry.  That is deliberate:  it avoids repeating that job's version-derived key
+      # here, where it would be a second copy to keep in step.  An entry for another formatter
+      # version costs nothing, because Solstice downloads whatever the restored directory lacks, and
+      # a partial entry can carry a stale lock file, which build.gradle's
+      # "deleteStaleSpotlessP2Lock" task deletes.
+      - name: Restore Spotless P2 cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.gradle/spotless-p2
+          key: spotless-p2-${{ runner.os }}-
+          restore-keys: spotless-p2-${{ runner.os }}-
       - uses: j178/prek-action@v3.0.0
