@@ -21,6 +21,8 @@ exclude = { glob = [
   "**/COPYING",
   "**/*expected*",
   "src/main/resources/specifications/jdk/*",
+  # End-to-end test data, whose exact bytes matter: some files intentionally have trailing
+  # whitespace, lack a final line separator, or use CRLF line separators.
   "src/test/resources/end-to-end/**/*",
 ] }
 
@@ -115,10 +117,9 @@ hooks = [
 
 # https://github.com/ORCID/pre-commit-spotless requires use of a spotless.xml file.
 
-# There is one hook per Spotless format, rather than a single hook that runs `spotlessApply`,
-# because `spotlessGroovyGradleApply` downloads the Groovy-Eclipse formatter from Eclipse P2
-# repositories.  That download is slow and it often fails, so only a change to a .gradle file
-# should require it.
+# Separate hook for Groovy because `spotlessGroovyGradleApply` downloads the Groovy-Eclipse
+# formatter from Eclipse P2 repositories.  That download is slow and it often fails, so only a
+# change to a .gradle file should require it.
 [[repos]]
 repo = "local"
 hooks = [

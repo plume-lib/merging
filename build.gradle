@@ -323,10 +323,7 @@ spotless {
     def greclipseConfig = greclipse(libs.versions.greclipse.get())
     greclipseConfig.withP2Mirrors([
       "https://download.eclipse.org/": "https://mirror.umd.edu/eclipse/",
-      // Not a no-op:  as soon as the mirror map is non-empty, Spotless rewrites every P2 repository
-      // URL through it and throws IllegalStateException for a URL that matches no prefix, rather
-      // than leaving that URL alone.  This identity entry is what lets the Groovy repository keep
-      // its own address.
+      // Not a no-op:  Spotless rewrites every P2 repository through the map if it exists.
       "https://groovy.jfrog.io/": "https://groovy.jfrog.io/",
     ])
 
