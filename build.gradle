@@ -310,6 +310,12 @@ class SpotlessP2 {
   // one whose owner has not yet written its PID.
   private static final long EMPTY_LOCK_FILE_GRACE_MILLIS = 60000
 
+  // How old a lock file whose PID names a live process must be before it is treated as abandoned
+  // anyway.  Solstice holds the lock only while it provisions the formatter, which takes a few
+  // minutes at worst, so a much older lock file names some unrelated process that happens to have
+  // the same PID.
+  private static final long LIVE_PID_LOCK_FILE_STALE_MILLIS = 1800000
+
   static void deleteStaleLockFile(File cacheDirectory, Logger logger) {
     File lockFile = new File(new File(cacheDirectory, "metadata"), ".lock")
     if (!lockFile.isFile()) {
@@ -330,15 +336,17 @@ class SpotlessP2 {
       }
       return
     }
-    // A PID that the operating system has recycled looks like the original owner, which leaves the
-    // lock file in place.  That is the behavior that this method is avoiding, but erring in this
-    // direction merely fails to improve on Solstice, whereas deleting a live process's lock file
-    // would let two processes write the cache at once.
-    if (ProcessHandle.of(pid).isPresent()) {
+    // A live PID does not prove that the lock is held.  The operating system recycles PIDs, and a
+    // lock file that the cache restored was written on a different machine, where the PID names an
+    // unrelated process if it names anything -- PIDs are small and dense on a fresh continuous
+    // integration runner, so a collision is likely rather than exotic.  Believe a live PID only
+    // while the lock file is young enough that its owner could still be provisioning.
+    long ageMillis = System.currentTimeMillis() - lockFile.lastModified()
+    if (ProcessHandle.of(pid).isPresent() && ageMillis <= LIVE_PID_LOCK_FILE_STALE_MILLIS) {
       return
     }
     if (lockFile.delete()) {
-      logger.lifecycle("Deleted stale Spotless P2 lock file of dead process ${pid}: ${lockFile}")
+      logger.lifecycle("Deleted stale Spotless P2 lock file that names process ${pid}: ${lockFile}")
     }
   }
 }

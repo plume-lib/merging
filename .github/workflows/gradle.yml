@@ -52,6 +52,7 @@ jobs:
           key: ${{ steps.spotless-p2-key.outputs.key }}
           restore-keys: ${{ steps.spotless-p2-key.outputs.key }}-partial-
       - name: ./gradlew spotlessCheck
+        id: spotless-check
         run: |
           set -o pipefail
           for attempt in 1 2 3; do
@@ -63,7 +64,12 @@ jobs:
               # download the Groovy-Eclipse formatter.  Retrying would not help.
               exit 1
             fi
-            sleep $((30 * attempt))
+            # The partial cache below is worth saving only for this kind of failure, so record that
+            # it happened.  The step's exit status does not distinguish the two kinds.
+            echo "p2-failure=true" >> "$GITHUB_OUTPUT"
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((30 * attempt))
+            fi
           done
           exit 1
       # A cache that a successful run saves is complete, so later runs can use it without any
@@ -80,13 +86,15 @@ jobs:
       # never masquerade as a complete one:  it is reachable only through "restore-keys", and the
       # next successful run supersedes it.
       #
-      # Nothing is saved if the restore was an exact hit, because then the cache already holds
-      # everything that this run had, and the failure lies elsewhere.  Without that condition, every
-      # such failure would write another ~140MB entry that duplicates the complete one.  Entries are
-      # evicted least-recently-used once a repository holds 10GB of them, so needless entries push
-      # out the Gradle caches that "setup-java" maintains.
+      # Nothing is saved unless the download is what failed, and unless the restore was not an exact
+      # hit.  After an exact hit the cache already holds everything that this run had, and the
+      # failure lies elsewhere; after a formatting violation the directory holds nothing that the
+      # cache lacks.  Without those conditions, every such failure would write another ~140MB entry
+      # that duplicates the complete one.  Entries are evicted least-recently-used once a repository
+      # holds 10GB of them, so needless entries push out the Gradle caches that "setup-java"
+      # maintains.
       - name: Save a partial Spotless P2 cache
-        if: failure() && steps.restore-spotless-p2.outputs.cache-hit != 'true'
+        if: failure() && steps.spotless-check.outputs.p2-failure == 'true' && steps.restore-spotless-p2.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: ~/.gradle/spotless-p2

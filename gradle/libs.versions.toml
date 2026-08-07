@@ -46,8 +46,6 @@ picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 
-junit-platform-native = "org.graalvm.buildtools:junit-platform-native:1.1.7"
-
 plume-util = { module = "org.plumelib:plume-util", version = "2.0.0" }
 
 # Version only:  for the PMD plugin's `toolVersion`.
