@@ -38,7 +38,7 @@ fi
 # status 2 if there is nothing to run.
 #
 # The `--add-exports` arguments below correspond to `javacInternalPackages` in
-# build.gradle; keep the two lists in sync.
+# build.gradle.kts; keep the two lists in sync.
 run_plumelib_merge() {
   plumelib_subcommand="$1"
   shift

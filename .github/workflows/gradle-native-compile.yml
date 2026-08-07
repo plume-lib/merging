@@ -29,8 +29,7 @@ jobs:
           native-image-job-reports: 'true'
       # -PtestNative makes `check` build the native executable and makes the
       # Makefile tests run that executable rather than the fat jar.
-      # The "spotless" job in gradle.yml performs the formatting checks; running them here too
-      # would provision the Groovy-Eclipse formatter from Eclipse P2 repositories in every job of
-      # this matrix as well, and each such download can fail.
+      # The "spotless" job in gradle.yml performs the formatting checks, which do not depend on the
+      # Java version, so running them here too would be wasted work.
       - name: ./gradlew check -PtestNative
         run: ./gradlew check -PtestNative -x spotlessCheck

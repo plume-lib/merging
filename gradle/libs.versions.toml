@@ -2,16 +2,14 @@
 
 checker-framework = "4.2.2"
 
-# build.gradle uses this both as a dependency version and as the google-java-format version for
+# build.gradle.kts uses this both as a dependency version and as the google-java-format version for
 # Spotless, so that this project is formatted by the same version that it calls.
 google-java-format = "1.33.0"
 
-# The Groovy-Eclipse formatter, which Spotless applies to .gradle files.  The version is an Eclipse
-# release, not a Groovy-Eclipse release.  Spotless permits version 4.36 on JVM 17+ and version 4.40
-# on JVM 21+.
-greclipse = "4.36"
-
 jacoco = "0.8.15"
+
+# The formatter that Spotless applies to .gradle.kts files.
+ktfmt = "0.63"
 
 junit-jupiter = "6.1.2"
 
@@ -22,8 +20,8 @@ pmd = "7.26.0"
 [libraries]
 
 # Some entries below are not dependencies.  Each such entry exists so that a dependency-update tool
-# such as Renovate proposes new versions of a tool whose version build.gradle reads, by itself, via
-# "libs.versions.*".  Each such entry is marked "Version only".
+# such as Renovate proposes new versions of a tool whose version build.gradle.kts reads, by itself,
+# via "libs.versions.*".  Each such entry is marked "Version only".
 
 # Version only:  the org.checkerframework Gradle plugin adds the dependency, from
 # `checkerFramework.version`.
@@ -41,6 +39,9 @@ javac-parse = { module = "org.plumelib:javac-parse", version = "1.0.0" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-jupiter" }
+
+# Version only:  for Spotless's `ktfmt` step.
+ktfmt = { module = "com.facebook:ktfmt", version.ref = "ktfmt" }
 
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 
