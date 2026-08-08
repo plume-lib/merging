@@ -4,7 +4,7 @@ checker-framework = "4.2.2"
 
 # build.gradle.kts uses this both as a dependency version and as the google-java-format version for
 # Spotless, so that this project is formatted by the same version that it calls.
-google-java-format = "1.33.0"
+google-java-format = "1.36.1"
 
 jacoco = "0.8.15"
 
