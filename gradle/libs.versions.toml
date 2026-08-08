@@ -9,7 +9,7 @@ google-java-format = "1.33.0"
 jacoco = "0.8.15"
 
 # The formatter that Spotless applies to .gradle.kts files.
-ktfmt = "0.63"
+ktfmt = "0.64"
 
 junit-jupiter = "6.1.3"
 
