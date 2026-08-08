@@ -11,7 +11,7 @@ jacoco = "0.8.15"
 # The formatter that Spotless applies to .gradle.kts files.
 ktfmt = "0.63"
 
-junit-jupiter = "6.1.2"
+junit-jupiter = "6.1.3"
 
 picocli = "4.7.7"
 
