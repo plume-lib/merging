@@ -1,3 +1,13 @@
+val minimumJavaVersion = JavaVersion.VERSION_21
+
+if (JavaVersion.current() < minimumJavaVersion) {
+  throw GradleException(
+    "This build requires Gradle to run under Java $minimumJavaVersion or later," +
+      " but Gradle is running under Java ${JavaVersion.current()}" +
+      " from ${System.getProperty("java.home")}."
+  )
+}
+
 // This project's class files are Java 21 class files, because build.gradle.kts cannot use
 // `--release` (which is incompatible with `--add-exports`).  An earlier JVM therefore cannot run
 // the tests.  This check must run before the `plugins` block resolves the foojay-resolver plugin.
