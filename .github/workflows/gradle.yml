@@ -23,7 +23,7 @@ jobs:
           check-latest: true
           cache: 'gradle'
       - name: ./gradlew spotlessCheck
-        run: ./gradlew spotlessCheck --stacktrace
+        run: ./gradlew spotlessCheck
 
   build:
 
