@@ -15,11 +15,14 @@ reviews:
   path_filters:
     - "!**/.gradle/**"
     - "!**/.idea/**"
-    - "!**/__init__.py"
     - "!**/build/**"
     - "!**/node_modules/**"
     - "!**/out/**"
   auto_review:
+    enabled: true
+    base_branches:
+      - ".*"
+    # If nonzero, after that many commits, must re-request review via @coderabbit review.
     auto_pause_after_reviewed_commits: 0
     ignore_title_keywords:
       - "wip"
