@@ -17,7 +17,6 @@ import picocli.CommandLine.Parameters;
 @SuppressWarnings({
   "nullness:initialization.fields.uninitialized", // picocli initializes w/reflection
   "initializedfields:contracts.postcondition", // picocli initializes w/reflection
-  "PMD.TooManyFields"
 })
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
 public class Main implements Callable<Integer> {

@@ -68,7 +68,8 @@
       "Bash(uniq:*)",
       "Bash(wc:*)",
       "Bash(which:*)",
-      "Edit(./**)",
+      "Bash(xargs cat:*)",
+      "Edit(*)",
       "Glob(*)",
       "Grep(*)",
       "NotebookEdit(*)",
@@ -79,8 +80,7 @@
       "Skill(*)",
       "TaskCreate(*)",
       "TaskUpdate(*)",
-      "WebFetch(*)",
-      "WebFetch(domain:checkerframework.org)",
+      "WebFetch(domain:*)",
       "WebSearch(*)",
       "Write(*)"
     ],
@@ -88,20 +88,30 @@
     "ask": []
   },
   "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "jdtls-lsp@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "jdtls-lsp@claude-plugins-official": true,
     "playground@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true
+    "pr-review-toolkit@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
   },
-  "skipDangerousModePermissionPrompt": true,
   "spinnerVerbs": {
     "mode": "replace",
-    "verbs": ["Thinking", "Processing", "Working"]
-  }
+    "verbs": [
+      "Thinking",
+      "Processing",
+      "Working"
+    ]
+  },
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
+  "voiceEnabled": true
 }
