@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 1
           show-progress: false
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -39,7 +39,7 @@ jobs:
           fetch-depth: 1
           show-progress: false
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           # "setup-java" makes the last version listed the default JAVA_HOME, so Gradle itself runs
