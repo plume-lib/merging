@@ -55,7 +55,7 @@ require-javadoc = { module = "org.plumelib:require-javadoc", version = "3.0.0" }
 
 [plugins]
 
-com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.10.0" }
+com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.10.1" }
 
 com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 
