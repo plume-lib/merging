@@ -7,7 +7,7 @@ import org.plumelib.merging.fileformat.ConflictedFile;
 import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 
 /** The interface to a merger, which can be used in a git merge driver or merge tool. */
-abstract class Merger {
+public abstract class Merger {
 
   /** If true, print diagnostics for debugging. */
   protected final boolean verbose;
@@ -42,7 +42,7 @@ abstract class Merger {
    *
    * @param mergeState the merge to be improved; is side-effected
    */
-  void merge(MergeState mergeState) {
+  public void merge(MergeState mergeState) {
     if (!alwaysRun && !mergeState.hasConflict()) {
       return;
     }
@@ -84,5 +84,6 @@ abstract class Merger {
    * @param mergeState the merge state; not needed by most mergers
    * @return the new file contents, or null if no changes were made
    */
-  abstract @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState);
+  public abstract @Nullable ConflictedFile resolveConflicts(
+      ConflictedFile cf, MergeState mergeState);
 }

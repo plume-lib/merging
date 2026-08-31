@@ -9,20 +9,20 @@ import name.fraser.neil.plaintext.diff_match_patch.Patch;
 /** This class contains static methods for use with diff_match_patch. */
 public final class DmpLibrary {
 
-  /** Do not instantiate. */
-  private DmpLibrary() {
-    throw new Error("do not instantiate");
-  }
-
   /** A diff_match_patch for which context is 0; that is, Patch_Margin is 0. */
-  static final diff_match_patch dmp;
+  private static final diff_match_patch DMP;
 
   static {
-    dmp = new diff_match_patch();
+    DMP = new diff_match_patch();
     // This is essential when comparing via lines.
-    dmp.Diff_EditCost = 0;
-    dmp.Match_Threshold = 0.0f;
-    dmp.Patch_DeleteThreshold = 0.0f;
+    DMP.Diff_EditCost = 0;
+    DMP.Match_Threshold = 0.0f;
+    DMP.Patch_DeleteThreshold = 0.0f;
+  }
+
+  /** Do not instantiate. */
+  private DmpLibrary() {
+    throw new UnsupportedOperationException("do not instantiate");
   }
 
   /**
@@ -32,17 +32,17 @@ public final class DmpLibrary {
    * @param text2 a string
    * @return the differences
    */
-  @SuppressWarnings("NonApiType") // diff_match_patch specifies LinkedList
+  @SuppressWarnings({"NonApiType", "PMD.LooseCoupling"}) // diff_match_patch specifies LinkedList
   public static LinkedList<Diff> diffByLines(String text1, String text2) {
     // Convert each line to a single character.
-    LinesToCharsResult a = dmp.diff_linesToChars(text1, text2);
+    LinesToCharsResult a = DMP.diff_linesToChars(text1, text2);
 
     // Do a character-wise diff.
-    LinkedList<Diff> diffs = dmp.diff_main(a.chars1, a.chars2, false);
+    LinkedList<Diff> diffs = DMP.diff_main(a.chars1, a.chars2, false);
 
     // Convert the character-wise diff back to lines.
-    dmp.diff_charsToLines(diffs, a.lineArray);
-    // Do not call `dmp.diff_cleanupSemantic(diffs)` because it adjusts boundaries.
+    DMP.diff_charsToLines(diffs, a.lineArray);
+    // Do not call `DMP.diff_cleanupSemantic(diffs)` because it adjusts boundaries.
     // All boundaries are currently at line ends, which is where we want them.
 
     return diffs;

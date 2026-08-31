@@ -11,7 +11,7 @@ public final class GitLibrary {
 
   /** Do not instantiate. */
   private GitLibrary() {
-    throw new Error("do not instantiate");
+    throw new UnsupportedOperationException("do not instantiate");
   }
 
   // I could instead use (say) JGit, but it seems like overkill to include a whole library just for
@@ -69,7 +69,7 @@ public final class GitLibrary {
       Main.exitErroneously(
           String.format(
               "problem in: git merge-file %s %s %s", leftFileName, baseFileName, rightFileName));
-      throw new Error("unreachable"); // to tell javac that execution does not continue
+      throw new Error("unreachable", e); // to tell javac that execution does not continue
     }
 
     if (verbose) {

@@ -42,7 +42,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
   public static RDiff of(String before, String after) {
     if (before.equals(after)) {
       if (before.equals("")) {
-        return NoOp.it;
+        return NoOp.IT;
       } else {
         return new Equal(before);
       }
@@ -57,6 +57,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
    * @param diffs a list of diff_match_patch.Diff
    * @return an equivalent list of RDiff
    */
+  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
     List<RDiff> result = new ArrayList<>();
 
@@ -250,10 +251,10 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
   /** A replacement operation. */
   public static final class Replace extends RDiff {
     /** The text being replaced. */
-    String before;
+    private final String before;
 
     /** The replacement text. */
-    String after;
+    private final String after;
 
     /**
      * Creates a Replace operation.
@@ -262,6 +263,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
      * @param after the replacement text
      */
     private Replace(String before, String after) {
+      super();
       this.before = before;
       this.after = after;
     }
@@ -290,7 +292,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
   /** An insertion operation. */
   public static final class Insert extends RDiff {
     /** The text being inserted. */
-    String text;
+    private final String text;
 
     /**
      * Creates an insertion operation.
@@ -298,6 +300,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
      * @param text the text being inserted
      */
     private Insert(String text) {
+      super();
       this.text = text;
     }
 
@@ -320,7 +323,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
   /** An equality operation. */
   public static final class Equal extends RDiff {
     /** The text that is unchanged. */
-    String text;
+    private final String text;
 
     /**
      * Creates an equality operation.
@@ -328,6 +331,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
      * @param text the text that is unchanged
      */
     private Equal(String text) {
+      super();
       this.text = text;
     }
 
@@ -372,10 +376,12 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
 
     /** The no-op operation. */
     @SuppressWarnings("interning:interned.object.creation") // create the singleton object
-    public static final NoOp it = new NoOp();
+    public static final NoOp IT = new NoOp();
 
     /** Creates a no-op operation. */
-    private NoOp() {}
+    private NoOp() {
+      super();
+    }
 
     @Override
     public String preText() {
@@ -423,7 +429,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
       if (edit1 == null) {
         assert edit2 != null : "@AssumeAssertion(nullness): at most one editN is null";
         assert edit2.preText().isEmpty();
-        result1.add(NoOp.it);
+        result1.add(NoOp.IT);
         result2.add(edit2);
         edit2 = itor2.hasNext() ? itor2.next() : null;
         continue;
@@ -432,7 +438,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
         assert edit1.preText().isEmpty();
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
-        result2.add(NoOp.it);
+        result2.add(NoOp.IT);
         continue;
       }
       int preLen1 = edit1.preText().length();
@@ -446,9 +452,9 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
       } else if (preLen1 == 0) {
         result1.add(edit1);
         edit1 = itor1.hasNext() ? itor1.next() : null;
-        result2.add(NoOp.it);
+        result2.add(NoOp.IT);
       } else if (preLen2 == 0) {
-        result1.add(NoOp.it);
+        result1.add(NoOp.IT);
         result2.add(edit2);
         edit2 = itor2.hasNext() ? itor2.next() : null;
       } else if (preLen1 < preLen2) {

@@ -37,6 +37,16 @@ import org.plumelib.util.StringsP;
  */
 public class JavaImportsMerger extends Merger {
 
+  /** Matches an import line in a Java program. */
+  private static final @Regex(1) Pattern IMPORT_LINE =
+      Pattern.compile(
+          "^\\s*+import\\s++(?:static\\s++)?+("
+              + JavaAnnotationsMerger.javaDottedIdentifiersRegex
+              + ")\\s*+;\\s*+\\R?$");
+
+  /** Matches horizontal whitespace. */
+  private static final Pattern HORIZONTAL_SPACE = Pattern.compile("\\s+");
+
   /**
    * Creates a JavaImportsMerger.
    *
@@ -47,7 +57,7 @@ public class JavaImportsMerger extends Merger {
   }
 
   @Override
-  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
+  public @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<MergeConflict> mcs = cf.mergeConflicts();
 
@@ -101,7 +111,7 @@ public class JavaImportsMerger extends Merger {
           Diff3File.from3paths(mergeState.leftPath, mergeState.basePath, mergeState.rightPath);
     } catch (Diff3ParseException e) {
       Main.exitErroneously(e.getMessage());
-      throw new Error("unreachable");
+      throw new Error("unreachable", e);
     }
 
     // Iterate through the diffs, adding lines to the file.
@@ -165,7 +175,7 @@ public class JavaImportsMerger extends Merger {
    * @param mc a merge conflict
    * @return true if the argument has non-{@code import} lines
    */
-  static boolean isOutsideImports(MergeConflict mc) {
+  private static boolean isOutsideImports(MergeConflict mc) {
     List<String> base = mc.base();
     return !(isImportBlock(mc.left())
         && isImportBlock(mc.right())
@@ -179,7 +189,7 @@ public class JavaImportsMerger extends Merger {
    * @param lines some lines of code
    * @return true if the argument is an import block
    */
-  static boolean isImportBlock(List<String> lines) {
+  private static boolean isImportBlock(List<String> lines) {
     return CollectionsP.allMatch(lines, JavaLibrary::isImportBlockLine);
   }
 
@@ -193,7 +203,7 @@ public class JavaImportsMerger extends Merger {
    * @param diff3file the diffs
    * @return the lines of the file, after inserting more import statements
    */
-  List<String> insertRemovedImports(List<String> fileLines, Diff3File diff3file) {
+  private List<String> insertRemovedImports(List<String> fileLines, Diff3File diff3file) {
 
     // Find the first and last import lines in the file.
     // These are 1-based, so the first line in the file is line 1; therefore, these cannot be used
@@ -459,9 +469,10 @@ public class JavaImportsMerger extends Merger {
    * @param javaCode2 the second Java program
    * @return the deleted and changed imports, each as a list of dotted identifiers
    */
-  IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
+  private IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
     // This implementation is hacky in that it works textually instead of parsing the Java code.
     // So, it will not handle bizarrely formatted code.
+    @SuppressWarnings({"NonApiType", "PMD.LooseCoupling"}) // diff_match_patch specifies LinkedList
     LinkedList<Diff> diffs = DmpLibrary.diffByLines(javaCode1, javaCode2);
     List<String> deleted = new ArrayList<>();
     List<String> inserted = new ArrayList<>();
@@ -488,7 +499,7 @@ public class JavaImportsMerger extends Merger {
         }
       }
     }
-    HashSet<String> intersection = new HashSet<>(deleted);
+    Set<String> intersection = new HashSet<>(deleted);
     intersection.retainAll(inserted);
     deleted.removeAll(intersection);
     inserted.removeAll(intersection);
@@ -504,7 +515,7 @@ public class JavaImportsMerger extends Merger {
    * @param javaCode2 the second Java program
    * @return the renamed imports, as a list of dotted identifiers (for their old names)
    */
-  List<String> renamedImports(String javaCode1, String javaCode2) {
+  private List<String> renamedImports(String javaCode1, String javaCode2) {
     IPair<List<String>, List<String>> changedImports = changedImports(javaCode1, javaCode2);
     List<String> deleted = changedImports.first;
     List<String> inserted = changedImports.second;
@@ -542,16 +553,6 @@ public class JavaImportsMerger extends Merger {
     }
   }
 
-  /** Matches an import line in a Java program. */
-  private static @Regex(1) Pattern importLine =
-      Pattern.compile(
-          "^\\s*+import\\s++(?:static\\s++)?+("
-              + JavaAnnotationsMerger.javaDottedIdentifiersRegex
-              + ")\\s*+;\\s*+\\R?$");
-
-  /** Matches horizontal whitespace. */
-  private static Pattern horizontalSpace = Pattern.compile("\\s+");
-
   /**
    * If the given line is an import statement, then return what is being imported, as a
    * fully-qualified dotted identifier.
@@ -559,13 +560,12 @@ public class JavaImportsMerger extends Merger {
    * @param line a line of code
    * @return what is being imported, or null if the line isn't an import statement
    */
-  static @Nullable String getImportedType(String line) {
-    @Regex(1) Matcher m = importLine.matcher(line);
+  private static @Nullable String getImportedType(String line) {
+    @Regex(1) Matcher m = IMPORT_LINE.matcher(line);
     if (m.matches()) {
       @SuppressWarnings("nullness:assignment") // this ought to type-check
       @NonNull String withSpaces = m.group(1);
-      String withoutSpaces = horizontalSpace.matcher(withSpaces).replaceAll("");
-      return withoutSpaces;
+      return HORIZONTAL_SPACE.matcher(withSpaces).replaceAll("");
     } else {
       return null;
     }

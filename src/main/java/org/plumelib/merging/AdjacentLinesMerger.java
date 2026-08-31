@@ -26,8 +26,9 @@ public class AdjacentLinesMerger extends Merger {
     super(verbose);
   }
 
+  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   @Override
-  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
+  public @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<ConflictElement> hunks = cf.hunks();
     if (hunks == null) {
@@ -65,8 +66,7 @@ public class AdjacentLinesMerger extends Merger {
     if (verbose) {
       // System.out.printf("AdjacentLinesMerger: after replacement = %s%n", newLines);
     }
-    ConflictedFile result = new ConflictedFile(newLines, cf.path);
-    return result;
+    return new ConflictedFile(newLines, cf.path);
   }
 
   /**
@@ -76,7 +76,6 @@ public class AdjacentLinesMerger extends Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
-  @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable List<String> mergedWithAdjacent(MergeConflict mc) {
     String baseJoined = mc.baseJoined();
     if (baseJoined == null) {
@@ -134,7 +133,6 @@ public class AdjacentLinesMerger extends Merger {
    * @param mc the merge conflict, which includes the base, left, and right texts
    * @return the merged differences or null
    */
-  @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable List<String> mergedSameLength(MergeConflict mc) {
     List<String> mcBase = mc.base();
     if (mcBase == null) {
