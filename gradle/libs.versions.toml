@@ -1,6 +1,6 @@
 [versions]
 
-checker-framework = "4.2.2"
+checker-framework = "4.2.3"
 
 # build.gradle.kts uses this both as a dependency version and as the google-java-format version for
 # Spotless, so that this project is formatted by the same version that it calls.
