@@ -20,6 +20,7 @@ jobs:
         with:
           fetch-depth: 1
           show-progress: false
+          persist-credentials: false
       - name: Set up JDK
         uses: graalvm/setup-graalvm@v1
         with:

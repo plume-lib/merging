@@ -1,6 +1,6 @@
 [versions]
 
-checker-framework = "4.2.2"
+checker-framework = "4.2.3"
 
 # build.gradle.kts uses this both as a dependency version and as the google-java-format version for
 # Spotless, so that this project is formatted by the same version that it calls.
@@ -55,7 +55,7 @@ require-javadoc = { module = "org.plumelib:require-javadoc", version = "3.0.0" }
 
 [plugins]
 
-com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.10.1" }
+com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.10.2" }
 
 com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 
@@ -63,4 +63,4 @@ net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.1" }
 
 org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
 
-org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.11" }
+org-graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version = "1.1.12" }
