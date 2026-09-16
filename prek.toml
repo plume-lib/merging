@@ -20,6 +20,8 @@ exclude = { glob = [
   "**/*.svg",
   "**/*expected*",
   "**/COPYING",
+  "gradlew",
+  "gradlew.bat",
   "src/main/resources/specifications/jdk/*",
   "src/test/resources/end-to-end/**/*",
   "tests/kvasir-tests/povray/*",
@@ -244,7 +246,6 @@ hooks = [
     "-bn",
     "-sr",
   ], exclude = { glob = [
-    "gradlew",
     "share/addrfilter",
     "dots/conda-initialize.sh",
     "conda-initialize.sh",
@@ -262,7 +263,6 @@ hooks = [
 #     "share/print-mail",
 #     "share/myxapps",
 #     "share/javapp",
-#     "gradlew",
 #   ] } },
 # ]
 
