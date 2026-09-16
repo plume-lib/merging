@@ -33,13 +33,6 @@ jobs:
     strategy:
       matrix:
         java: ['21', '25', '27-ea']
-        # "setup-java" names its "JAVA_HOME_<version>_<arch>" environment variable after the major
-        # version alone, so an early-access version such as "27-ea" yields "JAVA_HOME_27_X64".
-        # GitHub Actions expressions cannot strip the "-ea" suffix, so the matrix supplies the bare
-        # major version separately.  These "include" entries match existing "java" values, so they
-        # add "javaMajor" to those jobs rather than creating new ones, and the job names are
-        # unchanged.  "javaMajor" is also what Gradle's "-PtestJavaVersion" requires, since
-        # "JavaLanguageVersion.of" rejects a non-numeric string.
         include:
           - java: '21'
             javaMajor: '21'
