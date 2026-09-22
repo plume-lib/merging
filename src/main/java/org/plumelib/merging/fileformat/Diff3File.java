@@ -12,8 +12,8 @@ import org.checkerframework.checker.modifiability.qual.Growable;
 import org.checkerframework.checker.modifiability.qual.IteratorPolyMod;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.util.CollectionsPlume;
-import org.plumelib.util.FilesPlume;
+import org.plumelib.util.CollectionsP;
+import org.plumelib.util.FilesP;
 import org.plumelib.util.IPair;
 
 // TODO: Parsing could use LineNumberReader instead of reading the entire file at once.  That would
@@ -60,7 +60,7 @@ public final class Diff3File {
    * @throws Diff3ParseException if there is a problem parsing the file
    */
   public static Diff3File parseFile(String filename) throws Diff3ParseException {
-    return parseFileContents(FilesPlume.readString(Path.of(filename)), filename);
+    return parseFileContents(FilesP.readString(Path.of(filename)), filename);
   }
 
   /**
@@ -174,7 +174,8 @@ public final class Diff3File {
      * @throws Diff3ParseException if the input is malformed
      */
     @SuppressWarnings("PMD.AvoidThrowingNewInstanceOfSameException") // false positive warning
-    public static int parse(List<String> lines, int start, @Growable @IteratorPolyMod List<Diff3Hunk> sink)
+    public static int parse(
+        List<String> lines, int start, @Growable @IteratorPolyMod List<Diff3Hunk> sink)
         throws Diff3ParseException {
       if (verbose) {
         System.out.printf("Starting to parse hunk starting at line %d.%n", start);
@@ -212,7 +213,10 @@ public final class Diff3File {
        * @throws Diff3ParseException if the input is malformed
        */
       private static int parse(
-          List<String> lines, int startLine, Diff3HunkKind kind, @Growable @IteratorPolyMod List<Diff3Hunk> sink)
+          List<String> lines,
+          int startLine,
+          Diff3HunkKind kind,
+          @Growable @IteratorPolyMod List<Diff3Hunk> sink)
           throws Diff3ParseException {
         if (verbose) {
           System.out.printf("Starting to parse 3 sections at line %s.%n", startLine + 1);
@@ -301,7 +305,7 @@ public final class Diff3File {
        * Returns a new ThreeSections, with each section's lines filled in.
        *
        * @param kind the kind of diff3 hunk that the three sections belong in
-       * @return a ThreeSections with each sections line's filled in
+       * @return a ThreeSections with each section's lines filled in
        */
       private ThreeSections fillIn(Diff3HunkKind kind) {
 
@@ -378,7 +382,7 @@ public final class Diff3File {
     ONE_DIFFERS,
     /** Section 2 text differs, sections 1 and 3 have the same text. */
     TWO_DIFFERS,
-    /** Section 2 text differs, sections 2 and 3 have the same text. */
+    /** Section 3 text differs, sections 1 and 2 have the same text. */
     THREE_DIFFERS,
     /** All three sections differ. */
     THREE_WAY;
@@ -467,7 +471,7 @@ public final class Diff3File {
     public String toString(@GuardSatisfied Diff3HunkSection this) {
       return String.format(
           "Diff3HunkSection[command=%s, lines=%s]",
-          command, CollectionsPlume.mapList(s -> s + System.lineSeparator(), lines));
+          command, CollectionsP.mapList(s -> s + System.lineSeparator(), lines));
     }
   }
 
@@ -623,7 +627,7 @@ public final class Diff3File {
     static final long serialVersionUID = 20240331;
 
     /**
-     * Creates a Diff3ParseException3.
+     * Creates a Diff3ParseException.
      *
      * @param message the descriptive message
      */
@@ -632,7 +636,7 @@ public final class Diff3File {
     }
 
     /**
-     * Creates a Diff3ParseException3.
+     * Creates a Diff3ParseException.
      *
      * @param message the descriptive message
      * @param cause the underlying exception

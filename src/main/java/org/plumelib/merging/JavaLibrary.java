@@ -2,7 +2,7 @@ package org.plumelib.merging;
 
 import java.util.List;
 import java.util.regex.Pattern;
-import org.plumelib.util.CollectionsPlume;
+import org.plumelib.util.CollectionsP;
 
 /** This class contains static methods related to Java code. */
 public final class JavaLibrary {
@@ -48,11 +48,11 @@ public final class JavaLibrary {
    * @return the comment lines in the input
    */
   public static List<String> commentLines(List<String> lines) {
-    return CollectionsPlume.filter(lines, JavaLibrary::isCommentLine);
+    return CollectionsP.filter(lines, JavaLibrary::isCommentLine);
   }
 
   /**
-   * A pattern that matches an package line in Java code. Does not match package lines with a
+   * A pattern that matches a package line in Java code. Does not match package lines with a
    * trailing comment.
    */
   private static Pattern packagePattern = Pattern.compile("\\s*package\\s.*;\\R?");
@@ -116,7 +116,7 @@ public final class JavaLibrary {
   }
 
   /**
-   * Given a line of code, return true if can appear in an import block: it is an {@code import},
+   * Given a line of code, return true if it can appear in an import block: it is an {@code import},
    * blank line, or comment.
    *
    * @param line a line of code
@@ -140,6 +140,8 @@ public final class JavaLibrary {
    * @param lines code lines
    * @return the zero-based line number of the first line that does not start within a comment
    */
+  // TODO: This method violates its documented contract: it skips a leading plain-code line, so
+  // `["code", "/* c"]` returns 1 when it should return 0.
   public static int firstOutsideCommentLine(List<String> lines) {
     int linesSize = lines.size();
     for (int i = 0; i < linesSize; i++) {

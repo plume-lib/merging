@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.plumelib.merging.fileformat.RDiff;
 import org.plumelib.util.IPair;
 
-public class RDiffTest {
+final class RDiffTest {
+
+  /** Creates a new RDiffTest. */
+  RDiffTest() {}
 
   @Test
   void cueball() {

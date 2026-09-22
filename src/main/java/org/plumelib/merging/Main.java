@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.plumelib.merging.fileformat.ConflictedFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -18,8 +17,6 @@ import picocli.CommandLine.Parameters;
 @SuppressWarnings({
   "nullness:initialization.fields.uninitialized", // picocli initializes w/reflection
   "initializedfields:contracts.postcondition", // picocli initializes w/reflection
-  "PMD.ShortClassName",
-  "PMD.TooManyFields"
 })
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
 public class Main implements Callable<Integer> {
@@ -31,7 +28,7 @@ public class Main implements Callable<Integer> {
   @Parameters(index = "0", description = "\"driver\" or \"tool\"")
   MergeMode command;
 
-  /** The left or current file file; is overwritten by a merge driver. */
+  /** The left or current file; is overwritten by a merge driver. */
   @Parameters(index = "1", description = "The left, or current, file")
   Path leftPath;
 
@@ -106,7 +103,7 @@ public class Main implements Callable<Integer> {
       names = "--only-version-numbers",
       description = "Only merge version numbers",
       defaultValue = "false")
-  public boolean only_version_numbers = true;
+  public boolean only_version_numbers = false;
 
   /** If true, print diagnostics for debugging. */
   @Option(names = "--verbose", description = "Print diagnostics", defaultValue = "false")
@@ -319,10 +316,6 @@ public class Main implements Callable<Integer> {
           "status %d for: git merge-file %s %s %s%n",
           gitMergeFileExitCode, leftPath, basePath, rightPath);
     }
-
-    // Look for trivial merge conflicts
-    ConflictedFile cf = new ConflictedFile(leftPath);
-    cf.hunks();
 
     return new MergeState(
         leftFileSavedPath, basePath, rightPath, leftPath, gitMergeFileExitCode != 0);

@@ -1,0 +1,4 @@
+plugins {
+  // Checker Framework pluggable type-checking
+  id "org.checkerframework" version "0.6.39"
+}

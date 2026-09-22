@@ -27,7 +27,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.plumelib.util.StringsPlume;
+import org.plumelib.util.StringsP;
 
 /*
  * Functions for diff, match and patch.
@@ -2356,7 +2356,7 @@ public class diff_match_patch {
      * @return text version.
      */
     public String toString() {
-      String prettyText = StringsPlume.escapeNonASCII(text);
+      String prettyText = StringsP.escapeNonASCII(text);
       return "Diff(" + this.operation + ",\"" + prettyText + "\")";
     }
 

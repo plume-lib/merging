@@ -28,7 +28,7 @@ public class AdjacentDynamicProgramming {
   // all the lists are empty.
   // However, it's OK if only two of the three elements are the same.
 
-  // Let the three lengths be aL, bL, cL.  If (aL > bL + cL) || (bL > aL + cL) || (cL > aL + cL),
+  // Let the three lengths be aL, bL, cL.  If (aL > bL + cL) || (bL > aL + cL) || (cL > aL + bL),
   // then no solution is possible.
   // We can apply this rule to the lists yet to process, or to the amount of the lists that have
   // been processed so far.
@@ -62,7 +62,7 @@ public class AdjacentDynamicProgramming {
   private static final boolean debug = false;
 
   /** The maximum table size that will be attempted. */
-  private static int MAX_TABLE_SIZE = 10_000_000;
+  private static final int MAX_TABLE_SIZE = 10_000_000;
 
   /** Indicates that a given table entry is unreachable. */
   @SuppressWarnings("interning:assignment") // unique assignment
@@ -95,8 +95,8 @@ public class AdjacentDynamicProgramming {
    * Creates a new AdjacentDynamicProgramming.
    *
    * @param a the first parent
-   * @param b the base
-   * @param c the second parent
+   * @param c the base
+   * @param b the second parent
    */
   public AdjacentDynamicProgramming(List<String> a, List<String> c, List<String> b) {
     IMPOSSIBLE.add("IMPOSSIBLE");
@@ -108,7 +108,7 @@ public class AdjacentDynamicProgramming {
     bLen = b.size();
     if (!possibleLengths(aLen, cLen, bLen)) {
       table = null;
-    } else if (aLen * cLen * bLen > MAX_TABLE_SIZE) {
+    } else if ((aLen + 1) * (cLen + 1) * (bLen + 1) > MAX_TABLE_SIZE) {
       table = null;
     } else {
       @SuppressWarnings("unchecked")
@@ -212,6 +212,7 @@ public class AdjacentDynamicProgramming {
         List<String> prev = table[iA - 1][0][iB - 1];
         if (prev == IMPOSSIBLE) {
           table[iA][0][iB] = IMPOSSIBLE;
+          continue;
         }
         String aElt = a.get(iA - 1);
         String bElt = b.get(iB - 1);
@@ -230,6 +231,7 @@ public class AdjacentDynamicProgramming {
         List<String> prev = table[iA - 1][iC - 1][0];
         if (prev == IMPOSSIBLE) {
           table[iA][iC][0] = IMPOSSIBLE;
+          continue;
         }
         String aElt = a.get(iA - 1);
         String cElt = c.get(iC - 1);

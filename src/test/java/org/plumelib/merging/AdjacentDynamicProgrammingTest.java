@@ -5,7 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class AdjacentDynamicProgrammingTest {
+final class AdjacentDynamicProgrammingTest {
+
+  /** Creates a new AdjacentDynamicProgrammingTest. */
+  AdjacentDynamicProgrammingTest() {}
 
   @Test
   void test1() {

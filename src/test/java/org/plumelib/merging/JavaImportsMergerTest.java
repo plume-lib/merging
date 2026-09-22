@@ -14,7 +14,10 @@ import org.plumelib.merging.fileformat.ConflictedFile.CommonLines;
 import org.plumelib.merging.fileformat.ConflictedFile.ConflictElement;
 import org.plumelib.merging.fileformat.ConflictedFile.MergeConflict;
 
-public class JavaImportsMergerTest {
+final class JavaImportsMergerTest {
+
+  /** Creates a new JavaImportsMergerTest. */
+  JavaImportsMergerTest() {}
 
   void assertMergeImportConflictCommentwise(
       List<String> left, List<String> right, List<String> goal) {
