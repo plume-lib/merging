@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           check-latest: true
           cache: 'gradle'
       - name: ./gradlew spotlessCheck
@@ -32,7 +32,14 @@ jobs:
 
     strategy:
       matrix:
-        java: ['21', '25', '26']
+        java: ['21', '25', '27-ea']
+        include:
+          - java: '21'
+            javaMajor: '21'
+          - java: '25'
+            javaMajor: '25'
+          - java: '27-ea'
+            javaMajor: '27'
 
     steps:
       - uses: actions/checkout@v7
@@ -57,9 +64,9 @@ jobs:
           echo 'JVM that runs Gradle:'
           java -version
           echo 'JVM that runs the tests:'
-          "$JAVA_HOME_${{ matrix.java }}_${{ runner.arch }}/bin/java" -version
+          "$JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }}/bin/java" -version
       # Gradle does not auto-detect the JDKs that "setup-java" installs, because
       # they are in the tool cache rather than in a standard location.
       # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.java }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.java }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
+        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}

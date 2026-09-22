@@ -12,7 +12,14 @@ jobs:
     strategy:
       matrix:
         # On GitHub Actions, GraalVM is not available for Java 26, as of 2026-06-05.
-        java: ['21', '25']
+        # Java 21 is excluded:  google-java-format ships its Native Image
+        # registrations in META-INF/native-image/reachability-metadata.json, the
+        # unified format that native-image reads only in GraalVM for JDK 23 and
+        # later.  Under GraalVM for JDK 21 those registrations are ignored, so the
+        # javac members that google-java-format looks up via MethodHandles are
+        # absent from the image and the executable dies with
+        # "LinkageError: no such method JCTree.getEndPosition(EndPosTable)".
+        java: ['25']
 
     steps:
 
