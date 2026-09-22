@@ -472,7 +472,8 @@ public class JavaImportsMerger extends Merger {
   private IPair<List<String>, List<String>> changedImports(String javaCode1, String javaCode2) {
     // This implementation is hacky in that it works textually instead of parsing the Java code.
     // So, it will not handle bizarrely formatted code.
-    @SuppressWarnings({"NonApiType", "PMD.LooseCoupling"}) // diff_match_patch specifies LinkedList
+    // @SuppressWarnings({"NonApiType", "PMD.LooseCoupling"}) // diff_match_patch specifies
+    // LinkedList
     LinkedList<Diff> diffs = DmpLibrary.diffByLines(javaCode1, javaCode2);
     List<String> deleted = new ArrayList<>();
     List<String> inserted = new ArrayList<>();

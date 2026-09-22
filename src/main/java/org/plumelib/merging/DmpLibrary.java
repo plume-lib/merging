@@ -32,7 +32,10 @@ public final class DmpLibrary {
    * @param text2 a string
    * @return the differences
    */
-  @SuppressWarnings({"NonApiType", "PMD.LooseCoupling"}) // diff_match_patch specifies LinkedList
+  @SuppressWarnings({
+    "NonApiType",
+    // "PMD.LooseCoupling"
+  }) // diff_match_patch specifies LinkedList
   public static LinkedList<Diff> diffByLines(String text1, String text2) {
     // Convert each line to a single character.
     LinesToCharsResult a = DMP.diff_linesToChars(text1, text2);

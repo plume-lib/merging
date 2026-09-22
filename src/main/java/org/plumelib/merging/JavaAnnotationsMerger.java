@@ -21,7 +21,7 @@ import org.plumelib.util.StringsP;
  * This is a merger for Java files. It handles conflicts where the edits differ only in adding
  * annotations or modifiers. It merges such conflicts, accepting the annotations as additions.
  */
-@SuppressWarnings({"PMD.FieldNamingConventions", "PMD.FieldDeclarationsShouldBeAtStartOfClass"})
+// @SuppressWarnings({"PMD.FieldNamingConventions", "PMD.FieldDeclarationsShouldBeAtStartOfClass"})
 public class JavaAnnotationsMerger extends Merger {
 
   /** A diff_match_patch instance for use by this class. */
@@ -114,7 +114,7 @@ public class JavaAnnotationsMerger extends Merger {
    * @param text a string
    * @return true if the given text is a Java comment, plus optional comments and whitespace
    */
-  @SuppressWarnings("PMD.AvoidReassigningParameters")
+  // @SuppressWarnings("PMD.AvoidReassigningParameters")
   protected static boolean isComment(String text) {
     if (text.isBlank()) {
       return false;
@@ -133,7 +133,7 @@ public class JavaAnnotationsMerger extends Merger {
    * @param text a string
    * @return true if the given text is one or more Java annotations or modifiers
    */
-  @SuppressWarnings("PMD.AvoidReassigningParameters")
+  // @SuppressWarnings("PMD.AvoidReassigningParameters")
   // "protected" to permit tests to access it.
   protected static boolean isJavaAnnotations(String text) {
     // For use by diagnostics that are currently commented out.

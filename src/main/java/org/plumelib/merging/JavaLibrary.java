@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 import org.plumelib.util.CollectionsP;
 
 /** This class contains static methods related to Java code. */
-@SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")
+// @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")
 public final class JavaLibrary {
 
   /** A pattern that matches a string consisting only of whitespace. */

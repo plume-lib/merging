@@ -92,7 +92,8 @@ public class VersionNumbersMerger extends Merger {
     List<RDiff> rightAligned = aligned.second;
 
     StringBuilder result = new StringBuilder();
-    for (Iterator<RDiff> i1 = leftAligned.iterator(), i2 = rightAligned.iterator();
+    for (@SuppressWarnings("PMD.ForLoopVariableCount")
+        Iterator<RDiff> i1 = leftAligned.iterator(), i2 = rightAligned.iterator();
         i1.hasNext() && i2.hasNext(); ) {
       RDiff d1 = i1.next();
       RDiff d2 = i2.next();
@@ -154,12 +155,12 @@ public class VersionNumbersMerger extends Merger {
   }
 
   /** Matches part of a version number at the beginning of a string. */
-  @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
+  // @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
   private static final Pattern VERSION_NUMBER_PREFIX_PATTERN =
       Pattern.compile("^([.0-9]+).*$", Pattern.DOTALL);
 
   /** Matches part of a version number at the end of a string. */
-  @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
+  // @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
   private static final @Regex(1) Pattern VERSION_NUMBER_SUFFIX_PATTERN =
       Pattern.compile("^.*?([.0-9]+)$", Pattern.DOTALL);
 

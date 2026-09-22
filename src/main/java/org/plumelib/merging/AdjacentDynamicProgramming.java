@@ -431,7 +431,7 @@ public class AdjacentDynamicProgramming {
       sb.append("iA=").append(iA).append(':').append(lineSep);
       for (int iC = 0; iC <= cLen; iC++) {
         sb.append("iC=").append(iC).append(": ");
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+        // @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         StringJoiner sjB = new StringJoiner("; ");
         for (int iB = 0; iB <= bLen; iB++) {
           sjB.add("iB=" + iB + ":" + pathToString(table[iA][iC][iB]));

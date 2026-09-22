@@ -57,7 +57,7 @@ public abstract sealed class RDiff permits RDiff.Replace, RDiff.Insert, RDiff.Eq
    * @param diffs a list of diff_match_patch.Diff
    * @return an equivalent list of RDiff
    */
-  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+  // @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   public static List<RDiff> diffsToRDiffs(List<Diff> diffs) {
     List<RDiff> result = new ArrayList<>();
 

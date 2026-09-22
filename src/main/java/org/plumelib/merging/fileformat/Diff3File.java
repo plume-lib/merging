@@ -218,7 +218,7 @@ public final class Diff3File {
 
         int i = startLine;
         IPair<Integer, Diff3HunkSection> sectionPairA = Diff3HunkSection.parse(lines, i);
-        @SuppressWarnings("PMD.VariableDeclarationUsageDistance")
+        // @SuppressWarnings("PMD.VariableDeclarationUsageDistance")
         Diff3HunkSection sectionA = sectionPairA.second;
         i = sectionPairA.first;
         IPair<Integer, Diff3HunkSection> sectionPairB = Diff3HunkSection.parse(lines, i);

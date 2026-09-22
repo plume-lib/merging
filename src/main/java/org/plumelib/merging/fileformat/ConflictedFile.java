@@ -211,7 +211,7 @@ public class ConflictedFile {
   }
 
   /** Matches the start of a conflict, in a multiline string. */
-  @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
+  // @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
   private static final Pattern CONFLICT_START_MULTILINE_PATTERN =
       Pattern.compile("^<<<<<<", Pattern.MULTILINE);
 

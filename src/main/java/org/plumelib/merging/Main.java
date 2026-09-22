@@ -17,8 +17,8 @@ import picocli.CommandLine.Parameters;
 @SuppressWarnings({
   "nullness:initialization.fields.uninitialized", // picocli initializes w/reflection
   "initializedfields:contracts.postcondition", // picocli initializes w/reflection
-  "PMD.FieldDeclarationsShouldBeAtStartOfClass",
-  "PMD.FieldNamingConventions",
+  // "PMD.FieldDeclarationsShouldBeAtStartOfClass",
+  // "PMD.FieldNamingConventions",
 })
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
 public class Main implements Callable<Integer> {
@@ -112,7 +112,7 @@ public class Main implements Callable<Integer> {
   public boolean verbose = false;
 
   /** If false, don't run `git merge-file`, just work from the conflicts that exist in the file. */
-  @SuppressWarnings("PMD.MutableStaticState") // `@Option` field
+  // @SuppressWarnings("PMD.MutableStaticState") // `@Option` field
   @Option(
       names = "--git-merge-file",
       negatable = true,

@@ -26,7 +26,7 @@ public class AdjacentLinesMerger extends Merger {
     super(verbose);
   }
 
-  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+  // @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   @Override
   public @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
@@ -104,7 +104,8 @@ public class AdjacentLinesMerger extends Merger {
     assert leftDiffs.size() == rightDiffs.size();
 
     List<String> result = new ArrayList<>();
-    for (Iterator<RDiff> i1 = leftDiffs.iterator(), i2 = rightDiffs.iterator();
+    for (@SuppressWarnings("PMD.ForLoopVariableCount")
+        Iterator<RDiff> i1 = leftDiffs.iterator(), i2 = rightDiffs.iterator();
         i1.hasNext() && i2.hasNext(); ) {
       RDiff d1 = i1.next();
       RDiff d2 = i2.next();
@@ -146,7 +147,8 @@ public class AdjacentLinesMerger extends Merger {
       return null;
     }
     List<String> result = new ArrayList<>();
-    for (Iterator<String> iBase = mcBase.iterator(),
+    for (@SuppressWarnings("PMD.ForLoopVariableCount")
+        Iterator<String> iBase = mcBase.iterator(),
             iLeft = mcLeft.iterator(),
             iRight = mcRight.iterator();
         iBase.hasNext() && iLeft.hasNext() && iRight.hasNext(); ) {
