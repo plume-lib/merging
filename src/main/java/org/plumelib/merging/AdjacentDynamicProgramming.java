@@ -65,9 +65,10 @@ public class AdjacentDynamicProgramming {
 
   /** Indicates that a given table entry is unreachable. */
   @SuppressWarnings("interning:assignment") // unique assignment
-  // Cannot use `Collections.singletonList("IMPOSSIBLE")` because that isn't of type ArrayList,
-  // which is the only thing that can be inserted into `table`.
-  private static final @InternedDistinct List<String> IMPOSSIBLE = new ArrayList<>(1);
+  // This is a mutable ArrayList, not an immutable list, because otherwise Error Prone issues a
+  // MixedMutabilityReturnType warning for `concatenate()`.  Never mutate it.
+  private static final @InternedDistinct List<String> IMPOSSIBLE =
+      new ArrayList<>(List.of("IMPOSSIBLE"));
 
   /** The first parent. */
   private final List<String> a;
@@ -98,7 +99,6 @@ public class AdjacentDynamicProgramming {
    * @param b the second parent
    */
   public AdjacentDynamicProgramming(List<String> a, List<String> c, List<String> b) {
-    IMPOSSIBLE.add("IMPOSSIBLE");
     this.a = a;
     this.c = c;
     this.b = b;
