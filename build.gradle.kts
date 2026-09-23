@@ -347,7 +347,7 @@ checkerFramework {
       "org.checkerframework.checker.lock.LockChecker",
       "org.checkerframework.checker.modifiability.ModifiabilityChecker",
       "org.checkerframework.checker.nullness.NullnessChecker",
-      // "org.checkerframework.checker.regex.RegexChecker",
+      "org.checkerframework.checker.regex.RegexChecker",
       "org.checkerframework.checker.resourceleak.ResourceLeakChecker",
       "org.checkerframework.checker.signature.SignatureChecker",
       "org.checkerframework.checker.signedness.SignednessChecker",
