@@ -86,7 +86,7 @@ public class MergeState {
 
   @Override
   @SuppressWarnings({
-    "allcheckers:purity.not.sideeffectfree.call", // side effect to local state
+    "allcheckers:purity.call", // side effect to local state
     "lock:method.guarantee.violated"
   })
   public String toString(@GuardSatisfied MergeState this) {
@@ -156,8 +156,8 @@ public class MergeState {
    * @return the merged file, parsed into a ConflictedFile
    */
   @SuppressWarnings({
-    "allcheckers:purity.not.deterministic.not.sideeffectfree.assign.field", // assign to cache
-    "allcheckers:purity.not.deterministic.object.creation" // create object to put in cache
+    "allcheckers:purity.assign.field", // assign to cache
+    "allcheckers:purity.object.creation" // create object to put in cache
   })
   @Pure
   public ConflictedFile conflictedFile(@GuardSatisfied MergeState this) {

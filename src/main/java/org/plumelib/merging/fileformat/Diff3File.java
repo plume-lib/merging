@@ -148,7 +148,7 @@ public final class Diff3File {
 
     @SuppressWarnings({
       "lock", // needs annotations on Record
-      "allcheckers:purity.not.sideeffectfree.call" // add() called on local variable
+      "allcheckers:purity.call" // add() called on local variable
     })
     @Override
     public String toString(@GuardSatisfied Diff3Hunk this) {
@@ -458,7 +458,7 @@ public final class Diff3File {
 
     @SuppressWarnings({
       "lock", // needs annotations on Record
-      "allcheckers:purity.not.sideeffectfree.call" // mapList() is pure when its argument is
+      "allcheckers:purity.call" // mapList() is pure when its argument is
     })
     @Override
     public String toString(@GuardSatisfied Diff3HunkSection this) {
