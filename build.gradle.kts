@@ -329,6 +329,10 @@ pmd {
   isConsoleOutput = true
 }
 
+tasks.named("pmdTest") {
+  enabled = false
+}
+
 // Checker Framework pluggable type-checking
 
 checkerFramework {

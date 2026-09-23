@@ -58,37 +58,38 @@ public class AdjacentDynamicProgramming {
   // The value of table[a.size(), b.size(), c.size()] is the merged output.
 
   /** If true, print diagnostic output. */
-  private static final boolean debug = false;
+  private static final boolean DEBUG = false;
 
   /** The maximum table size that will be attempted. */
   private static final int MAX_TABLE_SIZE = 10_000_000;
 
   /** Indicates that a given table entry is unreachable. */
   @SuppressWarnings("interning:assignment") // unique assignment
-  // Cannot use `Collections.singletonList("IMPOSSIBLE")` because that isn't of type ArrayList,
-  // which is the only thing that can be inserted into `table`.
-  private @InternedDistinct List<String> IMPOSSIBLE = new ArrayList<>(1);
+  // This is a mutable ArrayList, not an immutable list, because otherwise Error Prone issues a
+  // MixedMutabilityReturnType warning for `concatenate()`.  Never mutate it.
+  private static final @InternedDistinct List<String> IMPOSSIBLE =
+      new ArrayList<>(List.of("IMPOSSIBLE"));
 
   /** The first parent. */
-  List<String> a;
+  private final List<String> a;
 
   /** The base. */
-  List<String> c;
+  private final List<String> c;
 
   /** The second parent. */
-  List<String> b;
+  private final List<String> b;
 
   /** The length of the first parent. */
-  @LengthOf("a") int aLen;
+  private final @LengthOf("a") int aLen;
 
   /** The length of the base. */
-  @LengthOf("c") int cLen;
+  private final @LengthOf("c") int cLen;
 
   /** The length of the second parent. */
-  @LengthOf("b") int bLen;
+  private final @LengthOf("b") int bLen;
 
   /** The table. */
-  List<String> @MonotonicNonNull [][][] table;
+  private final List<String> @MonotonicNonNull [][][] table;
 
   /**
    * Creates a new AdjacentDynamicProgramming.
@@ -98,7 +99,6 @@ public class AdjacentDynamicProgramming {
    * @param b the second parent
    */
   public AdjacentDynamicProgramming(List<String> a, List<String> c, List<String> b) {
-    IMPOSSIBLE.add("IMPOSSIBLE");
     this.a = a;
     this.c = c;
     this.b = b;
@@ -111,8 +111,8 @@ public class AdjacentDynamicProgramming {
       table = null;
     } else {
       @SuppressWarnings("unchecked")
-      ArrayList<String>[][][] tmpTable =
-          (ArrayList<String>[][][]) new ArrayList<?>[aLen + 1][cLen + 1][bLen + 1];
+      List<String>[][][] tmpTable =
+          (List<String>[][][]) new ArrayList<?>[aLen + 1][cLen + 1][bLen + 1];
       table = tmpTable;
     }
   }
@@ -127,7 +127,7 @@ public class AdjacentDynamicProgramming {
       return null;
     }
     fillInTable();
-    if (debug) {
+    if (DEBUG) {
       System.out.println(tableToString());
     }
     List<String> result = table[aLen][cLen][bLen];
@@ -251,7 +251,7 @@ public class AdjacentDynamicProgramming {
   // TODO: should this return a list instead of void?
   @RequiresNonNull("table")
   private void fillIn(int iA, int iC, int iB) {
-    if (debug) {
+    if (DEBUG) {
       System.out.printf("fillIn(%d, %d, %d)%n", iA, iC, iB);
     }
     if (table[iA][iC][iB] != null) {
@@ -292,7 +292,7 @@ public class AdjacentDynamicProgramming {
     List<String> result3 = abEqual ? concatenate(prev, aElt) : IMPOSSIBLE;
     List<String> result4 = cbEqual ? concatenate(prev, aElt) : IMPOSSIBLE;
 
-    if (debug) {
+    if (DEBUG) {
       System.out.printf("aElt=%s%n", aElt);
       System.out.printf("cElt=%s%n", cElt);
       System.out.printf("bElt=%s%n", bElt);
@@ -327,7 +327,7 @@ public class AdjacentDynamicProgramming {
    * @param len3 a length
    * @return true if lists of the given lengths have a possibility of being aligned by the algorithm
    */
-  static boolean possibleLengths(int len1, int len2, int len3) {
+  private static boolean possibleLengths(int len1, int len2, int len3) {
     if (len1 > len2 + len3) {
       return false;
     }
@@ -352,7 +352,7 @@ public class AdjacentDynamicProgramming {
    * @param len3 the third length
    * @return true if lists of the given lengths have a possibility of being aligned by the algorithm
    */
-  static boolean possibleIndices(int i1, int i2, int i3, int len1, int len2, int len3) {
+  private static boolean possibleIndices(int i1, int i2, int i3, int len1, int len2, int len3) {
     return possibleLengths(i1, i2, i3) && possibleLengths(len1 - i1, len2 - i2, len3 - i3);
   }
 
@@ -365,7 +365,7 @@ public class AdjacentDynamicProgramming {
    */
   @RequiresNonNull("table")
   @SafeVarargs
-  final List<String> uniquePossible(List<String>... args) {
+  private final List<String> uniquePossible(List<String>... args) {
     List<String> result = IMPOSSIBLE;
     for (List<String> elt : args) {
       if (result == IMPOSSIBLE) {
@@ -391,7 +391,7 @@ public class AdjacentDynamicProgramming {
    * @param elt an element
    * @return a list containing {@code lst} then {@code elt}
    */
-  List<String> concatenate(List<String> lst, String elt) {
+  private List<String> concatenate(List<String> lst, String elt) {
     if (lst == null) {
       throw new Error();
     }
@@ -424,13 +424,14 @@ public class AdjacentDynamicProgramming {
    * @return a string representation of the table
    */
   @RequiresNonNull("table")
-  String tableToString() {
+  private String tableToString() {
     String lineSep = System.lineSeparator();
     StringBuilder sb = new StringBuilder();
     for (int iA = 0; iA <= aLen; iA++) {
       sb.append("iA=").append(iA).append(':').append(lineSep);
       for (int iC = 0; iC <= cLen; iC++) {
         sb.append("iC=").append(iC).append(": ");
+        // @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         StringJoiner sjB = new StringJoiner("; ");
         for (int iB = 0; iB <= bLen; iB++) {
           sjB.add("iB=" + iB + ":" + pathToString(table[iA][iC][iB]));

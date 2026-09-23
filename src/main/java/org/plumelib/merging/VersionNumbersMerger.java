@@ -24,6 +24,14 @@ import org.plumelib.util.StringsP;
  */
 public class VersionNumbersMerger extends Merger {
 
+  /** An instance of diff_match_patch. */
+  private static final diff_match_patch DMP = new diff_match_patch();
+
+  static {
+    DMP.Match_Threshold = 0.0f;
+    DMP.Patch_DeleteThreshold = 0.0f;
+  }
+
   /**
    * Creates a VersionNumbersMerger.
    *
@@ -33,16 +41,8 @@ public class VersionNumbersMerger extends Merger {
     super(verbose);
   }
 
-  /** An instance of diff_match_patch. */
-  private static final diff_match_patch dmp = new diff_match_patch();
-
-  static {
-    dmp.Match_Threshold = 0.0f;
-    dmp.Patch_DeleteThreshold = 0.0f;
-  }
-
   @Override
-  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
+  public @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<Replacement<String>> replacements = new ArrayList<>();
 
@@ -62,8 +62,7 @@ public class VersionNumbersMerger extends Merger {
       System.out.printf("VersionNumbersMerger: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
-    ConflictedFile result = new ConflictedFile(newLines, cf.path);
-    return result;
+    return new ConflictedFile(newLines, cf.path);
   }
 
   /**
@@ -73,7 +72,6 @@ public class VersionNumbersMerger extends Merger {
    * @param mc the merge conflict
    * @return the merged differences or null
    */
-  @SuppressWarnings("PMD.ForLoopVariableCount")
   private @Nullable String mergedWithVersionNumbers(MergeConflict mc) {
     List<String> baseLines = mc.base();
     if (baseLines == null) {
@@ -82,8 +80,8 @@ public class VersionNumbersMerger extends Merger {
     String baseText = StringsP.join("", baseLines);
     String leftText = StringsP.join("", mc.left());
     String rightText = StringsP.join("", mc.right());
-    List<Diff> leftDiffs = dmp.diff_main(baseText, leftText);
-    List<Diff> rightDiffs = dmp.diff_main(baseText, rightText);
+    List<Diff> leftDiffs = DMP.diff_main(baseText, leftText);
+    List<Diff> rightDiffs = DMP.diff_main(baseText, rightText);
     List<RDiff> leftRDiffs = rdiffsForVersionNumbers(leftDiffs);
     List<RDiff> rightRDiffs = rdiffsForVersionNumbers(rightDiffs);
     IPair<List<RDiff>, List<RDiff>> aligned = RDiff.align(leftRDiffs, rightRDiffs);
@@ -94,7 +92,8 @@ public class VersionNumbersMerger extends Merger {
     List<RDiff> rightAligned = aligned.second;
 
     StringBuilder result = new StringBuilder();
-    for (Iterator<RDiff> i1 = leftAligned.iterator(), i2 = rightAligned.iterator();
+    for (@SuppressWarnings("PMD.ForLoopVariableCount")
+        Iterator<RDiff> i1 = leftAligned.iterator(), i2 = rightAligned.iterator();
         i1.hasNext() && i2.hasNext(); ) {
       RDiff d1 = i1.next();
       RDiff d2 = i2.next();
@@ -156,11 +155,13 @@ public class VersionNumbersMerger extends Merger {
   }
 
   /** Matches part of a version number at the beginning of a string. */
-  private static final Pattern versionNumberPrefixPattern =
+  // @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
+  private static final Pattern VERSION_NUMBER_PREFIX_PATTERN =
       Pattern.compile("^([.0-9]+).*$", Pattern.DOTALL);
 
   /** Matches part of a version number at the end of a string. */
-  private static final @Regex(1) Pattern versionNumberSuffixPattern =
+  // @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
+  private static final @Regex(1) Pattern VERSION_NUMBER_SUFFIX_PATTERN =
       Pattern.compile("^.*?([.0-9]+)$", Pattern.DOTALL);
 
   /**
@@ -173,10 +174,10 @@ public class VersionNumbersMerger extends Merger {
    */
   private List<RDiff> versionNumberMerge(RDiff r1, RDiff r2) {
 
-    IPair<RDiff, RDiff> pair1 = r1.suffixSplit(versionNumberSuffixPattern);
+    IPair<RDiff, RDiff> pair1 = r1.suffixSplit(VERSION_NUMBER_SUFFIX_PATTERN);
     RDiff r1NonVersionNumber = pair1.first;
     RDiff r1VersionNumber = pair1.second;
-    IPair<RDiff, RDiff> pair2 = r2.prefixSplit(versionNumberPrefixPattern);
+    IPair<RDiff, RDiff> pair2 = r2.prefixSplit(VERSION_NUMBER_PREFIX_PATTERN);
     RDiff r2VersionNumber = pair2.first;
     RDiff r2NonVersionNumber = pair2.second;
     if (verbose) {
