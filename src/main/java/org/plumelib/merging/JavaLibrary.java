@@ -5,15 +5,16 @@ import java.util.regex.Pattern;
 import org.plumelib.util.CollectionsP;
 
 /** This class contains static methods related to Java code. */
+// @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")
 public final class JavaLibrary {
-
-  /** Do not instantiate. */
-  private JavaLibrary() {
-    throw new Error("do not instantiate");
-  }
 
   /** A pattern that matches a string consisting only of whitespace. */
   private static Pattern whitespacePattern = Pattern.compile("\\s*\\R*");
+
+  /** Do not instantiate. */
+  private JavaLibrary() {
+    throw new UnsupportedOperationException("do not instantiate");
+  }
 
   /**
    * Returns true if the given string is a blank line.

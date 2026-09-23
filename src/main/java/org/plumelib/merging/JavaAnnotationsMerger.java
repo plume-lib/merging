@@ -21,16 +21,8 @@ import org.plumelib.util.StringsP;
  * This is a merger for Java files. It handles conflicts where the edits differ only in adding
  * annotations or modifiers. It merges such conflicts, accepting the annotations as additions.
  */
+// @SuppressWarnings({"PMD.FieldNamingConventions", "PMD.FieldDeclarationsShouldBeAtStartOfClass"})
 public class JavaAnnotationsMerger extends Merger {
-
-  /**
-   * Creates a JavaAnnotationsMerger.
-   *
-   * @param verbose if true, output diagnostic information
-   */
-  public JavaAnnotationsMerger(boolean verbose) {
-    super(verbose);
-  }
 
   /** A diff_match_patch instance for use by this class. */
   private static final diff_match_patch dmp;
@@ -41,8 +33,17 @@ public class JavaAnnotationsMerger extends Merger {
     dmp.Patch_DeleteThreshold = 0.0f;
   }
 
+  /**
+   * Creates a JavaAnnotationsMerger.
+   *
+   * @param verbose if true, output diagnostic information
+   */
+  public JavaAnnotationsMerger(boolean verbose) {
+    super(verbose);
+  }
+
   @Override
-  @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
+  public @Nullable ConflictedFile resolveConflicts(ConflictedFile cf, MergeState mergeState) {
 
     List<Replacement<String>> replacements = new ArrayList<>();
 
@@ -77,8 +78,7 @@ public class JavaAnnotationsMerger extends Merger {
       System.out.printf("JavaAnnotationsMerger: replacements = %s%n", replacements);
     }
     List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
-    ConflictedFile result = new ConflictedFile(newLines, cf.path);
-    return result;
+    return new ConflictedFile(newLines, cf.path);
   }
 
   /**
@@ -114,9 +114,9 @@ public class JavaAnnotationsMerger extends Merger {
    * @param text a string
    * @return true if the given text is a Java comment, plus optional comments and whitespace
    */
+  // @SuppressWarnings("PMD.AvoidReassigningParameters")
   protected static boolean isComment(String text) {
-    text = text.strip();
-    if (text.isEmpty()) {
+    if (text.isBlank()) {
       return false;
     }
     text = commentPattern.matcher(text).replaceAll(" ");
@@ -133,6 +133,7 @@ public class JavaAnnotationsMerger extends Merger {
    * @param text a string
    * @return true if the given text is one or more Java annotations or modifiers
    */
+  // @SuppressWarnings("PMD.AvoidReassigningParameters")
   // "protected" to permit tests to access it.
   protected static boolean isJavaAnnotations(String text) {
     // For use by diagnostics that are currently commented out.
@@ -357,18 +358,18 @@ public class JavaAnnotationsMerger extends Merger {
       annotationsSpacesRegex + parameterizedTypeRegex + "\\s+" + "this" + "(?:\\s*,)?";
 
   /** Matches a "this" formal parameter. */
-  protected static Pattern thisPattern = Pattern.compile(thisRegex);
+  protected static final Pattern thisPattern = Pattern.compile(thisRegex);
 
   /** Matches an "extends Object" clause. */
   protected static final @Regex String extendsRegex =
       "extends\\s+" + annotationsSpacesRegex + "Object";
 
   /** Matches an extends clause. */
-  protected static Pattern extendsPattern = Pattern.compile(extendsRegex);
+  protected static final Pattern extendsPattern = Pattern.compile(extendsRegex);
 
   // TODO: Should this handle multiline?
   /** Matches an end-of-line comment. */
-  protected static final Pattern commentPattern = Pattern.compile("//.*(\\z|\\R)");
+  protected static final Pattern commentPattern = Pattern.compile("[ \t]*//.*(\\z|\\R)");
 
   /** Matches the start of a Java annotation OR modifier. */
   protected static final @Regex String annotationStartRegex =
