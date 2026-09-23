@@ -213,7 +213,9 @@ public class ConflictedFile {
   }
 
   /** Matches the start of a conflict, in a multiline string. */
-  private Pattern conflictStartMultilinePattern = Pattern.compile("^<<<<<<", Pattern.MULTILINE);
+  // @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass") // used in only one method
+  private static final Pattern CONFLICT_START_MULTILINE_PATTERN =
+      Pattern.compile("^<<<<<<", Pattern.MULTILINE);
 
   /**
    * Returns true if the file contains any conflicts, false if the file contains no conflict.
@@ -227,7 +229,7 @@ public class ConflictedFile {
       if (hunks != null) {
         hasConflict = CollectionsP.anyMatch(hunks, ce -> ce instanceof MergeConflict);
       } else if (fileContents != null) {
-        hasConflict = conflictStartMultilinePattern.matcher(fileContents).find();
+        hasConflict = CONFLICT_START_MULTILINE_PATTERN.matcher(fileContents).find();
       } else if (lines != null) {
         hasConflict = CollectionsP.anyMatch(lines, l -> l.startsWith("<<<<<<"));
       } else {
@@ -317,21 +319,21 @@ public class ConflictedFile {
   }
 
   /** One element of a conflicted file: either {@link MergeConflict} or {@link CommonLines}. */
-  public static sealed interface ConflictElement permits MergeConflict, CommonLines {
+  public sealed interface ConflictElement permits MergeConflict, CommonLines {
     /**
      * Returns the lines in the conflict-file representation of this.
      *
      * @return the lines in the conflict-file representation of this
      */
     @SideEffectFree
-    public List<String> toLines();
+    List<String> toLines();
 
     /**
      * Returns true if the left and right texts contain the same comment lines.
      *
      * @return true if the left and right texts contain the same comment lines
      */
-    public boolean sameCommentLines();
+    boolean sameCommentLines();
   }
 
   /** A single merge conflict (part of a conflicted file). */
@@ -341,19 +343,19 @@ public class ConflictedFile {
      * The base text. Empty string means empty. Null means unknown -- that is, the merge conflict is
      * in diff style rather than diff3 style.
      */
-    @MonotonicNonNull List<String> base;
+    private final @MonotonicNonNull List<String> base;
 
     /** The left text. */
-    List<String> left;
+    private final List<String> left;
 
     /** The right text. */
-    List<String> right;
+    private final List<String> right;
 
     /** The first line in the conflict --- that is, the line with {@code <<<<<<}. */
-    int start;
+    private final int start;
 
     /** The line after the conflict --- that is, the line after the one with {@code >>>>>>}. */
-    int end;
+    private final int end;
 
     /**
      * Creates a MergeConflict. Clients should use {@link #of} instead.
@@ -550,7 +552,7 @@ public class ConflictedFile {
    *
    * @param textLines the text
    */
-  public static record CommonLines(List<String> textLines) implements ConflictElement {
+  public record CommonLines(List<String> textLines) implements ConflictElement {
 
     /**
      * Creates a CommonLines record.
@@ -662,9 +664,7 @@ public class ConflictedFile {
           }
         }
 
-        // These two variables are always the same; the compiler will optimize them into one.
-        int conflictStart = i;
-        int leftConflictMarker = i;
+        int leftConflictMarker = i; // also the start of the conflict hunk
         i++;
         // Determine the left text, and the base text if it exists.
         List<String> left = null;
@@ -737,7 +737,7 @@ public class ConflictedFile {
                   + (rightConflictMarker + 1);
           return;
         }
-        ConflictElement ce = MergeConflict.of(base, left, right, conflictStart, i + 1);
+        ConflictElement ce = MergeConflict.of(base, left, right, leftConflictMarker, i + 1);
         if (ce instanceof CommonLines) {
           hasTrivialConflict = true;
         }

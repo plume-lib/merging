@@ -1,8 +1,11 @@
 package org.plumelib.merging;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.util.List;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 import org.plumelib.merging.fileformat.RDiff;
 import org.plumelib.util.IPair;
@@ -26,8 +29,9 @@ final class RDiffTest {
     List<Diff> diffs2 = dmp.diff_main(baseLines, rightLines);
     List<RDiff> rdiffs1 = RDiff.diffsToRDiffs(diffs1);
     List<RDiff> rdiffs2 = RDiff.diffsToRDiffs(diffs2);
-    IPair<List<RDiff>, List<RDiff>> aligned = RDiff.align(rdiffs1, rdiffs2);
-    assert aligned != null;
+    @SuppressWarnings("nullness:assignment") // tested immediately below
+    @NonNull IPair<List<RDiff>, List<RDiff>> aligned = RDiff.align(rdiffs1, rdiffs2);
+    assertNotNull(aligned);
 
     // List<RDiff> aligned1 = aligned.first;
     // List<RDiff> aligned2 = aligned.second;

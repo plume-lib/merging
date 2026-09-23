@@ -42,7 +42,7 @@ public class MergeState {
    * True if the merged file contains a conflict when this MergeState was constructed, according to
    * the code that created the MergeState.
    */
-  private boolean hasConflictInitially;
+  private final boolean hasConflictInitially;
 
   /**
    * True if the conflictedFile is dirty: it has changed and its contents need to be written back to

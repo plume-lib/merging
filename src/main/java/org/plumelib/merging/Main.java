@@ -17,6 +17,8 @@ import picocli.CommandLine.Parameters;
 @SuppressWarnings({
   "nullness:initialization.fields.uninitialized", // picocli initializes w/reflection
   "initializedfields:contracts.postcondition", // picocli initializes w/reflection
+  // "PMD.FieldDeclarationsShouldBeAtStartOfClass",
+  // "PMD.FieldNamingConventions",
 })
 @Command(name = "plumelib-merge", description = "Acts as a git merge driver or merge tool.")
 public class Main implements Callable<Integer> {
@@ -26,26 +28,26 @@ public class Main implements Callable<Integer> {
 
   /** Whether to run as a merge driver or a merge tool. */
   @Parameters(index = "0", description = "\"driver\" or \"tool\"")
-  MergeMode command;
+  private MergeMode command;
 
   /** The left or current file; is overwritten by a merge driver. */
   @Parameters(index = "1", description = "The left, or current, file")
-  Path leftPath;
+  private Path leftPath;
 
   /** The base file. */
   @Parameters(index = "2", description = "The base file")
-  Path basePath;
+  private Path basePath;
 
   /** The right file. */
   @Parameters(index = "3", description = "The right, or other, file")
-  Path rightPath;
+  private Path rightPath;
 
   /** For a merge tool, the merged file; is overwritten. For a merge driver, null. */
   @Parameters(
       arity = "0..1",
       index = "4",
       description = "The merged file; only supplied for a merge tool, which overwrites it")
-  @Nullable Path mergedPath = null;
+  private @Nullable Path mergedPath = null;
 
   /** If true, merge adjacent. */
   @Option(
@@ -68,7 +70,7 @@ public class Main implements Callable<Integer> {
   public Optional<Boolean> java_annotations_optional = Optional.empty();
 
   /** If true, merge Java annotations. */
-  boolean java_annotations = true;
+  private boolean java_annotations = true;
 
   /** If true, only merge Java annotations. */
   @Option(
@@ -110,6 +112,7 @@ public class Main implements Callable<Integer> {
   public boolean verbose = false;
 
   /** If false, don't run `git merge-file`, just work from the conflicts that exist in the file. */
+  // @SuppressWarnings("PMD.MutableStaticState") // `@Option` field
   @Option(
       names = "--git-merge-file",
       negatable = true,
@@ -117,7 +120,7 @@ public class Main implements Callable<Integer> {
   public static Optional<Boolean> git_merge_file_optional = Optional.empty();
 
   /** If false, don't run `git merge-file`, just work from the conflicts that exist in the file. */
-  public static boolean git_merge_file;
+  private static boolean git_merge_file;
 
   /**
    * Acts as a git merge driver or merge tool.
@@ -299,7 +302,7 @@ public class Main implements Callable<Integer> {
     } catch (IOException e) {
       exitErroneously(
           "Problem copying " + leftPath + " to " + leftFileSavedPath + ": " + e.getMessage());
-      throw new Error("unreachable");
+      throw new Error("unreachable", e);
     }
 
     int gitMergeFileExitCode;

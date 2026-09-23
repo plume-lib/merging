@@ -29,7 +29,7 @@ import org.plumelib.util.IPair;
 public final class Diff3File {
 
   /** If true, output diagnostic information for debugging. */
-  private static final boolean verbose = false;
+  private static final boolean VERBOSE = false;
 
   /** The contents of the diff3 file. */
   private final List<Diff3Hunk> contents;
@@ -104,7 +104,7 @@ public final class Diff3File {
    * @param section2 the second text section
    * @param section3 the third text section
    */
-  public static record Diff3Hunk(
+  public record Diff3Hunk(
       Diff3HunkKind kind,
       Diff3HunkSection section1,
       Diff3HunkSection section2,
@@ -173,11 +173,10 @@ public final class Diff3File {
      * @return the first line following the hunk
      * @throws Diff3ParseException if the input is malformed
      */
-    @SuppressWarnings("PMD.AvoidThrowingNewInstanceOfSameException") // false positive warning
     public static int parse(
         List<String> lines, int start, @Growable @IteratorPolyMod List<Diff3Hunk> sink)
         throws Diff3ParseException {
-      if (verbose) {
+      if (VERBOSE) {
         System.out.printf("Starting to parse hunk starting at line %d.%n", start);
         System.out.flush();
       }
@@ -187,7 +186,7 @@ public final class Diff3File {
         String header = lines.get(start);
         kind = Diff3HunkKind.fromHunkHeader(header);
       } catch (Diff3ParseException e) {
-        throw new Diff3ParseException("At line " + (start + 1) + ": " + e.getMessage());
+        throw new Diff3ParseException("At line " + (start + 1) + ": " + e.getMessage(), e);
       }
       return ThreeSections.parse(lines, start + 1, kind, sink);
     }
@@ -199,7 +198,7 @@ public final class Diff3File {
      * @param section2 the second section
      * @param section3 the third section
      */
-    public static record ThreeSections(
+    public record ThreeSections(
         Diff3HunkSection section1, Diff3HunkSection section2, Diff3HunkSection section3) {
 
       /**
@@ -218,13 +217,14 @@ public final class Diff3File {
           Diff3HunkKind kind,
           @Growable @IteratorPolyMod List<Diff3Hunk> sink)
           throws Diff3ParseException {
-        if (verbose) {
+        if (VERBOSE) {
           System.out.printf("Starting to parse 3 sections at line %s.%n", startLine + 1);
           System.out.flush();
         }
 
         int i = startLine;
         IPair<Integer, Diff3HunkSection> sectionPairA = Diff3HunkSection.parse(lines, i);
+        // @SuppressWarnings("PMD.VariableDeclarationUsageDistance")
         Diff3HunkSection sectionA = sectionPairA.second;
         i = sectionPairA.first;
         IPair<Integer, Diff3HunkSection> sectionPairB = Diff3HunkSection.parse(lines, i);
@@ -237,7 +237,7 @@ public final class Diff3File {
         ThreeSections unsorted = new ThreeSections(sectionA, sectionB, sectionC);
         ThreeSections sorted = unsorted.sort();
         ThreeSections filled = sorted.fillIn(kind);
-        if (verbose) {
+        if (VERBOSE) {
           System.out.println(
               "Finished parsing 3 sections, ending before line " + i + ": " + filled);
           System.out.flush();
@@ -377,7 +377,7 @@ public final class Diff3File {
   }
 
   /** The kind of a diff3 hunk. */
-  public static enum Diff3HunkKind {
+  public enum Diff3HunkKind {
     /** Section 1 text differs, sections 2 and 3 have the same text. */
     ONE_DIFFERS,
     /** Section 2 text differs, sections 1 and 3 have the same text. */
@@ -395,8 +395,7 @@ public final class Diff3File {
      * @return a hunk kind, parsed from the input
      */
     public static Diff3HunkKind fromHunkHeader(String header) throws Diff3ParseException {
-      header = header.stripTrailing();
-      return switch (header) {
+      return switch (header.stripTrailing()) {
         case "====" -> THREE_WAY;
         case "====1" -> ONE_DIFFERS;
         case "====2" -> TWO_DIFFERS;
@@ -414,7 +413,7 @@ public final class Diff3File {
    * @param command the command
    * @param lines the text
    */
-  public static record Diff3HunkSection(Diff3Command command, List<String> lines) {
+  public record Diff3HunkSection(Diff3Command command, List<String> lines) {
 
     /**
      * Parses a Diff3HunkSection.
@@ -428,7 +427,7 @@ public final class Diff3File {
         throws Diff3ParseException {
       String commandLine = lines.get(startLine);
 
-      if (verbose) {
+      if (VERBOSE) {
         System.out.printf(
             "Starting to parse section at line %d, commandLine: %s%n", startLine + 1, commandLine);
         System.out.flush();
@@ -443,7 +442,7 @@ public final class Diff3File {
           System.out.println(line);
         }
         System.out.println("End of lines being parsed.");
-        throw new Diff3ParseException("At line " + (startLine + 1) + ": " + e.getMessage());
+        throw new Diff3ParseException("At line " + (startLine + 1) + ": " + e.getMessage(), e);
       }
       List<String> sectionLines = new ArrayList<>();
       int numLines = lines.size();
@@ -476,7 +475,7 @@ public final class Diff3File {
   }
 
   /** The kind of a diff3 command: append or change. */
-  public static enum Diff3CommandKind {
+  public enum Diff3CommandKind {
     /** Append (insert) text. */
     APPEND,
     /** Change text. */
@@ -493,8 +492,7 @@ public final class Diff3File {
    * @param startLine the first line at which to edit
    * @param endLine the last line at which to edit
    */
-  public static record Diff3Command(
-      int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
+  public record Diff3Command(int inputFile, Diff3CommandKind kind, int startLine, int endLine) {
 
     /**
      * Creates a Diff3Command record.
@@ -590,14 +588,14 @@ public final class Diff3File {
     // merged cleanly.
     ProcessBuilder pbDiff3 =
         new ProcessBuilder("diff3", leftPath.toString(), basePath.toString(), rightPath.toString());
-    if (verbose) {
+    if (VERBOSE) {
       System.out.printf("About to call: %s%n", pbDiff3.command());
     }
     String diff3Output;
     try {
       Process pDiff3 = pbDiff3.start();
       diff3Output = new String(pDiff3.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-      if (verbose) {
+      if (VERBOSE) {
         System.out.println("diff3Output: " + diff3Output);
       }
       // It is essential to call waitFor *after* reading the output from getInputStream().
@@ -611,11 +609,11 @@ public final class Diff3File {
       throw new Diff3ParseException(
           String.format(
               "error%s while running: diff3 %s %s %s",
-              (eMessage == null ? "" : (": " + eMessage + " ")), leftPath, basePath, rightPath));
+              (eMessage == null ? "" : (": " + eMessage + " ")), leftPath, basePath, rightPath),
+          e);
     }
 
-    Diff3File diff3file = parseFileContents(diff3Output, leftPath.toString());
-    return diff3file;
+    return parseFileContents(diff3Output, leftPath.toString());
   }
 
   // //////////////////////////////////////////////////////////////////////
@@ -624,7 +622,7 @@ public final class Diff3File {
   public static class Diff3ParseException extends Exception {
 
     /** Unique identifier for serialization. If you add or remove fields, change this number. */
-    static final long serialVersionUID = 20240331;
+    private static final long serialVersionUID = 20240331;
 
     /**
      * Creates a Diff3ParseException.
