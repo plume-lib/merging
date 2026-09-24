@@ -206,7 +206,8 @@ public class JavaImportsMerger extends Merger {
    * @param diff3file the diffs
    * @return the lines of the file, after inserting more import statements
    */
-  private List<String> insertRemovedImports(@Growable @IteratorPolyMod List<String> fileLines, Diff3File diff3file) {
+  private List<String> insertRemovedImports(
+      @Growable @IteratorPolyMod List<String> fileLines, Diff3File diff3file) {
 
     // Find the first and last import lines in the file.
     // These are 1-based, so the first line in the file is line 1; therefore, these cannot be used
