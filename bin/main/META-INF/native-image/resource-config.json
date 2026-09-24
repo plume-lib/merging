@@ -1,0 +1,29 @@
+{
+  "resources":{
+  "includes":[{
+    "pattern":"\\QMETA-INF/services/org.junit.platform.engine.TestEngine\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.TestExecutionListener\\E"
+  }, {
+    "pattern":"\\Qconflicted-file-1-more-common-text.txt\\E"
+  }, {
+    "pattern":"\\Qconflicted-file-1-no-common-text.txt\\E"
+  }, {
+    "pattern":"\\Qconflicted-file-1.txt\\E"
+  }, {
+    "pattern":"\\Qconflicted-file-2.txt\\E"
+  }, {
+    "pattern":"\\Qconflicted-file-no-left.txt\\E"
+  }, {
+    "pattern":"\\Qconflicted-file-no-right.txt\\E"
+  }, {
+    "pattern":"\\Qlao-tzu-tao.diff3\\E"
+  }, {
+    "pattern":"\\Qnon-conflicted-file-without-terminator.txt\\E"
+  }, {
+    "pattern":"\\Qnon-conflicted-file.txt\\E"
+  }, {
+    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
+  }]},
+  "bundles":[]
+}

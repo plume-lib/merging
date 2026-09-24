@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.lock.qual.GuardSatisfied;
+import org.checkerframework.checker.modifiability.qual.IteratorPolyMod;
+import org.checkerframework.checker.modifiability.qual.Modifiable;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -62,7 +64,7 @@ public class ConflictedFile {
   private @MonotonicNonNull String fileContents;
 
   /** The lines of the file, including conflict markers. */
-  private @MonotonicNonNull List<String> lines;
+  private @Modifiable @MonotonicNonNull List<String> lines;
 
   /** The contents of the conflicted file. They are interspersed conflict hunks and common lines. */
   private @MonotonicNonNull List<ConflictElement> hunks;
@@ -141,7 +143,7 @@ public class ConflictedFile {
    * @param path the path to the conflicted file
    */
   @SideEffectFree
-  public ConflictedFile(List<String> lines, Path path) {
+  public ConflictedFile(@Modifiable List<String> lines, Path path) {
     this.lines = lines;
     this.hunks = null;
     this.path = path;
@@ -611,7 +613,7 @@ public class ConflictedFile {
      * @param cls a list of CommonLines
      * @return all the lines in the input
      */
-    public static List<String> toLines(List<CommonLines> cls) {
+    public static @Modifiable @IteratorPolyMod List<String> toLines(List<CommonLines> cls) {
       List<String> result = new ArrayList<>();
       for (CommonLines cl : cls) {
         result.addAll(cl.textLines());

@@ -1,0 +1,9 @@
+<<<<<<< ImportsTest2Output.java
+import java.io.File;
+||||||| ImportsTest2Base.java
+=======
+import java.nio.file.Path;
+>>>>>>> ImportsTest2B.java
+
+public class ImportsTest {
+}
