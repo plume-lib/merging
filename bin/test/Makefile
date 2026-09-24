@@ -1,3 +1,8 @@
+.PHONY: all test clean
+
+all: test
+clean:
+
 test: test-adjacent test-annotations test-imports test-version-numbers
 
 test-adjacent: AdjacentTest1.diff AdjacentTest2.diff AdjacentTest3.diff AdjacentTest4.diff AdjacentTest5.diff \
