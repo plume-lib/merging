@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.StringJoiner;
 import org.checkerframework.checker.index.qual.LengthOf;
 import org.checkerframework.checker.interning.qual.InternedDistinct;
+import org.checkerframework.checker.modifiability.qual.Modifiable;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
@@ -67,7 +68,7 @@ public class AdjacentDynamicProgramming {
   @SuppressWarnings("interning:assignment") // unique assignment
   // This is a mutable ArrayList, not an immutable list, because otherwise Error Prone issues a
   // MixedMutabilityReturnType warning for `concatenate()`.  Never mutate it.
-  private static final @InternedDistinct List<String> IMPOSSIBLE =
+  private static final @InternedDistinct @Modifiable List<String> IMPOSSIBLE =
       new ArrayList<>(List.of("IMPOSSIBLE"));
 
   /** The first parent. */

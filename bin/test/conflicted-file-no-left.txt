@@ -1,0 +1,10 @@
+<<<<<<< HEAD
+=======
+1puts 'hello mundo'
+>>>>>>> mundo
+<<<<<<< ours
+||||||| base
+2puts 'hello world'
+=======
+2puts 'hello mundo'
+>>>>>>> theirs

@@ -1,0 +1,21 @@
+pre-text-a
+pre-text-b
+pre-text-c
+<<<<<<< HEAD
+1puts 'hola world'
+=======
+1puts 'hello mundo'
+>>>>>>> mundo
+mid-text-a
+mid-text-b
+mid-text-c
+<<<<<<< ours
+2puts 'hola world'
+||||||| base
+2puts 'hello world'
+=======
+2puts 'hello mundo'
+>>>>>>> theirs
+post-text-a
+post-text-b
+post-text-c

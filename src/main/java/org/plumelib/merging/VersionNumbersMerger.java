@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
+import org.checkerframework.checker.modifiability.qual.Modifiable;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.plumelib.merging.fileformat.ConflictedFile;
@@ -61,7 +62,7 @@ public class VersionNumbersMerger extends Merger {
     if (verbose) {
       System.out.printf("VersionNumbersMerger: replacements = %s%n", replacements);
     }
-    List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
+    @Modifiable List<String> newLines = CollectionsP.replace(cf.lines(), replacements);
     return new ConflictedFile(newLines, cf.path);
   }
 
