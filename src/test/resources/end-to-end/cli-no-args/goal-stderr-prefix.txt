@@ -1,2 +1,0 @@
-Missing required parameters: '<command>', '<leftPath>', '<basePath>', '<rightPath>'
-Usage: plumelib-merge 

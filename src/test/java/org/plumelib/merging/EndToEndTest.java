@@ -62,8 +62,10 @@ final class EndToEndTest {
           "goal",
           "goal-stdout.txt",
           "goal-stdout-prefix.txt",
+          "goal-stdout-contains.txt",
           "goal-stderr.txt",
           "goal-stderr-prefix.txt",
+          "goal-stderr-contains.txt",
           "goal-status.txt");
 
   /** The file names that are required in a test case directory. */
@@ -193,16 +195,21 @@ final class EndToEndTest {
       }
     }
     for (String stream : List.of("stdout", "stderr")) {
+      List<String> goalFiles = new ArrayList<>();
+      for (String suffix : List.of(".txt", "-prefix.txt", "-contains.txt")) {
+        String goalFile = "goal-" + stream + suffix;
+        if (Files.exists(caseDir.resolve(goalFile))) {
+          goalFiles.add(goalFile);
+        }
+      }
       assertTrue(
-          !(Files.exists(caseDir.resolve("goal-" + stream + ".txt"))
-              && Files.exists(caseDir.resolve("goal-" + stream + "-prefix.txt"))),
+          goalFiles.size() <= 1,
           "Test case "
               + caseName
-              + " contains both goal-"
+              + " contains more than one goal file for "
               + stream
-              + ".txt and goal-"
-              + stream
-              + "-prefix.txt.");
+              + ": "
+              + goalFiles);
     }
   }
 
@@ -349,9 +356,10 @@ final class EndToEndTest {
 
   /**
    * Fails if what the program wrote to standard output or standard error is not what the test case
-   * says it should be. The test case gives either the whole text (in {@code goal-STREAM.txt}) or a
-   * prefix of it (in {@code goal-STREAM-prefix.txt}). If it gives neither, the program should write
-   * nothing to the stream.
+   * says it should be. The test case gives the whole text (in {@code goal-STREAM.txt}), a prefix of
+   * it (in {@code goal-STREAM-prefix.txt}), or lines that it contains (in {@code
+   * goal-STREAM-contains.txt}). If it gives none of these, the program should write nothing to the
+   * stream.
    *
    * @param caseDir a test case directory
    * @param stream "stdout" or "stderr"
@@ -371,6 +379,18 @@ final class EndToEndTest {
       assertTrue(
           actual.startsWith(prefix),
           context + "  %s should start with:%n%s%nbut was:%n%s".formatted(stream, prefix, actual));
+      return;
+    }
+    Path containsFile = caseDir.resolve("goal-" + stream + "-contains.txt");
+    if (Files.isRegularFile(containsFile)) {
+      assertTrue(!actual.isEmpty(), context + "  %s should not be empty.".formatted(stream));
+      for (String line : readText(containsFile).lines().toList()) {
+        if (!line.isEmpty()) {
+          assertTrue(
+              actual.contains(line),
+              context + "  %s should contain:%n%s%nbut was:%n%s".formatted(stream, line, actual));
+        }
+      }
       return;
     }
     Path goalFile = caseDir.resolve("goal-" + stream + ".txt");

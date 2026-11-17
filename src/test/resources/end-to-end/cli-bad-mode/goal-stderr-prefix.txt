@@ -1,2 +1,0 @@
-Invalid value for positional parameter at index 0 (<command>): expected one of [driver, tool] (case-sensitive) but was 'drive'
-Usage: plumelib-merge 

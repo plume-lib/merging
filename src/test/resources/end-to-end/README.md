@@ -41,20 +41,43 @@ file, and 2 if the command line cannot be parsed at all.
 | `goal/` | Files that should be in the working directory after the program runs, in addition to the files of `input/`, or in place of the same-named files of `input/`.  Usually it holds the file that the program overwrote. |
 | `goal-stdout.txt` | What the program should write to standard output. |
 | `goal-stdout-prefix.txt` | What the program's standard output should start with. |
+| `goal-stdout-contains.txt` | Lines of text that the program's standard output should contain. |
 | `goal-stderr.txt` | What the program should write to standard error. |
 | `goal-stderr-prefix.txt` | What the program's standard error should start with. |
+| `goal-stderr-contains.txt` | Lines of text that the program's standard error should contain. |
 | `goal-status.txt` | The program's exit status, as a decimal integer.  If this file is absent, the exit status should be 0. |
 
-A test case has at most one of `goal-stdout.txt` and `goal-stdout-prefix.txt`,
-and at most one of `goal-stderr.txt` and `goal-stderr-prefix.txt`.  If it has
-neither, the program should write nothing to that stream.  A `*-prefix.txt`
-file is used where the full output would be brittle, as for a usage message or
-for diagnostic output that contains the names of temporary files.  The final
-line separator of a `*-prefix.txt` file is not part of the prefix, so a prefix
-can end in the middle of a line.
+A test case has at most one goal file for standard output (`goal-stdout.txt`,
+`goal-stdout-prefix.txt`, or `goal-stdout-contains.txt`), and at most one for
+standard error.  If it has none, the program should write nothing to that
+stream.
+
+A `*-prefix.txt` file is used where the full output would be brittle, as for
+diagnostic output that contains the names of temporary files.  The final line
+separator of a `*-prefix.txt` file is not part of the prefix, so a prefix can
+end in the middle of a line.
+
+A `*-contains.txt` file is used where the exact text of the output is up to the
+implementation, as for a usage message, an error message that a command-line
+parsing library generates, or a crash report.  The output must not be empty,
+and each non-empty line of the `*-contains.txt` file must occur somewhere in
+the output, such as the name of an argument that the program rejected.  An
+empty `*-contains.txt` file requires only that the output not be empty.
 
 The harness rejects a test case directory that lacks a required file or that
 contains any file not listed above.
+
+## Text that is specific to the Java implementation
+
+The goal files check messages that the program itself prints, word for word,
+even where those messages contain names from the Java implementation, such as
+`JavaAnnotationsMerger:` at the start of a message about an unparsable merged
+file, or `java_annotations=true` in the configuration that `--verbose`
+prints.  An implementation in another language must print the same text.
+
+No goal file checks text that the Java implementation's libraries or runtime
+generate, such as a usage message, a command-line parsing error, the name of an
+exception class, or a stack trace.
 
 ## How to run a test case
 
@@ -80,10 +103,10 @@ contains any file not listed above.
 4. Compare the results to the goal files.  The test case passes if all of
    these hold:
    * The exit status equals the contents of `goal-status.txt` (or 0).
-   * Standard output and standard error are as described above.  Before
-     comparison, each CR LF in the output and in the goal file is replaced by
-     LF, because the program ends each line that it prints with the platform's
-     line separator.
+   * Standard output and standard error are as described above (a whole
+     text, a prefix, or contained lines).  Before comparison, each CR LF in
+     the output and in the goal file is replaced by LF, because the program
+     ends each line that it prints with the platform's line separator.
    * The working directory contains exactly the files of `input/` and
      `goal/`, no more and no fewer.  Each file whose name is in `goal/` is
      identical to that goal file; each other file is identical to the file of
