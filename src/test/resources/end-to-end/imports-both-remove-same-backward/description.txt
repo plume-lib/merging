@@ -1,0 +1,3 @@
+One edit removes an import statement and the only use of the imported class; both edits remove code.  The imports merger leaves the clean merge unchanged.
+
+This is the same as test case imports-both-remove-same, but with the left and right versions swapped.

@@ -1,0 +1,3 @@
+Both edits remove import statements, and one adds imports.  The imports merger removes the added import that the merged file does not use.
+
+This is the same as test case imports-remove-unused, but with the left and right versions swapped.

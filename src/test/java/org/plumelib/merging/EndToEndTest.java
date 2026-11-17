@@ -125,8 +125,8 @@ final class EndToEndTest {
    * @param caseName the name of the test case, which is the name of a subdirectory of the test data
    *     directory
    * @param workingDir the directory in which to run the program
-   * @param captureDir a directory that holds the program's standard output and standard error, and
-   *     an empty git configuration file; it is separate from {@code workingDir} so that these files
+   * @param captureDir a directory that holds the program's standard input, standard output, and
+   *     standard error, and git's configuration file; it is separate from {@code workingDir} so that these files
    *     are not mistaken for files that the program wrote
    * @throws Exception if the test case cannot be read or the program cannot be run
    */
@@ -145,9 +145,9 @@ final class EndToEndTest {
     List<String> args = arguments(caseDir);
     Path stdoutFile = captureDir.resolve("stdout.txt");
     Path stderrFile = captureDir.resolve("stderr.txt");
-    Path gitConfigFile = captureDir.resolve("empty-gitconfig");
-    Files.writeString(gitConfigFile, "");
-    int status = runProgram(workingDir, args, stdoutFile, stderrFile, gitConfigFile);
+    Path emptyFile = captureDir.resolve("empty-file");
+    Files.writeString(emptyFile, "");
+    int status = runProgram(workingDir, args, stdoutFile, stderrFile, emptyFile);
 
     String context = "Test case " + caseName + ", arguments " + args + ".";
 
@@ -248,25 +248,27 @@ final class EndToEndTest {
    * @param args the command-line arguments for the program
    * @param stdoutFile where to write the program's standard output
    * @param stderrFile where to write the program's standard error
-   * @param gitConfigFile an empty file, which git uses as the user's git configuration file
+   * @param emptyFile an empty file, which is the program's standard input and which git uses as the
+   *     user's git configuration file
    * @return the program's exit status
    * @throws IOException if the program cannot be started
    * @throws InterruptedException if this thread is interrupted while the program runs
    */
   private static int runProgram(
-      Path workingDir, List<String> args, Path stdoutFile, Path stderrFile, Path gitConfigFile)
+      Path workingDir, List<String> args, Path stdoutFile, Path stderrFile, Path emptyFile)
       throws IOException, InterruptedException {
     List<String> command = new ArrayList<>(programCommand());
     command.addAll(args);
     ProcessBuilder pb =
         new ProcessBuilder(command)
             .directory(workingDir.toFile())
+            .redirectInput(emptyFile.toFile())
             .redirectOutput(stdoutFile.toFile())
             .redirectError(stderrFile.toFile());
     Map<String, String> env = pb.environment();
     env.keySet().removeIf(name -> name.startsWith("GIT_"));
     env.put("GIT_CONFIG_NOSYSTEM", "1");
-    env.put("GIT_CONFIG_GLOBAL", gitConfigFile.toAbsolutePath().toString());
+    env.put("GIT_CONFIG_GLOBAL", emptyFile.toAbsolutePath().toString());
     Path parent = workingDir.toAbsolutePath().getParent();
     if (parent != null) {
       env.put("GIT_CEILING_DIRECTORIES", parent.toString());

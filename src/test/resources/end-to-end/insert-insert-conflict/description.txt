@@ -1,0 +1,1 @@
+Both edits insert a different method at the same place.  No merger resolves such an insert-insert conflict, so the conflict remains.  (The two methods use class Path, whose import one edit removed; the conflict outside the imports prevents the imports merger from running.)

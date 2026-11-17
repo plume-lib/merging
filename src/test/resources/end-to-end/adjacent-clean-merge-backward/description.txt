@@ -1,0 +1,3 @@
+One edit changes the first line and the other deletes the third line.  "git merge-file" merges them cleanly, and the adjacent-lines merger leaves the result alone.
+
+This is the same as test case adjacent-clean-merge, but with the left and right versions swapped.

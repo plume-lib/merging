@@ -32,10 +32,10 @@ property `e2e.command` (Gradle `-Pe2e.command=...`) runs another program.
 - [x] Write the harness (rewrite `EndToEndTest.java`) and the README.
 - [x] Convert each old Java-coded test run into a case directory (all pass).
       Still to do:  `cli-verbose-defaults` and `cli-verbose-only-adjacent`.
-- [ ] Convert the Makefile tests (`src/test/resources/{Adjacent,Annotations,Imports,VersionNumbers,Defaults,Insertion}Test*`)
-      into case directories; delete the Makefile, its README, its resources,
-      the `runMakefileTests` Gradle task, and related `.gitignore` lines;
-      remove the dead `assertJavaImportsMerger` helpers in `JavaImportsMergerTest.java`.
+- [x] Convert the Makefile tests into case directories and delete the
+      Makefile, its resources, `runMakefileTests`, and the dead helpers in
+      `JavaImportsMergerTest.java`.  `-PtestNative` and `-Pe2e.command` now
+      set system property `e2e.command` for the `test` task.
 - [ ] Add new cases: each merger's options, `--verbose`, both modes,
       no conflict, no trailing newline, unresolvable conflict, diff3 vs merge
       conflict style in tool mode, CRLF, `--no-git-merge-file`, error handling.

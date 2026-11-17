@@ -1,0 +1,3 @@
+Each edit adds an import statement and a method that uses the imported class.  "git merge-file" reports a conflict in the import statements, which the imports merger resolves by keeping both imports.
+
+This is the same as test case imports-both-add-with-uses, but with the left and right versions swapped.

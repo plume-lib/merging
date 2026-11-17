@@ -272,8 +272,7 @@ linters.  Gradle itself must run under Java 21 or later.
 
 The build recognizes the following optional command-line properties.
 
-* `-PtestJavaVersion=`_N_ runs the tests under Java version _N_ -- both the
-JUnit tests and the tests in `src/test/resources/Makefile`.  The default is
+* `-PtestJavaVersion=`_N_ runs the tests under Java version _N_.  The default is
 the Java version that is running the Gradle daemon, which is not necessarily
 the `java` on your PATH, because the `org.gradle.java.home` Gradle property
 overrides it.  The code is always _compiled_ under Java 21, so _N_ must be 21
@@ -284,14 +283,23 @@ the requested JDK if it is not already installed.  For example:
   ./gradlew test -PtestJavaVersion=25
   ```
 
-* `-PtestNative` builds the native executable and makes the tests in
-`src/test/resources/Makefile` run that executable rather than the fat jar.
+* `-PtestNative` builds the native executable and makes the end-to-end tests
+run that executable rather than the Java classes.
 `-PtestNative` is not the default, because building the native executable
-takes minutes and requires GraalVM.  Without `-PtestNative`, a Gradle-run
-`src/test/resources/Makefile` test always runs the fat jar, even if a native
-executable happens to be present from an earlier build.  Running that Makefile
-directly, rather than through Gradle, still prefers a native executable if one
-is present.
+takes minutes and requires GraalVM.
+
+* `-Pe2e.command=`_COMMAND_ makes the end-to-end tests run _COMMAND_ (split at
+whitespace) rather than the Java classes.  _COMMAND_ can be another
+implementation of the program, perhaps written in a different language.  For
+example:
+
+  ```sh
+  ./gradlew test --tests org.plumelib.merging.EndToEndTest -Pe2e.command=/path/to/plumelib-merge
+  ```
+
+The end-to-end tests are data, one directory per test case, in
+`src/test/resources/end-to-end/`; its
+[README](src/test/resources/end-to-end/README.md) describes the format.
 
 * `-PskipCheckerFramework`, which the Checker Framework Gradle plugin
 provides, omits Checker Framework pluggable type-checking from

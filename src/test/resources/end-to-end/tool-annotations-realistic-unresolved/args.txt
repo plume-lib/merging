@@ -1,0 +1,6 @@
+tool
+--only-java-annotations
+left.java
+base.java
+right.java
+merged.java

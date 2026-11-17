@@ -1,0 +1,1 @@
+One edit replaces the middle line of three by three lines; the other edit changes the first and last lines.  The adjacent-lines merger resolves the conflict.

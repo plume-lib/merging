@@ -1,0 +1,3 @@
+The two edits insert and delete import statements on adjacent lines.  The adjacent-lines merger resolves the conflicts.
+
+This is the same as test case adjacent-import-lines, but with the left and right versions swapped.

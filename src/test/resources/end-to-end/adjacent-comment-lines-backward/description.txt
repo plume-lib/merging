@@ -1,0 +1,3 @@
+The two edits change adjacent comment lines.  The adjacent-lines merger resolves the conflict.
+
+This is the same as test case adjacent-comment-lines, but with the left and right versions swapped.

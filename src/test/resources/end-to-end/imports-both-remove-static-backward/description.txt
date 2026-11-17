@@ -1,0 +1,3 @@
+Both edits remove the same static import statements and make other, different changes to the imports.  The imports merger resolves the conflict.
+
+This is the same as test case imports-both-remove-static, but with the left and right versions swapped.

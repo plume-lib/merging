@@ -1,0 +1,1 @@
+Like test case imports-clean-merge-loses-import, but the other edit also inserts a long comment before the imports, so the re-inserted import goes at a different line number than in the base version.

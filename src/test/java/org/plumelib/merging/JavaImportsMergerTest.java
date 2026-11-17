@@ -2,12 +2,6 @@ package org.plumelib.merging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.plumelib.merging.fileformat.ConflictedFile.CommonLines;
@@ -81,46 +75,4 @@ final class JavaImportsMergerTest {
     assertMergeImportConflictCommentwise(xyaz, xa, xyaz);
     assertMergeImportConflictCommentwise(xaz, yaz, xyaz);
   }
-
-  void assertJavaImportsMerger(String fileBaseName) {
-    assertJavaImportsMerger(
-        fileBaseName + "A.java",
-        fileBaseName + "B.java",
-        fileBaseName + "Base.java",
-        fileBaseName + "Output.java",
-        fileBaseName + "Goal.java");
-  }
-
-  void assertJavaImportsMerger(
-      String fileA, String fileB, String fileBase, String fileOutput, String fileGoal) {
-    Path pathA = Paths.get("src", "test", "resources", fileA);
-    Path pathB = Paths.get("src", "test", "resources", fileB);
-    Path pathBase = Paths.get("src", "test", "resources", fileBase);
-    Path pathOutput = Paths.get("src", "test", "resources", fileOutput);
-    Path pathGoal = Paths.get("src", "test", "resources", fileGoal);
-    try {
-      Files.copy(pathA, pathOutput, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Problem copying " + pathA + " to " + pathOutput, e);
-    }
-    MergeState ms = new MergeState(pathA, pathBase, pathB, pathOutput, true);
-    JavaImportsMerger jim = new JavaImportsMerger(false);
-    jim.merge(ms);
-    try {
-      assertEquals(
-          -1L,
-          Files.mismatch(pathGoal, pathOutput),
-          "Mismatch between " + pathGoal + " and " + pathOutput);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Problem comparing " + pathGoal + " to " + pathOutput, e);
-    }
-  }
-
-  // // This test gets skipped, and causes other tests not to run.  So, for now, run the tests via a
-  // // Makefile. :-(
-  // @Test
-  // void testJavaImportsMerger() {
-  //   assertJavaImportsMerger("ImportsTest1");
-  //   assertJavaImportsMerger("ImportsTest2");
-  // }
 }

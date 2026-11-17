@@ -1,0 +1,1 @@
+One edit removes an import statement and the only use of the imported class; both edits remove code.  The imports merger leaves the clean merge unchanged.

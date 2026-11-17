@@ -1,0 +1,1 @@
+As a merge tool, the annotations merger leaves two conflicts in a realistic file, because neither conflict is about annotations:  one is in import statements, and in the other, one edit comments out a line that the other edit deletes.

@@ -1,0 +1,3 @@
+A large file with several conflicts outside the import statements.  The imports merger does not change the imports.  One conflict disappears because its right section equals its base section.
+
+This is the same as test case imports-large-file-conflicts-outside, but with the left and right versions swapped.
