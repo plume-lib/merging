@@ -30,4 +30,6 @@ hs_err_pid*
 # IDE files
 .idea
 .vscode
+# Eclipse build output
+/bin/
 TAGS
