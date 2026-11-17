@@ -1,0 +1,1 @@
+The adjacent-lines merger and the default mergers together resolve two conflicts:  one between edits to adjacent lines, and one between annotations.

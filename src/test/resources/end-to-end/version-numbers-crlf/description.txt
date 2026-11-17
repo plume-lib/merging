@@ -1,0 +1,1 @@
+The files use CR LF line separators.  The version-numbers merger resolves the conflict, and the result uses CR LF line separators.

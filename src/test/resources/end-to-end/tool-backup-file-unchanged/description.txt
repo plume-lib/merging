@@ -1,0 +1,1 @@
+When the base file's name contains "_BASE_" but the merge tool does not change the merged file, the merge tool writes no "_BACKUP_" file.

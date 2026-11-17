@@ -1,0 +1,7 @@
+tool
+--git-merge-file
+--only-java-annotations
+left.java
+base.java
+right.java
+merged.java

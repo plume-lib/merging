@@ -1,0 +1,1 @@
+The two edits add different annotations to a method's receiver parameter ("this") and to another formal parameter.  The annotations merger keeps both.

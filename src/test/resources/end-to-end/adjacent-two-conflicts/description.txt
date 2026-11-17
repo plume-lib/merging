@@ -1,0 +1,1 @@
+The file has two conflicts between edits to adjacent lines.  The adjacent-lines merger resolves both.

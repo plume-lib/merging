@@ -1,0 +1,1 @@
+The current file, which a merge driver overwrites, does not exist.  The message names a temporary file, so this test case checks only the start of the message.

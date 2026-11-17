@@ -1,0 +1,1 @@
+The two edits add different annotations that have arguments, including an array.  The annotations merger keeps both.

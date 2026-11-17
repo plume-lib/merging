@@ -1,0 +1,1 @@
+One edit increases one of two version numbers on a line, and the other edit increases the other one.  The version-numbers merger keeps both increases.

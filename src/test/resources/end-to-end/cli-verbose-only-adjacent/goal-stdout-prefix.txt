@@ -1,0 +1,3 @@
+Configuration: adjacent=true; java_annotations=false; java_imports=false; version_numbers=false.
+status 0 for: git merge-file left.txt base.txt right.txt
+calling adjacent

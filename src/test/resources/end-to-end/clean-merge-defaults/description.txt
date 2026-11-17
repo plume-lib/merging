@@ -1,0 +1,1 @@
+The two edits change lines that are far apart, so "git merge-file" merges them cleanly, and the default mergers leave the result alone.

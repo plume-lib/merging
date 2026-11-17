@@ -1,0 +1,1 @@
+As a merge tool, the version-numbers merger resolves a conflict between two increased version numbers.

@@ -1,0 +1,1 @@
+A line contains two version numbers, and both edits increase both of them.  The version-numbers merger chooses the larger value for each.

@@ -1,0 +1,1 @@
+In mode tool, the merged file contains a trivial conflict, in which the right section equals the base section, and a conflict that no merger resolves.  The program replaces the trivial conflict by its left section and leaves the other conflict.

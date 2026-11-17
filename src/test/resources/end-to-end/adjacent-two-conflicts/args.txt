@@ -1,0 +1,5 @@
+driver
+--only-adjacent
+left.txt
+base.txt
+right.txt

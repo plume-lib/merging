@@ -1,0 +1,1 @@
+With --no-git-merge-file, the merge driver works only from the conflicts in the current file.  The current file has no conflict markers, so the program leaves it unchanged and exits with status 0, even though the other version differs.

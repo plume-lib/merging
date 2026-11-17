@@ -1,0 +1,1 @@
+In mode tool, the merged file has no conflict markers, and none of its import statements was lost.  The program leaves it unchanged and exits with status 0.

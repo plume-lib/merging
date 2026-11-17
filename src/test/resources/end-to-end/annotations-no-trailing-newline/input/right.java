@@ -1,0 +1,1 @@
+@Deprecated void m(String s) {}

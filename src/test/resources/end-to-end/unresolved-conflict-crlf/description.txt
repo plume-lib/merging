@@ -1,0 +1,1 @@
+The files use CR LF line separators.  The conflict is not resolved, and the conflict markers, which "git merge-file" wrote, end with CR LF.

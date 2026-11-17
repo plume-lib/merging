@@ -1,0 +1,1 @@
+An unknown option is a usage error:  the program prints an error message and the usage message to standard error, and does not modify any file.

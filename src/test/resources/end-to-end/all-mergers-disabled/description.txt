@@ -1,0 +1,1 @@
+When every merger is disabled, the merge driver's result is that of "git merge-file --diff3", with conflict markers labeled OURS, BASE, and THEIRS.
