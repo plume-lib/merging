@@ -29,9 +29,9 @@ property `e2e.command` (Gradle `-Pe2e.command=...`) runs another program.
 
 ## Checklist
 
-- [ ] Write the harness (rewrite `EndToEndTest.java`) and the README.
-- [ ] Write a conversion script (scratchpad) that turns each old Java-coded test
-      run into a case directory; run it; verify that all cases pass.
+- [x] Write the harness (rewrite `EndToEndTest.java`) and the README.
+- [x] Convert each old Java-coded test run into a case directory (all pass).
+      Still to do:  `cli-verbose-defaults` and `cli-verbose-only-adjacent`.
 - [ ] Convert the Makefile tests (`src/test/resources/{Adjacent,Annotations,Imports,VersionNumbers,Defaults,Insertion}Test*`)
       into case directories; delete the Makefile, its README, its resources,
       the `runMakefileTests` Gradle task, and related `.gitignore` lines;

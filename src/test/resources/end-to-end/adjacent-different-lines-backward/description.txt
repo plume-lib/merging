@@ -1,0 +1,3 @@
+The two edits change different lines that are adjacent; the adjacent-lines merger resolves the conflict.
+
+This is the same as test case adjacent-different-lines, but with the left and right versions swapped.

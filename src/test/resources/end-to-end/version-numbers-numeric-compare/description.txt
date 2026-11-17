@@ -1,0 +1,1 @@
+Version numbers are compared componentwise and numerically, not lexicographically.

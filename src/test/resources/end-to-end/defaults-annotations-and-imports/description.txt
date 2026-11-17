@@ -1,0 +1,1 @@
+With no options, the annotations and imports mergers both run: one conflict is in annotations and one is in imports.

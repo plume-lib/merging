@@ -1,0 +1,1 @@
+As a re-merge tool, the imports merger improves a merge that git performed cleanly (the merged file has no conflict markers), by re-inserting a needed import.

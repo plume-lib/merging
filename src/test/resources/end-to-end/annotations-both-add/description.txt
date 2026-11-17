@@ -1,0 +1,1 @@
+The two edits add different annotations to the same line; the annotations merger keeps both.

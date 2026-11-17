@@ -1,0 +1,3 @@
+One edit removes an import along with its use; the other edit adds a use.  The clean merge would lack a needed import, so the imports merger re-inserts it.
+
+This is the same as test case imports-reinsert-removed, but with the left and right versions swapped.

@@ -1,0 +1,3 @@
+With no options, the mergers do not corrupt a file that is not a Java file.
+
+This is the same as test case defaults-text-file, but with the left and right versions swapped.

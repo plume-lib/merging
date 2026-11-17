@@ -1,0 +1,1 @@
+The two edits change different lines that are adjacent; the adjacent-lines merger resolves the conflict.

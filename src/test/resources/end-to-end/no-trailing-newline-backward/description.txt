@@ -1,0 +1,3 @@
+A file whose last line has no line terminator is merged, and the result has no final line terminator.
+
+This is the same as test case no-trailing-newline, but with the left and right versions swapped.

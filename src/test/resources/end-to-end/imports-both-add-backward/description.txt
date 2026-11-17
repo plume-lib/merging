@@ -1,0 +1,3 @@
+The two edits add different import statements at the same place; the imports merger keeps both.
+
+This is the same as test case imports-both-add, but with the left and right versions swapped.

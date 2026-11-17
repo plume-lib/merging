@@ -1,0 +1,3 @@
+When the two edits add different annotations at the same position, the conflict is not resolved, even though the only textual difference is in annotations.
+
+This is the same as test case annotations-two-at-same-position, but with the left and right versions swapped.

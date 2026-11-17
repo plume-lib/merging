@@ -1,0 +1,1 @@
+The adjacent-lines merger is disabled by default, so with no options the conflict between edits to adjacent lines remains.

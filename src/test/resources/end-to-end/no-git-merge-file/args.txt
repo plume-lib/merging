@@ -1,0 +1,6 @@
+driver
+--no-git-merge-file
+--only-adjacent
+left.java
+base.java
+right.java

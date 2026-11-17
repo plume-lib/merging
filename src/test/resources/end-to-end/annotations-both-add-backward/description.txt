@@ -1,0 +1,3 @@
+The two edits add different annotations to the same line; the annotations merger keeps both.
+
+This is the same as test case annotations-both-add, but with the left and right versions swapped.

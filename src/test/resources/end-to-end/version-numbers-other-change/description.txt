@@ -1,0 +1,1 @@
+When one edit also changes text that is not a version number, the conflict is not resolved.

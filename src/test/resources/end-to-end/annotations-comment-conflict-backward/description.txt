@@ -1,0 +1,3 @@
+A conflict between two different comments is not resolved.
+
+This is the same as test case annotations-comment-conflict, but with the left and right versions swapped.

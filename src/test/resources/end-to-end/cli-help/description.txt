@@ -1,0 +1,1 @@
+BUG: The program should support --help, printing the usage message and exiting with status 0.  Instead, the program does not recognize --help; it complains of missing parameters and exits with status 2.

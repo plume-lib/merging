@@ -1,0 +1,1 @@
+With no command-line arguments, the program prints an error message and the usage message to standard error.

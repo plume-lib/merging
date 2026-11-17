@@ -1,0 +1,1 @@
+A conflict between two different comments is not resolved.

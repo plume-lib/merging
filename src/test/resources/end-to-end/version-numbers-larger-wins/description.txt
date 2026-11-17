@@ -1,0 +1,1 @@
+Both edits increase a version number; the version-numbers merger chooses the larger one.

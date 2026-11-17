@@ -1,0 +1,3 @@
+With no options, the annotations and imports mergers both run: one conflict is in annotations and one is in imports.
+
+This is the same as test case defaults-annotations-and-imports, but with the left and right versions swapped.

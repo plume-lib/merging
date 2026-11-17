@@ -1,0 +1,3 @@
+The example in README-adjacent-lines.md.
+
+This is the same as test case adjacent-readme-example, but with the left and right versions swapped.

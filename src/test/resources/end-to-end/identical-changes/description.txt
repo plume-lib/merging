@@ -1,0 +1,1 @@
+Both versions make the same edit, so the merge is clean.

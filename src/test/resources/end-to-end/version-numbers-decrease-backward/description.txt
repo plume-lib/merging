@@ -1,0 +1,3 @@
+When one edit decreases the version number, the conflict is not resolved.
+
+This is the same as test case version-numbers-decrease, but with the left and right versions swapped.

@@ -1,0 +1,1 @@
+The --no-version-numbers option disables the version-numbers merger, so the conflict remains.

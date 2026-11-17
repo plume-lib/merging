@@ -1,0 +1,1 @@
+BUG: The --no-adjacent option should disable the adjacent-lines merger, so the conflict should remain.  Instead, --adjacent and --no-adjacent have the opposite of their documented meanings, and the conflict is resolved.

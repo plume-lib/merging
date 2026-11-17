@@ -1,0 +1,3 @@
+When one edit adds an annotation and the other adds a comment, the conflict is not resolved.
+
+This is the same as test case annotations-with-comment, but with the left and right versions swapped.

@@ -1,0 +1,1 @@
+Not enough arguments for a merge tool:  expected 4, got 3.

@@ -1,0 +1,1 @@
+An --only-* option cannot be combined with an option that enables a merger.

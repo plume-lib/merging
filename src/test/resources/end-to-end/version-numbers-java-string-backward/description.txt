@@ -1,0 +1,3 @@
+Version numbers within a Java string literal.
+
+This is the same as test case version-numbers-java-string, but with the left and right versions swapped.

@@ -1,0 +1,1 @@
+The example in README-java-annotations.md: one edit adds an annotation and both change a modifier.

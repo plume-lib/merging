@@ -1,0 +1,3 @@
+An import that was renamed (deleted and replaced by an import of the same simple name from a different package) is not re-inserted.
+
+This is the same as test case imports-renamed, but with the left and right versions swapped.

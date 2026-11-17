@@ -1,0 +1,1 @@
+The merge tool resolves an annotation conflict in a file that git merged with diff3-style conflict markers.

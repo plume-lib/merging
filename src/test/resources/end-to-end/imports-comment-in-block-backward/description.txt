@@ -1,0 +1,3 @@
+Comments within a conflicted import block are retained.
+
+This is the same as test case imports-comment-in-block, but with the left and right versions swapped.

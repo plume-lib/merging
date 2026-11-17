@@ -1,0 +1,3 @@
+Both edits add the same import statement, along with other changes.
+
+This is the same as test case imports-same-import-both, but with the left and right versions swapped.

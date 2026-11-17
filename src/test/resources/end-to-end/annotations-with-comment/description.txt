@@ -1,0 +1,1 @@
+When one edit adds an annotation and the other adds a comment, the conflict is not resolved.
