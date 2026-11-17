@@ -64,13 +64,19 @@ contains any file not listed above.
 3. Run the program in the working directory, passing the arguments in
    `args.txt`.  Standard input is an empty file.  The program's standard
    output and standard error go to files outside the working directory.  The
-   environment is the harness's environment, with these changes, which isolate
-   the `git` program (which the program runs) from the user's configuration:
+   environment is the harness's environment, with these changes.  The first
+   four isolate the `git` program (which the program runs) from the user's
+   configuration:
    * remove every variable whose name starts with `GIT_`;
    * set `GIT_CONFIG_NOSYSTEM` to `1`;
    * set `GIT_CONFIG_GLOBAL` to the name of an empty file outside the working
      directory;
-   * set `GIT_CEILING_DIRECTORIES` to the parent of the working directory.
+   * set `GIT_CEILING_DIRECTORIES` to the parent of the working directory;
+   * set `TMPDIR` to an empty directory outside the working directory, which
+     the harness deletes afterward.  With `--verbose`, the program leaves a
+     backup file in its temporary-file directory.  The Java implementation
+     ignores `TMPDIR`, so the harness runs it with the system property
+     `java.io.tmpdir` set to the same directory.
 4. Compare the results to the goal files.  The test case passes if all of
    these hold:
    * The exit status equals the contents of `goal-status.txt` (or 0).

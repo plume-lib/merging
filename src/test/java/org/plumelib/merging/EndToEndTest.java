@@ -129,8 +129,9 @@ final class EndToEndTest {
    *     directory
    * @param workingDir the directory in which to run the program
    * @param captureDir a directory that holds the program's standard input, standard output, and
-   *     standard error, and git's configuration file; it is separate from {@code workingDir} so
-   *     that these files are not mistaken for files that the program wrote
+   *     standard error, git's configuration file, and the program's temporary files; it is separate
+   *     from {@code workingDir} so that these files are not mistaken for files that the program
+   *     wrote
    * @throws Exception if the test case cannot be read or the program cannot be run
    */
   @ParameterizedTest(name = "{0}")
@@ -150,7 +151,8 @@ final class EndToEndTest {
     Path stderrFile = captureDir.resolve("stderr.txt");
     Path emptyFile = captureDir.resolve("empty-file");
     Files.writeString(emptyFile, "");
-    int status = runProgram(workingDir, args, stdoutFile, stderrFile, emptyFile);
+    Path tmpDir = Files.createDirectory(captureDir.resolve("tmp"));
+    int status = runProgram(workingDir, args, stdoutFile, stderrFile, emptyFile, tmpDir);
 
     String context = "Test case " + caseName + ", arguments " + args + ".";
 
@@ -227,9 +229,10 @@ final class EndToEndTest {
    * system property {@code e2e.command} split at whitespace, if it is set and not blank, and
    * otherwise a command that runs this implementation in a new JVM.
    *
+   * @param tmpDir a directory for the program's temporary files
    * @return the command that runs the program under test, without its arguments
    */
-  private static List<String> programCommand() {
+  private static List<String> programCommand(Path tmpDir) {
     String e2eCommand = System.getProperty("e2e.command");
     if (e2eCommand != null && !e2eCommand.isBlank()) {
       return Arrays.asList(e2eCommand.trim().split("\\s+"));
@@ -237,6 +240,8 @@ final class EndToEndTest {
     List<String> result = new ArrayList<>();
     result.add(javaExecutable());
     result.addAll(addExportsArgs);
+    // The JVM ignores the TMPDIR environment variable that runProgram sets.
+    result.add("-Djava.io.tmpdir=" + tmpDir.toAbsolutePath());
     result.add("-cp");
     result.add(classpath());
     result.add(Main.class.getName());
@@ -245,7 +250,8 @@ final class EndToEndTest {
 
   /**
    * Runs the program. Its environment is the environment of this JVM, except that git is isolated
-   * from the user's and the system's git configuration and from any enclosing git repository.
+   * from the user's and the system's git configuration and from any enclosing git repository, and
+   * the program's temporary files go in {@code tmpDir}.
    *
    * @param workingDir the working directory for the program
    * @param args the command-line arguments for the program
@@ -253,14 +259,21 @@ final class EndToEndTest {
    * @param stderrFile where to write the program's standard error
    * @param emptyFile an empty file, which is the program's standard input and which git uses as the
    *     user's git configuration file
+   * @param tmpDir a directory for the program's temporary files, such as the backup file that
+   *     {@code --verbose} retains
    * @return the program's exit status
    * @throws IOException if the program cannot be started
    * @throws InterruptedException if this thread is interrupted while the program runs
    */
   private static int runProgram(
-      Path workingDir, List<String> args, Path stdoutFile, Path stderrFile, Path emptyFile)
+      Path workingDir,
+      List<String> args,
+      Path stdoutFile,
+      Path stderrFile,
+      Path emptyFile,
+      Path tmpDir)
       throws IOException, InterruptedException {
-    List<String> command = new ArrayList<>(programCommand());
+    List<String> command = new ArrayList<>(programCommand(tmpDir));
     command.addAll(args);
     ProcessBuilder pb =
         new ProcessBuilder(command)
@@ -276,6 +289,7 @@ final class EndToEndTest {
     if (parent != null) {
       env.put("GIT_CEILING_DIRECTORIES", parent.toString());
     }
+    env.put("TMPDIR", tmpDir.toAbsolutePath().toString());
     Process process = pb.start();
     if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
       process.destroyForcibly();
