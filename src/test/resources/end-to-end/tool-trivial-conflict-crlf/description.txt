@@ -1,1 +1,3 @@
 BUG: The same as test case tool-trivial-conflict, but the files use CR LF line separators.  The conflict markers in the result should end with CR LF, like the rest of the file.  Instead, the conflict markers of the remaining conflict end with LF (the platform's line separator), because the program rewrites them.
+
+See https://github.com/plume-lib/merging/issues/433.

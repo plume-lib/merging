@@ -1,1 +1,3 @@
 BUG: One edit adds an annotation whose argument is an array of strings; the other edit adds, to a formal parameter, an annotation whose argument is a string.  The only textual difference is in annotations, so the annotations merger should keep both.  Instead, the conflict remains.  (The merger compares the two versions character by character, and the arguments of the two annotations have characters in common.)
+
+See https://github.com/plume-lib/merging/issues/435.

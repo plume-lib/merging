@@ -1,1 +1,3 @@
 BUG: Combining --only-java-imports with --java-imports is redundant and harmless, but the program rejects it, just as it rejects the combination of --only-java-imports with an option that enables a different merger.
+
+See https://github.com/plume-lib/merging/issues/438.
