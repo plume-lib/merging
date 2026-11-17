@@ -62,7 +62,7 @@ contains any file not listed above.
    repository.
 2. Copy the contents of `input/`, if it exists, into the working directory.
 3. Run the program in the working directory, passing the arguments in
-   `args.txt`.  Standard input is empty or closed.  The program's standard
+   `args.txt`.  Standard input is an empty file.  The program's standard
    output and standard error go to files outside the working directory.  The
    environment is the harness's environment, with these changes, which isolate
    the `git` program (which the program runs) from the user's configuration:

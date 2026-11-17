@@ -1,5 +1,5 @@
 class C {
-  void m(@NonNull String s) {}
+  @Deprecated void m(String s) {}
 
   void n() {
     x = 3;

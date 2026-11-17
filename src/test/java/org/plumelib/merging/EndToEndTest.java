@@ -23,7 +23,6 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.checkerframework.checker.modifiability.qual.Modifiable;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,8 +33,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * output, its standard error, and the files in the working directory -- to goal files.
  *
  * <p>The test data is in {@code src/test/resources/end-to-end}, one subdirectory per test case. See
- * {@code src/test/resources/end-to-end/README.md} for the layout of a test case. Every
- * subdirectory is a test case, so a new test case can be added without changing this file.
+ * {@code src/test/resources/end-to-end/README.md} for the layout of a test case. Every subdirectory
+ * is a test case, so a new test case can be added without changing this file.
  *
  * <p>By default, the program under test is this implementation, run in a new JVM. If system
  * property {@code e2e.command} is set to a non-blank value, the test cases instead run that
@@ -75,9 +74,13 @@ final class EndToEndTest {
    * internals.
    */
   private static final List<String> addExportsArgs =
-      Arrays.stream(new String[] {"api", "code", "file", "parser", "tree", "util"})
-          .map(pkg -> "--add-exports=jdk.compiler/com.sun.tools.javac." + pkg + "=ALL-UNNAMED")
-          .toList();
+      List.of(
+          "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED");
 
   /** How long to wait for the program to terminate, in seconds. */
   private static final int timeoutSeconds = 120;
@@ -126,8 +129,8 @@ final class EndToEndTest {
    *     directory
    * @param workingDir the directory in which to run the program
    * @param captureDir a directory that holds the program's standard input, standard output, and
-   *     standard error, and git's configuration file; it is separate from {@code workingDir} so that these files
-   *     are not mistaken for files that the program wrote
+   *     standard error, and git's configuration file; it is separate from {@code workingDir} so
+   *     that these files are not mistaken for files that the program wrote
    * @throws Exception if the test case cannot be read or the program cannot be run
    */
   @ParameterizedTest(name = "{0}")
@@ -333,8 +336,8 @@ final class EndToEndTest {
   /**
    * Fails if what the program wrote to standard output or standard error is not what the test case
    * says it should be. The test case gives either the whole text (in {@code goal-STREAM.txt}) or a
-   * prefix of it (in {@code goal-STREAM-prefix.txt}). If it gives neither, the program should
-   * write nothing to the stream.
+   * prefix of it (in {@code goal-STREAM-prefix.txt}). If it gives neither, the program should write
+   * nothing to the stream.
    *
    * @param caseDir a test case directory
    * @param stream "stdout" or "stderr"
@@ -353,8 +356,7 @@ final class EndToEndTest {
       }
       assertTrue(
           actual.startsWith(prefix),
-          context
-              + "  %s should start with:%n%s%nbut was:%n%s".formatted(stream, prefix, actual));
+          context + "  %s should start with:%n%s%nbut was:%n%s".formatted(stream, prefix, actual));
       return;
     }
     Path goalFile = caseDir.resolve("goal-" + stream + ".txt");
@@ -389,7 +391,7 @@ final class EndToEndTest {
         context + "  Wrong files in the working directory.");
     for (Map.Entry<String, Path> expectedFile : expectedFiles.entrySet()) {
       String name = expectedFile.getKey();
-      @Nullable Path actualFile = actualFiles.get(name);
+      Path actualFile = actualFiles.get(name);
       if (actualFile == null) {
         throw new Error("This can't happen: " + name);
       }

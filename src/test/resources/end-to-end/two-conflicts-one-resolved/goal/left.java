@@ -1,11 +1,5 @@
 class C {
-<<<<<<< OURS
-  void m(@Nullable String s) {}
-||||||| BASE
-  void m(String s) {}
-=======
-  void m(@NonNull String s) {}
->>>>>>> THEIRS
+  @Deprecated void m(@Nullable String s) {}
 
   void n() {
 <<<<<<< OURS
