@@ -1,1 +1,1 @@
-When the two edits add different annotations at the same position, the conflict is not resolved, even though the only textual difference is in annotations.
+BUG: The two edits add different annotations at the same position.  README-java-annotations.md says that the annotations merger resolves a conflict when the only textual difference is in annotations, so the merger should keep both annotations.  Instead, the conflict remains.

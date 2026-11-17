@@ -3,5 +3,12 @@ import java.util.Map;
 
 class C {
   List<String> l;
-  Map<String, String> m;
+
+  void a(Map<String, String> m) {}
+
+  void spacer1() {}
+
+  void spacer2() {}
+
+  void b() {}
 }

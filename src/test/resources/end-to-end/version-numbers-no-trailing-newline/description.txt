@@ -1,1 +1,1 @@
-The conflicting line is the last line of the file and has no line terminator.  The version-numbers merger resolves the conflict, and the result has no final line terminator.
+BUG: The conflicting line is the last line of the file, and in all three versions it has no line terminator.  The version-numbers merger resolves the conflict.  The result should have no final line terminator.  Instead, it ends with a line terminator, because the merger uses the conflict's sections, to which "git merge-file" added line terminators before the conflict markers.
