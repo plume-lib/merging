@@ -1,0 +1,1 @@
+An import that was renamed (deleted and replaced by an import of the same simple name from a different package) is not re-inserted.

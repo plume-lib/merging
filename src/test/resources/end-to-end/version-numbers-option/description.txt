@@ -1,0 +1,1 @@
+The --version-numbers option enables the version-numbers merger, which is already enabled by default.

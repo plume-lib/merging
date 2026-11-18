@@ -1,0 +1,5 @@
+BUG: The example in README-java-imports.md: imports are unioned, an import that a clean merge removed is re-inserted, and unneeded imports are removed.  The merged imports should be in the sorted order that the README shows.  Instead, the re-inserted import E.e is not in sorted order:  it appears between B.b and C.c.
+
+This is the same as test case imports-readme-example, but with the left and right versions swapped.
+
+See https://github.com/plume-lib/merging/issues/436.

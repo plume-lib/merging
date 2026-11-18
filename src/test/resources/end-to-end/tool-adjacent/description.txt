@@ -1,0 +1,1 @@
+As a merge tool, the adjacent-lines merger resolves a conflict between edits to adjacent lines.

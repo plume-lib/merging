@@ -1,0 +1,1 @@
+In mode tool, the merged file has a merge-style conflict, which has no base section, in the import statements:  each edit adds a different import statement, and a use of it elsewhere.  The imports merger resolves the conflict.

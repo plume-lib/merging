@@ -1,0 +1,1 @@
+In mode tool, the --git-merge-file option has no effect:  the program does not run "git merge-file", but improves the merged file that it is given.

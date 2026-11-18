@@ -1,0 +1,3 @@
+One edit renames a class and updates the import statements that import it; the other edit adds a method.  The imports merger does not re-insert the imports of the old name.
+
+This is the same as test case imports-renamed-class, but with the left and right versions swapped.

@@ -1,0 +1,3 @@
+BUG: The files use CR LF line separators.  As in test case imports-clean-merge-loses-import, the imports merger re-inserts an import that the clean merge lost.  The re-inserted line should end with CR LF, like the rest of the file.  Instead, it ends with LF (the platform's line separator).
+
+See https://github.com/plume-lib/merging/issues/432.

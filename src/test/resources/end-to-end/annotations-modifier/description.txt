@@ -1,0 +1,1 @@
+Modifiers such as "final" are merged just as annotations are.

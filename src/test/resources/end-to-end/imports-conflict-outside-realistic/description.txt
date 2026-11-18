@@ -1,0 +1,1 @@
+A realistic file with conflicts in code as well as in import statements.  The imports merger does nothing.

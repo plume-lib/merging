@@ -1,0 +1,1 @@
+Each edit adds an import statement and a method that uses the imported class.  "git merge-file" reports a conflict in the import statements, which the imports merger resolves by keeping both imports.

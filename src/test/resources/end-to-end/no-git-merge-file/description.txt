@@ -1,0 +1,1 @@
+With --no-git-merge-file, the merge driver does not run "git merge-file" but resolves the conflicts that are already in the current file.

@@ -1,0 +1,1 @@
+The file has two conflicts.  The annotations merger resolves the one in which the edits add annotations, and leaves the one in which the edits change code.

@@ -1,0 +1,6 @@
+tool
+--only-java-annotations
+C_LOCAL_1234.java
+C_BASE_1234.java
+C_REMOTE_1234.java
+C.java

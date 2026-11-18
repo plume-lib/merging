@@ -1,0 +1,1 @@
+With --verbose in mode tool, the program prints its configuration and then which mergers it calls.

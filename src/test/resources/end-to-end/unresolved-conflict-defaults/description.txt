@@ -1,0 +1,1 @@
+Both edits change the same line of code differently.  No default merger resolves the conflict, so the result is that of "git merge-file --diff3", and the exit status is 1.

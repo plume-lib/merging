@@ -1,0 +1,3 @@
+Version numbers are compared componentwise and numerically, not lexicographically.
+
+This is the same as test case version-numbers-numeric-compare, but with the left and right versions swapped.

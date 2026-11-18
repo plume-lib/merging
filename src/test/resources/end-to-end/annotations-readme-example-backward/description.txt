@@ -1,0 +1,3 @@
+The example in README-java-annotations.md: one edit adds an annotation and both change a modifier.
+
+This is the same as test case annotations-readme-example, but with the left and right versions swapped.

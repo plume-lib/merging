@@ -1,0 +1,1 @@
+One edit removes an import along with its use; the other edit adds a use.  The clean merge would lack a needed import, so the imports merger re-inserts it.

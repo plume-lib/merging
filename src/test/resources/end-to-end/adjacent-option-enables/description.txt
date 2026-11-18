@@ -1,0 +1,3 @@
+BUG: The --adjacent option should enable the adjacent-lines merger (along with the default mergers), so the conflict should be resolved.  Instead, --adjacent and --no-adjacent have the opposite of their documented meanings, and the conflict remains.
+
+See https://github.com/plume-lib/merging/issues/430.

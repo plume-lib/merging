@@ -1,0 +1,1 @@
+A merge tool takes 4 file arguments, not 5.  The command line cannot be parsed.

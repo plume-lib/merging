@@ -1,0 +1,3 @@
+The two edits add different static imports.
+
+This is the same as test case imports-static, but with the left and right versions swapped.

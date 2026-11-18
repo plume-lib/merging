@@ -1,0 +1,1 @@
+A file whose last line has no line terminator is merged, and the result has no final line terminator.

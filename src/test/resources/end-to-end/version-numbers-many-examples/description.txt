@@ -1,0 +1,1 @@
+A text file of many small examples, in most of which both edits change a number.  The version-numbers merger resolves the conflicts in which both edits increase a version number, and leaves the others, such as those in which a number has no dot or in which one edit decreases the version number.

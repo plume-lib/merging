@@ -1,0 +1,3 @@
+All three versions of the file are identical.  The imports merger leaves the file unchanged.
+
+This is the same as test case imports-no-edits, but with the left and right versions swapped.

@@ -1,0 +1,3 @@
+One edit replaces several import statements by a wildcard import; the other edit changes code.  The imports merger re-inserts the removed single-type imports, because the merged file uses them, in addition to the wildcard import.
+
+This is the same as test case imports-replaced-by-wildcard, but with the left and right versions swapped.

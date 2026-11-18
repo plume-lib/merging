@@ -1,0 +1,1 @@
+In a table of data, one edit changes the trailing comments of many rows and inserts a row; the other edit inserts the same row.  The adjacent-lines merger resolves the conflict.

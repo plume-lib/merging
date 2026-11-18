@@ -1,0 +1,1 @@
+In mode tool, the merged file has a merge-style conflict, which has no base section.  The adjacent-lines merger needs the base section, so the program prints an error message and exits with status 129, without writing the merged file.

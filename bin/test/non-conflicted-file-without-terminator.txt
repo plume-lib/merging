@@ -1,4 +1,0 @@
-This file
-has no conflicts
-and no terminator
-on the last line

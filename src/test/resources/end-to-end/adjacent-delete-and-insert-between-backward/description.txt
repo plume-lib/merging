@@ -1,0 +1,3 @@
+One edit deletes two lines; the other inserts a line between those two lines.  The adjacent-lines merger leaves the conflict.
+
+This is the same as test case adjacent-delete-and-insert-between, but with the left and right versions swapped.

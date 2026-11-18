@@ -1,0 +1,1 @@
+In mode tool, the merged file has a merge-style conflict, which has no base section.  The annotations merger resolves it.

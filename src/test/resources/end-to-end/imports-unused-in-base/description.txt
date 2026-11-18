@@ -1,0 +1,1 @@
+The merge does not affect the imports, but the imports merger removes an unused import that is in all three versions of the file.

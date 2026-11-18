@@ -1,36 +1,142 @@
 # End-to-end test cases
 
-Each directory here is one test case for `EndToEndTest.java`, which runs the
-program in a subprocess and examines only the program's output:  the file that
-the program writes, its standard output, its standard error, and its exit
-status.
+This directory holds the data for the end-to-end tests of `plumelib-merge`, the
+program that acts as a git merge driver or git merge tool.  The test data is
+independent of any implementation language:  a test harness written in any
+language can run these test cases against any implementation of the program.
+`src/test/java/org/plumelib/merging/EndToEndTest.java` is the harness for the
+Java implementation.
 
-## File naming conventions
+Each subdirectory of this directory is one test case; the name of the
+subdirectory is the name of the test case.  A test case runs the program once
+and compares everything that the program produced to goal files.  To add a test
+case, add a subdirectory; no harness code needs to change.
 
-Within a test case directory, `EXT` is the file extension (such as `.java`,
-`.txt`, or `.gradle`) of the files being merged.  All the files being merged
-have the same extension.
+## The program's command line
 
-| File name | Meaning |
+The program's command-line arguments are, in order:
+
+* the mode:  `driver` or `tool`;
+* zero or more options, such as `--only-adjacent` or `--no-java-imports`;
+* for mode `driver`, three file names:  the current (left, ours) file, the base
+  file, and the other (right, theirs) file.  The program overwrites the current
+  file with the merge result.  Unless option `--no-git-merge-file` is given,
+  the program first runs `git merge-file --diff3` on the three files;
+* for mode `tool`, four file names:  the local (left, ours) file, the base file,
+  the remote (right, theirs) file, and the merged file, which contains the
+  result of an earlier merge, possibly with conflict markers.  The program
+  overwrites the merged file with an improved merge result.
+
+The program's exit status is 0 if the result has no conflict, 1 if the result
+has a conflict, 129 if the arguments are inconsistent or name an unreadable
+file, and 2 if the command line cannot be parsed at all.
+
+## Files in a test case directory
+
+| File | Meaning |
 | --- | --- |
-| `base`*EXT* | the base version of the file |
-| `left`*EXT* | the left (also known as "current" or "ours") version |
-| `right`*EXT* | the right (also known as "other" or "theirs") version |
-| `merged`*EXT* | the conflicted merge that git produced; an input to the merge tool |
-| `goal`*EXT* | the file that the program should write |
-| `goal-backward`*EXT* | the file that the program should write, when the left and right versions are swapped |
-| `goal-`*NAME**EXT* | the file that the program should write, for the run named *NAME* (for example, with different command-line arguments) |
-| `goal-stdout.txt` | what the program should print to standard output; if absent, the program should print nothing |
-| `goal-stderr.txt` | what the program should print to standard error; if absent, the program should print nothing |
+| `description.txt` | Required.  What the test case checks.  The harness ignores this file.  A description that starts with "BUG:" describes a way in which the program behaves differently than it should; the goal files record what the program currently does. |
+| `args.txt` | Required.  The program's command-line arguments, one per line, starting with the mode.  Empty lines are ignored.  An empty file means no arguments. |
+| `input/` | Files that the harness copies into the working directory before running the program.  The file names in `args.txt` refer to these files, relative to the working directory. |
+| `goal/` | Files that should be in the working directory after the program runs, in addition to the files of `input/`, or in place of the same-named files of `input/`.  Usually it holds the file that the program overwrote. |
+| `goal-stdout.txt` | What the program should write to standard output. |
+| `goal-stdout-prefix.txt` | What the program's standard output should start with. |
+| `goal-stdout-contains.txt` | Lines of text that the program's standard output should contain. |
+| `goal-stderr.txt` | What the program should write to standard error. |
+| `goal-stderr-prefix.txt` | What the program's standard error should start with. |
+| `goal-stderr-contains.txt` | Lines of text that the program's standard error should contain. |
+| `goal-status.txt` | The program's exit status, as a decimal integer.  If this file is absent, the exit status should be 0. |
 
-A test that swaps the left and right versions of the file uses goal file
-`goal-backward`*EXT* if the test case directory contains one, and `goal`*EXT*
-otherwise.  Most mergers produce the same result no matter which version is the
-left one; the exception is that git's conflict markers list the versions in the
-order they were given.
+A test case has at most one goal file for standard output (`goal-stdout.txt`,
+`goal-stdout-prefix.txt`, or `goal-stdout-contains.txt`), and at most one for
+standard error.  If it has none, the program should write nothing to that
+stream.
 
-The program's exit status is not stored in a file:  it is 1 if the goal file
-contains a conflict marker, and 0 if it does not.
+A `*-prefix.txt` file is used where the full output would be brittle, as for
+diagnostic output that contains the names of temporary files.  The final line
+separator of a `*-prefix.txt` file is not part of the prefix, so a prefix can
+end in the middle of a line.
 
-Directory `cli-args` is different from the others:  its goal files hold the
-messages that the program prints when its command-line arguments are erroneous.
+A `*-contains.txt` file is used where the exact text of the output is up to the
+implementation, as for a usage message, an error message that a command-line
+parsing library generates, or a crash report.  The output must not be empty,
+and each non-empty line of the `*-contains.txt` file must occur somewhere in
+the output, such as the name of an argument that the program rejected.  An
+empty `*-contains.txt` file requires only that the output not be empty.
+
+The harness rejects a test case directory that lacks a required file or that
+contains any file not listed above.
+
+## Text that is specific to the Java implementation
+
+The goal files check messages that the program itself prints, word for word,
+even where those messages contain names from the Java implementation, such as
+`JavaAnnotationsMerger:` at the start of a message about an unparsable merged
+file, or `java_annotations=true` in the configuration that `--verbose`
+prints.  An implementation in another language must print the same text.
+
+No goal file checks text that the Java implementation's libraries or runtime
+generate, such as a usage message, a command-line parsing error, the name of an
+exception class, or a stack trace.
+
+## How to run a test case
+
+1. Create a fresh, empty working directory.  It must not be inside a git
+   repository.
+2. Copy the contents of `input/`, if it exists, into the working directory.
+3. Run the program in the working directory, passing the arguments in
+   `args.txt`.  Standard input is an empty file.  The program's standard
+   output and standard error go to files outside the working directory.  The
+   environment is the harness's environment, with these changes.  The first
+   four isolate the `git` program (which the program runs) from the user's
+   configuration:
+   * remove every variable whose name starts with `GIT_`;
+   * set `GIT_CONFIG_NOSYSTEM` to `1`;
+   * set `GIT_CONFIG_GLOBAL` to the name of an empty file outside the working
+     directory;
+   * set `GIT_CEILING_DIRECTORIES` to the parent of the working directory;
+   * set `TMPDIR` to an empty directory outside the working directory, which
+     the harness deletes afterward.  With `--verbose`, the program leaves a
+     backup file in its temporary-file directory.  The Java implementation
+     ignores `TMPDIR`, so the harness runs it with the system property
+     `java.io.tmpdir` set to the same directory.
+4. Compare the results to the goal files.  The test case passes if all of
+   these hold:
+   * The exit status equals the contents of `goal-status.txt` (or 0).
+   * Standard output and standard error are as described above (a whole
+     text, a prefix, or contained lines).  Before comparison, each CR LF in
+     the output and in the goal file is replaced by LF, because the program
+     ends each line that it prints with the platform's line separator.
+   * The working directory contains exactly the files of `input/` and
+     `goal/`, no more and no fewer.  Each file whose name is in `goal/` is
+     identical to that goal file; each other file is identical to the file of
+     the same name in `input/`.  These comparisons are of bytes:  there is no
+     normalization of line separators or anything else.
+
+The program writes temporary files elsewhere, such as in the system's temporary
+directory; the harness ignores those.
+
+The goal files assume a platform whose line separator is LF:  where the program
+generates a line, such as a conflict marker that it writes itself, it ends the
+line with the platform's line separator.
+
+## How the test data was made
+
+In mode `tool`, the merged file in `input/` is usually the output of `git
+merge-file` on the left, base, and right files, as in `git merge-file -p
+--diff3 -L OURS -L BASE -L THEIRS left.java base.java right.java >
+merged.java`.  A test case of a merge-style conflict (with no base section)
+omits `--diff3`.
+
+Many test cases come in pairs:  test case `NAME-backward` is the same as test
+case `NAME`, but with the current and other versions swapped.  Most mergers give
+the same result in both directions, except that conflict markers list the
+current version first.
+
+## Line separators and whitespace in the test data
+
+These files are test data, so their exact bytes matter:  some of them
+intentionally lack a final line separator, have trailing whitespace, or use
+CR LF line separators.  `prek.toml` excludes this directory from the hooks
+that would "fix" such things, and `.gitattributes` turns off line-ending
+conversion for it.

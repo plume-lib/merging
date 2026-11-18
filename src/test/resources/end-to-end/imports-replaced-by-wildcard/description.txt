@@ -1,0 +1,1 @@
+One edit replaces several import statements by a wildcard import; the other edit changes code.  The imports merger re-inserts the removed single-type imports, because the merged file uses them, in addition to the wildcard import.

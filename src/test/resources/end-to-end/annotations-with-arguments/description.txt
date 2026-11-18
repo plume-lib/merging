@@ -1,0 +1,1 @@
+One edit adds an annotation whose argument is an array; the other edit adds an annotation to a formal parameter.  The annotations merger keeps both.

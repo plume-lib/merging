@@ -1,0 +1,3 @@
+The merge does not affect the imports, but the imports merger removes an unused import that is in all three versions of the file.
+
+This is the same as test case imports-unused-in-base, but with the left and right versions swapped.

@@ -1,0 +1,3 @@
+The imports merger does nothing if any conflict is outside the import statements.
+
+This is the same as test case imports-conflict-outside, but with the left and right versions swapped.

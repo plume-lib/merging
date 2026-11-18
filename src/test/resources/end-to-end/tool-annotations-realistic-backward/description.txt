@@ -1,0 +1,3 @@
+As a merge tool, the annotations merger resolves two conflicts in a realistic file, in which the edits add different annotations.
+
+This is the same as test case tool-annotations-realistic, but with the left and right versions swapped.

@@ -1,0 +1,1 @@
+When one edit decreases the version number, the conflict is not resolved.

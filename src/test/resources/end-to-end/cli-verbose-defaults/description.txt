@@ -1,0 +1,1 @@
+With --verbose, the program first prints its configuration:  which mergers are enabled.  By default, all mergers except the adjacent-lines merger are enabled.  The rest of the verbose output is diagnostics that this test case does not check, except that the program also prints diagnostics to standard error.

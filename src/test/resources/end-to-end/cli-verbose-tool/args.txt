@@ -1,0 +1,7 @@
+tool
+--verbose
+--only-adjacent
+left.java
+base.java
+right.java
+merged.java

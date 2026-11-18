@@ -11,9 +11,9 @@ plumelib_jarfile="${plumelib_rootdir}/build/libs/merging-all.jar"
 # If PLUMELIB_MERGE_EXECUTABLE is set, it names the native executable to run, and
 # setting PLUMELIB_MERGE_EXECUTABLE to the empty string forces use of the fat jar.
 # If PLUMELIB_MERGE_EXECUTABLE is unset, the native executable in its default
-# location is used, if one has been built there.  Gradle's `runMakefileTests`
-# task sets PLUMELIB_MERGE_EXECUTABLE, so that the tests cannot silently run a
-# stale executable that a previous build left behind.
+# location is used, if one has been built there.  Setting
+# PLUMELIB_MERGE_EXECUTABLE ensures that a caller cannot silently run a stale
+# executable that a previous build left behind.
 if [ -n "${PLUMELIB_MERGE_EXECUTABLE+x}" ]; then
   plumelib_executable="$PLUMELIB_MERGE_EXECUTABLE"
   if [ -n "$plumelib_executable" ] && [ ! -x "$plumelib_executable" ]; then
@@ -53,10 +53,9 @@ run_plumelib_merge() {
     fi
     "$plumelib_executable" "$plumelib_subcommand" "$@"
   else
-    # Diagnose a missing fat jar here.  Otherwise the failure surfaces only as an
-    # unexpected merge result, because callers such as src/test/resources/Makefile
-    # ignore this script's exit status; `java` would merely report that it cannot
-    # load org.plumelib.merging.Main, without saying which file is absent.
+    # Diagnose a missing fat jar here.  Otherwise `java` would merely report that
+    # it cannot load org.plumelib.merging.Main, without saying which file is
+    # absent.
     if [ ! -f "$plumelib_jarfile" ]; then
       echo "$0: found no fat jar at $plumelib_jarfile; run: ./gradlew shadowJar" >&2
       exit 2
@@ -65,9 +64,9 @@ run_plumelib_merge() {
     # The fat jar's class files require Java 21 or later.
     #
     # PLUMELIB_MERGE_JAVA_HOME, when it is set and nonempty, names the Java
-    # installation to use and overrides both variables below.  Gradle's
-    # `runMakefileTests` task sets it, so that the tests do not depend on
-    # whatever JAVA_HOME or JAVA21_HOME the developer's environment defines.
+    # installation to use and overrides both variables below.  Setting it makes
+    # this script independent of whatever JAVA_HOME or JAVA21_HOME the
+    # environment defines.
     #
     # Otherwise, JAVA21_HOME, when it is set and nonempty, names a Java 21
     # installation to use.  The comparison to JAVA_HOME only chooses
@@ -102,8 +101,7 @@ run_plumelib_merge() {
     # Diagnose a missing Java here, for the same reason as the missing fat jar
     # above.  Name the variable that supplied the bad directory, rather than
     # listing every variable that might have; the one at fault is the one the
-    # user needs to correct, and it is often PLUMELIB_MERGE_JAVA_HOME, which
-    # Gradle rather than the user sets.
+    # user needs to correct.
     if [ -z "$plumelib_java_command" ] || [ ! -x "$plumelib_java_command" ]; then
       if [ -n "$plumelib_java_home" ]; then
         echo "$0: $plumelib_java_home_source does not name a Java installation: no executable $plumelib_java_command" >&2

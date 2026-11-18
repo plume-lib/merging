@@ -1,0 +1,5 @@
+Grocery list:
+  apples
+  blueberries
+  cherries
+  dates

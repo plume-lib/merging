@@ -1,0 +1,1 @@
+Both edits remove the same static import statements and make other, different changes to the imports.  The imports merger resolves the conflict.

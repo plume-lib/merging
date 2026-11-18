@@ -1,0 +1,3 @@
+One edit deletes a line and the other edits the adjacent line; the adjacent-lines merger resolves the conflict.
+
+This is the same as test case adjacent-delete-and-edit, but with the left and right versions swapped.

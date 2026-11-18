@@ -1,0 +1,1 @@
+Both edits change many import lines, producing many conflicts.  The adjacent-lines merger resolves all of them but one, in which both edits insert different lines at the same place.

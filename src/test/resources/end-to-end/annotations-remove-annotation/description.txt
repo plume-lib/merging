@@ -1,0 +1,1 @@
+One edit removes an annotation and the other edit adds a different annotation to the same line.  The annotations merger compares only the two edited versions, not the base version, and retains every annotation that either one has, so it keeps the removed annotation.

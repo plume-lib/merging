@@ -1,0 +1,3 @@
+BUG: The two edits add different annotations at the same position.  README-java-annotations.md says that the annotations merger resolves a conflict when the only textual difference is in annotations, so the merger should keep both annotations.  Instead, the conflict remains.
+
+See https://github.com/plume-lib/merging/issues/435.

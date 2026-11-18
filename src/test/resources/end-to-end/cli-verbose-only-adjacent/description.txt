@@ -1,0 +1,1 @@
+With --verbose, the program first prints its configuration.  An --only-* option disables all the other mergers.  Then the program prints the status of "git merge-file" and which merger it calls.  Here the merge is clean, so the adjacent-lines merger has nothing to do.

@@ -1,0 +1,1 @@
+As a merge tool, the annotations merger resolves two conflicts in a realistic file, in which the edits add different annotations.

@@ -1,0 +1,1 @@
+When the base file's name contains "_BASE_" (as it does when git runs a merge tool), the merge tool also writes its result to the file whose name has "_BACKUP_" in its place, because git discards the merged file when the merge tool exits with a non-zero status.

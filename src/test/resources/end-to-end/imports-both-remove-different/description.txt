@@ -1,0 +1,1 @@
+Each edit removes a different import statement along with its use.  "git merge-file" merges cleanly, and the imports merger does not re-insert either removed import, because neither is needed.

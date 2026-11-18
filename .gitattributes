@@ -6,3 +6,6 @@
 
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
+
+# End-to-end test data, whose exact bytes (including line separators) matter.
+/src/test/resources/end-to-end/** -text

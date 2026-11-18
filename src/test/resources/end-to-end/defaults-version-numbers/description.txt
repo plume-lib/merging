@@ -1,0 +1,1 @@
+With no options, the version-numbers merger runs.

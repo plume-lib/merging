@@ -1,0 +1,3 @@
+The two edits change the same line differently, so the adjacent-lines merger leaves the conflict.  The conflict markers list the current (left) version first.
+
+This is the same as test case adjacent-same-line, but with the left and right versions swapped.

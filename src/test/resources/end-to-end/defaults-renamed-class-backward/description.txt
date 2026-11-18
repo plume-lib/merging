@@ -1,0 +1,3 @@
+The same inputs as test case imports-renamed-class, run with the default mergers.
+
+This is the same as test case defaults-renamed-class, but with the left and right versions swapped.

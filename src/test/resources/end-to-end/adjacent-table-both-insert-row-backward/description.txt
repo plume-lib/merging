@@ -1,0 +1,3 @@
+In a table of data, one edit changes the trailing comments of many rows and inserts a row; the other edit inserts the same row.  The adjacent-lines merger resolves the conflict.
+
+This is the same as test case adjacent-table-both-insert-row, but with the left and right versions swapped.

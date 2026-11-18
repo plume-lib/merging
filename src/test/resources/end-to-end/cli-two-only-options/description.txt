@@ -1,0 +1,1 @@
+At most one --only-* option is permitted.

@@ -1,0 +1,1 @@
+One edit renames a class and updates the import statements that import it; the other edit adds a method.  The imports merger does not re-insert the imports of the old name.

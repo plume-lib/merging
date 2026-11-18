@@ -1,0 +1,1 @@
+In mode tool, the merged file was produced by "git merge-file --zdiff3", which moves lines that both edits add out of the conflict.  The annotations merger resolves the conflict.

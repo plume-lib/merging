@@ -1,0 +1,1 @@
+A merge driver takes 3 file arguments, not 4.  The program prints a message to both standard output and standard error, and does not modify any file.

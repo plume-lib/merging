@@ -1,0 +1,1 @@
+The two edits increase a version number to versions with different numbers of components.  The version-numbers merger chooses the larger one, 2.0.1.

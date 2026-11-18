@@ -36,7 +36,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
       # -PtestNative makes `check` build the native executable and makes the
-      # Makefile tests run that executable rather than the fat jar.
+      # end-to-end tests run that executable rather than the Java classes.
       # The "spotless" job in gradle.yml performs the formatting checks, which do not depend on the
       # Java version, so running them here too would be wasted work.
       - name: ./gradlew check -PtestNative

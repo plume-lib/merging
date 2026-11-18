@@ -201,80 +201,40 @@ tasks.named<JacocoReport>("jacocoTestReport") {
   }
 }
 
-tasks.register<Exec>("runMakefileTests") {
-  group = "verification"
-  description = "Run tests defined in Makefile."
-  // The Makefile's tests run the shell scripts in src/main/sh, which use either
-  // the fat jar or the native executable.
-  dependsOn("shadowJar")
-  // Testing the native executable is opt-in, via -PtestNative, because building
-  // it takes minutes.  Do not instead test whether the native executable
-  // already exists: that would make the task graph depend on the results of
-  // previous builds, so that `./gradlew check` behaves differently on a clean
-  // checkout than on a tree where someone once ran `nativeCompile`.
-  val testNative = project.hasProperty("testNative")
+// The end-to-end tests (src/test/java/org/plumelib/merging/EndToEndTest.java) run, as a separate
+// process, the program named by system property "e2e.command", or this implementation in a new JVM
+// if the property is empty.  Gradle property "e2e.command" sets it, so that the end-to-end tests
+// can run another implementation, as in:
+//   ./gradlew test --tests org.plumelib.merging.EndToEndTest -Pe2e.command=/path/to/program
+// Under -PtestNative, the property names the native executable, which this build produces.
+// Testing the native executable is opt-in, because building it takes minutes.  Do not instead test
+// whether the native executable already exists:  that would make the task graph depend on the
+// results of previous builds.
+val testNative = project.hasProperty("testNative")
+val e2eCommand: Provider<String> =
+  providers
+    .gradleProperty("e2e.command")
+    .orElse(
+      if (testNative) {
+        // Ask "nativeCompile" for its output file rather than hard-coding the path, which would
+        // go stale if `imageName` or the plugin's output directory changed.
+        tasks
+          .named<BuildNativeImageTask>("nativeCompile")
+          .flatMap { it.outputFile }
+          .map { it.asFile.absolutePath }
+      } else {
+        providers.provider { "" }
+      }
+    )
+
+tasks.named<Test>("test") {
   if (testNative) {
     dependsOn("nativeCompile")
   }
-  // This task declares no inputs or outputs, so Gradle always runs it and never
-  // caches it.  That is intentional: the Makefile's rules do not create the
-  // files that name them, so the Makefile has no reliable up-to-date check of
-  // its own for Gradle to defer to.
-  //
-  // Tell the shell scripts which artifact to run, rather than letting them
-  // choose by probing for a native executable in its default location.  Without
-  // this, an executable left behind by an earlier `nativeCompile` would be
-  // tested in place of the fat jar that this task just built -- so `./gradlew
-  // check` would silently test stale code and still pass.  Ask "nativeCompile"
-  // for its output file rather than hard-coding the path, which would go stale
-  // if `imageName` or the plugin's output directory changed.
-  val nativeExecutable: Provider<String> =
-    if (testNative) {
-      tasks
-        .named<BuildNativeImageTask>("nativeCompile")
-        .flatMap { it.outputFile }
-        .map { it.asFile.absolutePath }
-    } else {
-      providers.provider { "" }
-    }
-  // Without PLUMELIB_MERGE_EXECUTABLE naming a native executable, the shell
-  // scripts run the fat jar under a Java installation.  Name that installation
-  // explicitly, so that the tests do not depend on whether the developer's
-  // environment happens to define JAVA_HOME or JAVA21_HOME.  Overriding
-  // JAVA_HOME would not suffice: an `Exec` task inherits the parent process's
-  // environment, and the shell scripts prefer JAVA21_HOME over JAVA_HOME
-  // whenever the two differ, so a stray JAVA21_HOME would still win.
-  //
-  // Under -PtestNative the scripts run the native executable and never consult
-  // PLUMELIB_MERGE_JAVA_HOME, so do not name a toolchain then; asking for one
-  // would download a JDK in order to ignore it.
-  val makefileJavaHome: Provider<String> =
-    if (testNative) {
-      providers.provider { "" }
-    } else {
-      javaToolchains
-        .launcherFor { languageVersion = testJavaVersion }
-        .map { it.metadata.installationPath.asFile.absolutePath }
-    }
-  // Set the environment in `doFirst`, so that merely configuring this task
-  // neither provisions a JDK nor forces "nativeCompile" to be configured.
-  doFirst {
-    environment("PLUMELIB_MERGE_EXECUTABLE", nativeExecutable.get())
-    environment("PLUMELIB_MERGE_JAVA_HOME", makefileJavaHome.get())
-  }
-  // SKIP_GRADLE tells the Makefile not to build the artifacts itself.  Gradle
-  // has already built them, per the dependencies above, and a nested Gradle
-  // invocation from within a running Gradle build contends for Gradle's locks.
-  commandLine("make", "-C", file("src/test/resources").absolutePath, "SKIP_GRADLE=1")
-  // The "test" task runs the JUnit tests, whose failure is more informative than system tests.
-  mustRunAfter(tasks.named("test"))
-  // Under -PtestNative, "nativeCompile" is a dependency, so it is already
-  // ordered first.  This ordering additionally covers a command line that names
-  // both tasks, such as `./gradlew nativeCompile check`.
-  mustRunAfter(tasks.named("nativeCompile"))
+  // Set the property in `doFirst`, so that merely configuring this task does not force
+  // "nativeCompile" to be configured.
+  doFirst { systemProperty("e2e.command", e2eCommand.get()) }
 }
-
-tasks.named("check") { dependsOn("runMakefileTests") }
 
 // Code formatting
 

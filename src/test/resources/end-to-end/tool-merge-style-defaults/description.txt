@@ -1,0 +1,3 @@
+BUG: In mode tool with the default mergers, the merged file has a merge-style conflict (with no base section) in a version number.  The program should leave the conflict, or resolve it using the base file.  Instead, the version-numbers merger throws an exception, which the program does not catch, and the program exits with status 1 and a stack trace, without writing the merged file.
+
+See https://github.com/plume-lib/merging/issues/431.

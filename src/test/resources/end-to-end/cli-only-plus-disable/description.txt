@@ -1,0 +1,1 @@
+An --only-* option can be combined with an option that disables a different merger, which is redundant.  Here --only-java-annotations resolves the conflict.

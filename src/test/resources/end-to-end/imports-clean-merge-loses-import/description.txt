@@ -1,0 +1,1 @@
+One edit removes a method and the import statement that only that method needed; the other edit adds a method that needs the import.  "git merge-file" merges cleanly but loses the import, which the imports merger re-inserts.

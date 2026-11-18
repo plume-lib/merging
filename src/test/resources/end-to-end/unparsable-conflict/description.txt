@@ -1,0 +1,1 @@
+A current file with unbalanced conflict markers is left alone, and the merger prints a message to both standard output and standard error.

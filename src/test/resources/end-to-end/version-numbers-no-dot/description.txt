@@ -1,0 +1,1 @@
+A version number has at least one dot, so the version-numbers merger does not resolve a conflict between edits that increase an integer.

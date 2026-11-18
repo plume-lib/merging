@@ -1,0 +1,1 @@
+In mode tool, the merged file has a conflict start marker with no matching end marker.  The program leaves the file alone and prints a message to both standard output and standard error.

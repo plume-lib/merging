@@ -1,0 +1,3 @@
+The two edits insert lines at different but adjacent places; the adjacent-lines merger resolves the conflict.
+
+This is the same as test case adjacent-insertions, but with the left and right versions swapped.

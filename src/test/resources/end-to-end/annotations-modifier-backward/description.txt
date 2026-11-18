@@ -1,0 +1,3 @@
+Modifiers such as "final" are merged just as annotations are.
+
+This is the same as test case annotations-modifier, but with the left and right versions swapped.
