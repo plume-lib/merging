@@ -40,4 +40,4 @@ jobs:
       # The "spotless" job in gradle.yml performs the formatting checks, which do not depend on the
       # Java version, so running them here too would be wasted work.
       - name: ./gradlew check -PtestNative
-        run: ./gradlew check -PtestNative -x spotlessCheck
+        run: .github/gradlew-retry.sh check -PtestNative -x spotlessCheck

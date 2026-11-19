@@ -24,13 +24,14 @@ jobs:
           check-latest: true
           cache: 'gradle'
       - name: ./gradlew spotlessCheck
-        run: ./gradlew spotlessCheck
+        run: .github/gradlew-retry.sh spotlessCheck
 
   build:
 
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         java: ['21', '25', '27-ea']
         include:
@@ -69,4 +70,4 @@ jobs:
       # they are in the tool cache rather than in a standard location.
       # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
+        run: .github/gradlew-retry.sh build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
