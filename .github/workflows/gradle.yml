@@ -23,14 +23,17 @@ jobs:
           java-version: '25'
           check-latest: true
           cache: 'gradle'
+      - name: Clone plume-scripts
+        run: git clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git "${{ runner.temp }}/plume-scripts"
       - name: ./gradlew spotlessCheck
-        run: ./gradlew spotlessCheck
+        run: ${{ runner.temp }}/plume-scripts/gradlew-retry spotlessCheck
 
   build:
 
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         java: ['21', '25', '27-ea']
         include:
@@ -65,8 +68,10 @@ jobs:
           java -version
           echo 'JVM that runs the tests:'
           "$JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }}/bin/java" -version
+      - name: Clone plume-scripts
+        run: git clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git "${{ runner.temp }}/plume-scripts"
       # Gradle does not auto-detect the JDKs that "setup-java" installs, because
       # they are in the tool cache rather than in a standard location.
       # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
+        run: ${{ runner.temp }}/plume-scripts/gradlew-retry build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
