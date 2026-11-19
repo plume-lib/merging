@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.regex.Pattern
 import net.ltgt.gradle.errorprone.errorprone
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
@@ -108,6 +109,38 @@ graalvmNative {
 
 // Compilation
 
+// True if the `errorProneFix` task was requested on the command line.  Then each compilation
+// rewrites its source files in place, applying Error Prone's suggested fixes.
+// This must be known when the build is configured, before Gradle builds its task graph, so it
+// examines the task names on the command line.  Gradle accepts not only a task's full name, but
+// also a case-insensitive variant (such as "errorpronefix") and a camel-case abbreviation (such
+// as "ePF" or "errorPr"), so recognize all of those.  An abbreviation that matches another task
+// as well is ambiguous, and Gradle rejects it.
+val errorProneFix =
+  gradle.startParameter.taskNames.any { requested ->
+    val name = requested.removePrefix(":")
+    if (name.isEmpty() || name.startsWith("-") || name.contains(":")) {
+      return@any false
+    }
+    // This mimics Gradle's NameMatcher: each camel-case part of the requested name must be a
+    // prefix of the corresponding part of the task name.
+    val regex = StringBuilder()
+    val boundary = Pattern.compile("""\b|\p{javaUpperCase}|\p{Digit}""").matcher(name)
+    var pos = 0
+    while (boundary.find()) {
+      if (boundary.start() > pos) {
+        regex.append(Pattern.quote(name.substring(pos, boundary.start())))
+        regex.append("""[\p{javaLowerCase}\p{Digit}]*""")
+      }
+      pos = boundary.start()
+    }
+    if (pos < name.length) {
+      regex.append(Pattern.quote(name.substring(pos)))
+      regex.append("""[\p{javaLowerCase}\p{Digit}]*""")
+    }
+    Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE).matcher("errorProneFix").lookingAt()
+  }
+
 java {
   toolchain {
     // Always compile using Java 21.  The "test" task below overrides this for
@@ -125,7 +158,10 @@ tasks.withType<JavaCompile>().configureEach {
   // from the JVM that runs Gradle.  That worker does not inherit the
   // `org.gradle.jvmargs` heap setting in gradle.properties, so set it here too.
   options.forkOptions.jvmArgs = (options.forkOptions.jvmArgs ?: emptyList()) + "-Xmx6g"
-  options.compilerArgs.add("-Werror")
+  // With -Werror, a warning stops javac before Error Prone applies its fixes.
+  if (!errorProneFix) {
+    options.compilerArgs.add("-Werror")
+  }
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
   options.compilerArgs.add("-Xlint:all,-processing,-this-escape")
 
@@ -277,7 +313,24 @@ tasks.withType<JavaCompile>().configureEach {
     disable("ReferenceEquality") // Use Interning Checker instead.
     // An external library, included as source because it is not on Maven Central.
     excludedPaths = ".*/diff_match_patch.java"
+
+    if (errorProneFix) {
+      errorproneArgs.add("-XepPatchLocation:IN_PLACE")
+    }
   }
+  if (errorProneFix) {
+    // Always run Error Prone, even if the compiled classes are up to date or cached.
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
+  }
+}
+
+tasks.register("errorProneFix") {
+  group = "verification"
+  description = "Applies Error Prone's suggested fixes to the source files."
+  dependsOn(tasks.withType<JavaCompile>())
+  // Error Prone's fixes are not formatted.
+  finalizedBy("spotlessJavaApply")
 }
 
 // PMD linter
@@ -296,6 +349,11 @@ tasks.named("pmdTest") {
 // Checker Framework pluggable type-checking
 
 checkerFramework {
+  // The `errorProneFix` task needs only Error Prone.  Also, a Checker Framework error would stop
+  // javac before Error Prone applies its fixes.
+  if (errorProneFix) {
+    skipCheckerFramework = true
+  }
   version = libs.versions.checker.framework.get()
   checkers =
     listOf(
