@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.regex.Pattern
 import net.ltgt.gradle.errorprone.errorprone
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
@@ -110,10 +111,34 @@ graalvmNative {
 
 // True if the `errorProneFix` task was requested on the command line.  Then each compilation
 // rewrites its source files in place, applying Error Prone's suggested fixes.
-// Gradle matches task names case-insensitively, so also recognize, say, "errorpronefix".
+// This must be known when the build is configured, before Gradle builds its task graph, so it
+// examines the task names on the command line.  Gradle accepts not only a task's full name, but
+// also a case-insensitive variant (such as "errorpronefix") and a camel-case abbreviation (such
+// as "ePF" or "errorPr"), so recognize all of those.  An abbreviation that matches another task
+// as well is ambiguous, and Gradle rejects it.
 val errorProneFix =
-  gradle.startParameter.taskNames.any {
-    it.replaceFirst(Regex("^:"), "").equals("errorProneFix", ignoreCase = true)
+  gradle.startParameter.taskNames.any { requested ->
+    val name = requested.removePrefix(":")
+    if (name.isEmpty() || name.startsWith("-") || name.contains(":")) {
+      return@any false
+    }
+    // This mimics Gradle's NameMatcher: each camel-case part of the requested name must be a
+    // prefix of the corresponding part of the task name.
+    val regex = StringBuilder()
+    val boundary = Pattern.compile("""\b|\p{javaUpperCase}|\p{Digit}""").matcher(name)
+    var pos = 0
+    while (boundary.find()) {
+      if (boundary.start() > pos) {
+        regex.append(Pattern.quote(name.substring(pos, boundary.start())))
+        regex.append("""[\p{javaLowerCase}\p{Digit}]*""")
+      }
+      pos = boundary.start()
+    }
+    if (pos < name.length) {
+      regex.append(Pattern.quote(name.substring(pos)))
+      regex.append("""[\p{javaLowerCase}\p{Digit}]*""")
+    }
+    Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE).matcher("errorProneFix").lookingAt()
   }
 
 java {
