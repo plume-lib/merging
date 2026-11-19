@@ -15,6 +15,16 @@ pluginManagement {
   if (JavaVersion.current() < JavaVersion.VERSION_21) {
     throw GradleException("Use Java 21 or later.")
   }
+
+  repositories {
+    // Declaring any repository here replaces the default, which is the Gradle Plugin Portal alone.
+    // Maven Central comes first.  The Gradle Plugin Portal serves a plugin that is published to
+    // Maven Central, such as com.vanniktech.maven.publish, by redirecting to Maven Central, and
+    // resolution through that redirect intermittently fails in CI.  Listing Maven Central first
+    // avoids the redirect.
+    mavenCentral()
+    gradlePluginPortal()
+  }
 }
 
 plugins {
